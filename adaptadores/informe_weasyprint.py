@@ -15,7 +15,9 @@ class InformeWeasyPrint(RepositorioInformes):
         return InformeScout(
             parcial=False,
             snapshot_version=ejecucion.snapshot_version,
-            ruta_pdf=None
+            ruta_pdf=None,
+            ejecucion_id=ejecucion.id,
+            markdown_content=None
         )
 
     def emitir(self, ejecucion: Ejecucion, insight: InsightDeMercado, parcial: bool) -> InformeScout:
@@ -151,5 +153,7 @@ class InformeWeasyPrint(RepositorioInformes):
         return InformeScout(
             parcial=parcial,
             snapshot_version=ejecucion.snapshot_version,
-            ruta_pdf=str(pdf_path)
+            ruta_pdf=str(pdf_path),
+            ejecucion_id=ejecucion.id,
+            markdown_content=contenido
         )

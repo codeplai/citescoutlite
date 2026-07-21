@@ -14,8 +14,10 @@ Demostrar el flujo completo de valor con un caso real (cáscara de mango) — no
 | Ingreso de insumo en lenguaje natural (SPA Vue 3) | Formulación (etapa 4) |
 | Interpretación + sinónimos ES/EN visibles | Precios (etapa 5) |
 | Búsqueda semántica sobre OFF + USDA filtrados a los 7 cultivos de la región | Verificación regulatoria (etapa 6) |
-| Insight de mercado con citas (fuente + fecha) por producto | Login/planes (demo con acceso directo) |
-| Informe descargable simple (HTML → PDF) | Panel institucional |
+| Insight de mercado con citas (fuente + fecha) por producto | Panel institucional avanzado |
+| Informe descargable simple (Generación PDF y descarga vía FileResponse) | |
+| Autenticación real con SQLite (tabla usuarios) | |
+| UI/UX con pantalla de carga dinámica, desglose de tokens (Entrada/Salida) y estilo institucional | |
 
 **Guard clause central (el momento clave de la demo):** si la etapa 2 encuentra 0-2 productos, el MVP emite un informe parcial honesto — "insumo poco explotado comercialmente = posible hueco de mercado" — en vez de forzar resultados. Es el caso real de la cáscara de mango y lo que construye confianza institucional.
 
@@ -105,7 +107,7 @@ agroscout-mvp/
 | openFDA (API) | N/A (Consultas en tiempo real) | Adaptador a API oficial de la FDA (EE.UU.) para ingredientes y aditivos |
 | Base documental propia (RAG) | ~50 MB (Guías de DIGESA, EFSA, Codex) | Descarga única y actualización periódica; búsqueda semántica propia |
 | Índice vectorial LanceDB | ~500 MB-1 GB | generado por el ETL |
-| SQLite local (estado de app) | ~MBs | historial de consultas, ejecuciones del DAG y **cache LLM** — el mismo cache alimenta el modo `--offline` de la demo |
+| SQLite local (estado de app) | ~MBs | historial de consultas, ejecución, tokens (Prompt/Completion), credenciales de usuario y cache LLM |
 
 ### 3.4 Cuentas y claves (variables de entorno)
 

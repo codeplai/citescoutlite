@@ -24,17 +24,17 @@
 
   <!-- ===== UI ===== -->
   <rect x="40" y="115" width="560" height="70" rx="8" fill="#f4f4f8" stroke="#7a7a9a"/>
-  <text x="320" y="140" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">SPA Vue 3 + Vite → FastAPI (solo transporte)</text>
-  <text x="320" y="158" text-anchor="middle" font-size="11" fill="#555">el mismo SPA sigue en producción con Go</text>
+  <text x="320" y="140" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">SPA Vue 3 + Vite → FastAPI (/consultas, /token, /informes)</text>
+  <text x="320" y="158" text-anchor="middle" font-size="11" fill="#555">UI CITE: Login real, pantalla de carga inmersiva, tokens detallados</text>
   <text x="320" y="173" text-anchor="middle" font-size="11" fill="#555">demo: Vite dev + uvicorn · piloto: build estático + Caddy</text>
   <line x1="220" y1="85" x2="270" y2="112" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
   <line x1="320" y1="185" x2="320" y2="221" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
 
   <!-- plan B offline -->
   <rect x="660" y="115" width="300" height="70" rx="8" fill="#fafafa" stroke="#999" stroke-dasharray="4 3"/>
-  <text x="810" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#777">Plan B de demo: --offline</text>
-  <text x="810" y="158" text-anchor="middle" font-size="11" fill="#777">respuestas cacheadas del set dorado</text>
-  <text x="810" y="173" text-anchor="middle" font-size="11" fill="#777">la demo no depende del wifi de la sala</text>
+  <text x="810" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#777">Base SQLite Completa</text>
+  <text x="810" y="158" text-anchor="middle" font-size="11" fill="#777">credenciales (Login), auditoría detallada (I/O tokens)</text>
+  <text x="810" y="173" text-anchor="middle" font-size="11" fill="#777">cache LLM para offline o rapidez</text>
 
   <!-- ===== DAG MVP ===== -->
   <rect x="40" y="225" width="1120" height="175" rx="8" fill="#e8f4e8" stroke="#2e7d32" stroke-width="1.5"/>
