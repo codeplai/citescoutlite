@@ -1,0 +1,18 @@
+[
+  {
+    "id_fuente": "OFF:OFF:999",
+    "nombre": "Mango Peel Powder",
+    "categoria": "Dietary supplements, Food ingredients",
+    "ingredientes": "100% dried mango peel",
+    "url": "https://world.openfoodfacts.org",
+    "usa_insumo_directo": true
+  },
+  {
+    "id_fuente": "OFF:OFF:888",
+    "nombre": "Mango & Fiber Bar",
+    "categoria": "Snacks, Sweet snacks",
+    "ingredientes": "Oats, honey, dried mango, mango peel extract, citric acid",
+    "url": "https://world.openfoodfacts.org",
+    "usa_insumo_directo": true
+  }
+]

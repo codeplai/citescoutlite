@@ -1,0 +1,10 @@
+[
+  {
+    "id_fuente": "USDA:123456",
+    "nombre": "Mango Peel Functional Drink",
+    "categoria": "Beverages",
+    "ingredientes": "Water, mango pulp, mango peel extract, ascorbic acid",
+    "url": "https://fdc.nal.usda.gov/fdc-app.html#/food-details/123456/nutrients",
+    "usa_insumo_directo": true
+  }
+]

@@ -1,0 +1,38 @@
+# Entornos virtuales
+.venv/
+env/
+venv/
+ENV/
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Variables de entorno
+.env
+.env.local
+
+# Bases de datos y almacenamiento local
+#vectores/
+#agroscout.db
+#agroscout.db-wal
+#agroscout.db-shm
+
+# Informes generados (Markdown y PDF)
+informes/*
+!informes/.gitkeep
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.code-workspace
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Scripts de prueba temporales
+scratch_test.py
+check_tokens.py

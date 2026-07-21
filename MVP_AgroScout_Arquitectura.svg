@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1565c0"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b8860b"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2e7d32"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="800" fill="#ffffff"/>
+  <text x="600" y="18" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">AgroScout IA Lite — MVP (Python) · etapas 1-3 del DAG + informe simple</text>
+
+  <!-- ===== USUARIO ===== -->
+  <rect x="40" y="35" width="360" height="50" rx="6" fill="#fff" stroke="#666"/>
+  <text x="220" y="57" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">Productor / Técnico CITE</text>
+  <text x="220" y="74" text-anchor="middle" font-size="11" fill="#555">demo en reunión → piloto con 2-3 cooperativas</text>
+
+  <!-- ===== UI ===== -->
+  <rect x="40" y="115" width="560" height="70" rx="8" fill="#f4f4f8" stroke="#7a7a9a"/>
+  <text x="320" y="140" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">SPA Vue 3 + Vite → FastAPI (solo transporte)</text>
+  <text x="320" y="158" text-anchor="middle" font-size="11" fill="#555">el mismo SPA sigue en producción con Go</text>
+  <text x="320" y="173" text-anchor="middle" font-size="11" fill="#555">demo: Vite dev + uvicorn · piloto: build estático + Caddy</text>
+  <line x1="220" y1="85" x2="270" y2="112" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="320" y1="185" x2="320" y2="221" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- plan B offline -->
+  <rect x="660" y="115" width="300" height="70" rx="8" fill="#fafafa" stroke="#999" stroke-dasharray="4 3"/>
+  <text x="810" y="140" text-anchor="middle" font-size="12" font-weight="bold" fill="#777">Plan B de demo: --offline</text>
+  <text x="810" y="158" text-anchor="middle" font-size="11" fill="#777">respuestas cacheadas del set dorado</text>
+  <text x="810" y="173" text-anchor="middle" font-size="11" fill="#777">la demo no depende del wifi de la sala</text>
+
+  <!-- ===== DAG MVP ===== -->
+  <rect x="40" y="225" width="1120" height="175" rx="8" fill="#e8f4e8" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="55" y="245" font-size="12" font-weight="bold" fill="#2e7d32">CASO DE USO EvaluarInsumo (recortado) — &lt; US$ 0.01 por consulta · contratos JSON Schema (futura referencia para Go)</text>
+
+  <g font-size="10.5">
+    <rect x="60" y="260" width="250" height="110" rx="6" fill="#fff" stroke="#2e7d32"/>
+    <text x="185" y="282" text-anchor="middle" font-weight="bold" font-size="12" fill="#1b5e20">1 · InterpretarInsumo</text>
+    <text x="185" y="304" text-anchor="middle" fill="#444">glm-4.7-flashx + instructor</text>
+    <text x="185" y="320" text-anchor="middle" fill="#444">sinónimos ES/EN visibles en la UI</text>
+    <text x="185" y="336" text-anchor="middle" fill="#444">JSON validado (Pydantic)</text>
+
+    <rect x="335" y="260" width="250" height="110" rx="6" fill="#fff" stroke="#1b5e20" stroke-width="2"/>
+    <text x="460" y="282" text-anchor="middle" font-weight="bold" font-size="12" fill="#1b5e20">2 · BuscarProductosSimilares</text>
+    <text x="460" y="304" text-anchor="middle" fill="#444">bge-m3 (CPU) + LanceDB</text>
+    <text x="460" y="320" text-anchor="middle" fill="#444">subset OFF + USDA · 7 cultivos</text>
+    <text x="460" y="336" text-anchor="middle" font-style="italic" fill="#888">sin LLM · 100% local</text>
+
+    <rect x="610" y="260" width="250" height="110" rx="6" fill="#fff" stroke="#2e7d32"/>
+    <text x="735" y="282" text-anchor="middle" font-weight="bold" font-size="12" fill="#1b5e20">3 · GenerarInsightDeMercado</text>
+    <text x="735" y="304" text-anchor="middle" fill="#444">glm-4.7 (Z.ai)</text>
+    <text x="735" y="320" text-anchor="middle" fill="#444">solo datos recuperados</text>
+    <text x="735" y="336" text-anchor="middle" fill="#444">citas: fuente + fecha por producto</text>
+
+    <rect x="885" y="260" width="250" height="110" rx="6" fill="#fff" stroke="#2e7d32"/>
+    <text x="1010" y="282" text-anchor="middle" font-weight="bold" font-size="12" fill="#1b5e20">4 · EmitirInformeSimple</text>
+    <text x="1010" y="304" text-anchor="middle" fill="#444">Jinja2 (HTML) → WeasyPrint (PDF)</text>
+    <text x="1010" y="320" text-anchor="middle" fill="#444">descargable desde la UI</text>
+    <text x="1010" y="336" text-anchor="middle" font-style="italic" fill="#888">sin LLM</text>
+  </g>
+  <line x1="310" y1="315" x2="333" y2="315" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="585" y1="315" x2="608" y2="315" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="860" y1="315" x2="883" y2="315" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <path d="M460,370 V385 H1010 V372" fill="none" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowGreen)"/>
+  <text x="560" y="382" font-size="10" fill="#2e7d32">guard: 0-2 productos → informe parcial honesto ("hueco de mercado") — momento clave de la demo</text>
+
+  <!-- ===== DATOS ===== -->
+  <rect x="40" y="440" width="1120" height="140" rx="8" fill="#e3f0fa" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="55" y="460" font-size="12" font-weight="bold" fill="#1565c0">DATOS LOCALES (archivos, sin servidores de BD) + SERVICIO EXTERNO</text>
+
+  <path d="M80,485 a130,11 0 0,1 260,0 v60 a130,11 0 0,1 -260,0 z" fill="#fff" stroke="#1565c0"/>
+  <ellipse cx="210" cy="485" rx="130" ry="11" fill="#fff" stroke="#1565c0"/>
+  <text x="210" y="512" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0d47a1">LanceDB + DuckDB</text>
+  <text x="210" y="530" text-anchor="middle" font-size="10.5" fill="#555">subset OFF (~1-2 GB) + USDA (~200 MB)</text>
+  <text x="210" y="545" text-anchor="middle" font-size="10.5" fill="#555">índice vectorial ~0.5-1 GB</text>
+
+  <rect x="390" y="480" width="240" height="80" rx="6" fill="#fff" stroke="#1565c0"/>
+  <text x="510" y="505" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0d47a1">Embeddings bge-m3</text>
+  <text x="510" y="524" text-anchor="middle" font-size="10.5" fill="#555">sentence-transformers · CPU</text>
+  <text x="510" y="540" text-anchor="middle" font-size="10.5" fill="#555">~2-3 GB RAM · sin GPU · gratis</text>
+
+  <rect x="670" y="480" width="240" height="80" rx="6" fill="#fff" stroke="#b8860b"/>
+  <text x="790" y="505" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#7a5c00">ETL inicial (una vez)</text>
+  <text x="790" y="524" text-anchor="middle" font-size="10.5" fill="#555">cargar_off.py · cargar_usda.py</text>
+  <text x="790" y="540" text-anchor="middle" font-size="10.5" fill="#555">indexado 1-3 h en CPU</text>
+
+  <rect x="950" y="480" width="190" height="80" rx="6" fill="#fff8e1" stroke="#b8860b" stroke-width="1.5"/>
+  <text x="1045" y="505" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#7a5c00">API Z.ai (GLM)</text>
+  <text x="1045" y="524" text-anchor="middle" font-size="10.5" fill="#555">glm-4.7-flashx · glm-4.7</text>
+  <text x="1045" y="540" text-anchor="middle" font-size="10.5" fill="#555">etapas 1 y 3 · US$ 5 sobran</text>
+
+  <!-- conectores -->
+  <path d="M460,400 V445 H210 V472" fill="none" stroke="#1565c0" stroke-width="1.5" marker-start="url(#arrowBlue)" marker-end="url(#arrowBlue)"/>
+  <path d="M390,520 H345" fill="none" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowBlue)"/>
+  <text x="352" y="514" font-size="9.5" fill="#1565c0">indexa</text>
+  <path d="M670,520 H645" fill="none" stroke="#b8860b" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+  <path d="M950,410 V445 H1045 V476" fill="none" stroke="#b8860b" stroke-width="1.5" marker-end="url(#arrowAmber)"/>
+  <text x="965" y="440" font-size="9.5" fill="#b8860b">etapas 1 · 3</text>
+
+  <!-- ===== REQUERIMIENTOS ===== -->
+  <rect x="40" y="615" width="1120" height="140" rx="8" fill="#faf3e3" stroke="#b8860b" stroke-width="1.5"/>
+  <text x="55" y="635" font-size="12" font-weight="bold" fill="#8a6508">REQUERIMIENTOS TÉCNICOS DEL MVP</text>
+
+  <g font-size="10.5">
+    <rect x="60" y="648" width="350" height="92" rx="6" fill="#fff" stroke="#b8860b"/>
+    <text x="235" y="668" text-anchor="middle" font-weight="bold" font-size="12" fill="#7a5c00">Desarrollo / demo (laptop)</text>
+    <text x="235" y="688" text-anchor="middle" fill="#555">4 núcleos · 16 GB RAM · 20 GB disco · sin GPU</text>
+    <text x="235" y="704" text-anchor="middle" fill="#555">Python 3.12 · FastAPI · instructor · lancedb ·</text>
+    <text x="235" y="720" text-anchor="middle" fill="#555">duckdb · weasyprint · Vue 3/Vite (Node 18+)</text>
+
+    <rect x="435" y="648" width="350" height="92" rx="6" fill="#fff" stroke="#b8860b"/>
+    <text x="610" y="668" text-anchor="middle" font-weight="bold" font-size="12" fill="#7a5c00">Piloto (servidor)</text>
+    <text x="610" y="688" text-anchor="middle" fill="#555">ReliableSite clearance US$ 49-79/mes</text>
+    <text x="610" y="704" text-anchor="middle" fill="#555">(≥32 GB RAM, NVMe) — o la misma laptop</text>
+    <text x="610" y="720" text-anchor="middle" fill="#555">Ubuntu 22.04 · Caddy (TLS) · promptfoo (Node 18+)</text>
+
+    <rect x="810" y="648" width="330" height="92" rx="6" fill="#fff" stroke="#b8860b"/>
+    <text x="975" y="668" text-anchor="middle" font-weight="bold" font-size="12" fill="#7a5c00">Cuentas y claves</text>
+    <text x="975" y="688" text-anchor="middle" fill="#555">ZAI_API_KEY (prepago, US$ 5 sobran)</text>
+    <text x="975" y="704" text-anchor="middle" fill="#555">USDA_API_KEY (gratis, registro inmediato)</text>
+    <text x="975" y="720" text-anchor="middle" fill="#555">Mistral / Supabase / openFDA: no aún</text>
+  </g>
+
+  <text x="1160" y="782" text-anchor="end" font-size="10.5" font-style="italic" fill="#777">AgroScout IA Lite · MVP Python (etapas 1-3) · LLM GLM (Z.ai) · 6-9 semanas · CITEagroindustrial Chavimochic — Julio 2026</text>
+</svg>

@@ -1,0 +1,9 @@
+casos:
+  - texto: "Cáscara de mango"
+    esperado:
+      n_directos_max: 2
+      informe_parcial: true
+  - texto: "Descarte de espárrago"
+    esperado:
+      n_directos_max: 10
+      informe_parcial: false
