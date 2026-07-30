@@ -2,7 +2,7 @@ import json
 import os
 import lancedb
 
-def indexar_vectores():
+def main():
     print("Iniciando indexación (FTS) en LanceDB...")
     
     productos = []
@@ -33,6 +33,7 @@ def indexar_vectores():
             "ingredientes": p["ingredientes"],
             "url": p["url"],
             "usa_insumo_directo": p["usa_insumo_directo"],
+            "fecha_dato": p.get("fecha_dato"),
             "texto_busqueda": texto
         })
         
@@ -45,4 +46,4 @@ def indexar_vectores():
     print(f"Indexación completada. Tabla 'productos' contiene {tabla.count_rows()} registros.")
 
 if __name__ == "__main__":
-    indexar_vectores()
+    main()

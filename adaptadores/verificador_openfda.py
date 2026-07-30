@@ -4,7 +4,12 @@ import json
 from puertos.verificador_regulatorio import VerificadorRegulatorio
 
 class VerificadorOpenFDA(VerificadorRegulatorio):
+    def __init__(self, offline: bool = False):
+        self.offline = offline
+
     def verificar(self, insumo_en: str, insumo_es: str) -> str:
+        if self.offline:
+            return "openFDA (EE.UU.): [MODO OFFLINE] API no disponible. Sin datos de alertas/recalls. (https://open.fda.gov/)"
         try:
             # FDA usa ingles. Buscamos recalls recientes sobre el insumo
             query = urllib.parse.quote(f'"{insumo_en}"')

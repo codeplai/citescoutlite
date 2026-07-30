@@ -30,14 +30,16 @@ class AuditoriaSQLite(Auditoria):
             conn.execute("""
             CREATE TABLE IF NOT EXISTS etapas_ejecucion (
                 ejecucion_id TEXT REFERENCES ejecuciones(id),
-                etapa INTEGER,
+                etapa TEXT,
+                modelo TEXT,
                 entrada_json TEXT,
                 salida_json TEXT,
                 duracion_ms INTEGER,
                 costo_usd REAL,
                 tokens INTEGER DEFAULT 0,
                 tokens_entrada INTEGER DEFAULT 0,
-                tokens_salida INTEGER DEFAULT 0
+                tokens_salida INTEGER DEFAULT 0,
+                snapshot_version TEXT
             );
             """)
 
@@ -50,9 +52,9 @@ class AuditoriaSQLite(Auditoria):
             """, (id_ej, texto, snapshot_version))
         return EjecucionConcreta(id_ej, snapshot_version, texto)
 
-    def registrar_etapa(self, ejecucion: Ejecucion, etapa: int, entrada: dict, salida: dict, duracion_ms: int, costo_usd: float, tokens: int = 0, tokens_entrada: int = 0, tokens_salida: int = 0) -> None:
+    def registrar_etapa(self, ejecucion: Ejecucion, etapa: int, entrada: dict, salida: dict, duracion_ms: int, costo_usd: float, tokens: int = 0, tokens_entrada: int = 0, tokens_salida: int = 0, modelo: str = None) -> None:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
-            INSERT INTO etapas_ejecucion (ejecucion_id, etapa, entrada_json, salida_json, duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (ejecucion.id, etapa, json.dumps(entrada), json.dumps(salida), duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida))
+            INSERT INTO etapas_ejecucion (ejecucion_id, etapa, modelo, entrada_json, salida_json, duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida, snapshot_version)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (ejecucion.id, str(etapa), modelo, json.dumps(entrada), json.dumps(salida), duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida, ejecucion.snapshot_version))

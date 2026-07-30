@@ -37,8 +37,8 @@ catalogo = BusquedaLanceDB()
 cache_llm = CacheSQLite()
 auditoria = AuditoriaSQLite()
 informes = InformeWeasyPrint()
-fda = VerificadorOpenFDA()
-rag = VerificadorRAG()
+fda = VerificadorOpenFDA(offline=offline_mode)
+rag = VerificadorRAG(offline=offline_mode)
 
 dependencias = Dependencias(
     redactor=redactor,

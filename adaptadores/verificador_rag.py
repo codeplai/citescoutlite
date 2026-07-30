@@ -2,10 +2,13 @@ import lancedb
 from puertos.verificador_regulatorio import VerificadorRegulatorio
 
 class VerificadorRAG(VerificadorRegulatorio):
-    def __init__(self, db_path: str = "vectores"):
+    def __init__(self, db_path: str = "vectores", offline: bool = False):
         self.db_path = db_path
-        
+        self.offline = offline
+
     def verificar(self, insumo_en: str, insumo_es: str) -> str:
+        if self.offline:
+            return "RAG Normativo: [MODO OFFLINE] Base documental no disponible. Sin datos de normativas locales."
         try:
             db = lancedb.connect(self.db_path)
             if "normativas" not in db.table_names():

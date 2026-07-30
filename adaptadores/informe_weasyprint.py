@@ -145,10 +145,11 @@ class InformeWeasyPrint(RepositorioInformes):
         </html>
         """
         
-        # Generar PDF con xhtml2pdf
-        from xhtml2pdf import pisa
-        with open(pdf_path, "wb") as pdf_file:
-            pisa_status = pisa.CreatePDF(estilos_html, dest=pdf_file)
+        # Generar PDF con WeasyPrint
+        from weasyprint import HTML, CSS
+        from io import BytesIO
+        html_obj = HTML(string=estilos_html)
+        html_obj.write_pdf(pdf_path)
             
         return InformeScout(
             parcial=parcial,

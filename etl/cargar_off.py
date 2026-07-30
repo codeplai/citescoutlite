@@ -19,14 +19,16 @@ def cargar_off(query="mango peel"):
                     "product_name": "Mango Peel Powder",
                     "categories": "Dietary supplements, Food ingredients",
                     "ingredients_text": "100% dried mango peel",
-                    "url": "https://world.openfoodfacts.org"
+                    "url": "https://world.openfoodfacts.org",
+                    "last_modified_t": 1719705600
                 },
                 {
                     "id": "OFF:888",
                     "product_name": "Mango & Fiber Bar",
                     "categories": "Snacks, Sweet snacks",
                     "ingredients_text": "Oats, honey, dried mango, mango peel extract, citric acid",
-                    "url": "https://world.openfoodfacts.org"
+                    "url": "https://world.openfoodfacts.org",
+                    "last_modified_t": 1719619200
                 }
             ]
         }
@@ -42,7 +44,8 @@ def cargar_off(query="mango peel"):
             "categoria": item.get("categories", "Desconocido"),
             "ingredientes": item.get("ingredients_text", ""),
             "url": item.get("url", ""),
-            "usa_insumo_directo": True
+            "usa_insumo_directo": False,
+            "fecha_dato": item.get("last_modified_t")
         })
         
     # Guardar a un archivo local

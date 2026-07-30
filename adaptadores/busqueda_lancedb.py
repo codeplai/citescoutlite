@@ -25,12 +25,23 @@ class BusquedaLanceDB(CatalogoProductos):
             n_directos = 0
             
             for res in resultados:
+                fecha_str = res.get("fecha_dato")
+                fecha_dato = None
+                if fecha_str:
+                    try:
+                        if isinstance(fecha_str, int):
+                            fecha_dato = datetime.datetime.fromtimestamp(fecha_str).date()
+                        else:
+                            fecha_dato = datetime.datetime.fromisoformat(fecha_str).date()
+                    except (ValueError, TypeError):
+                        fecha_dato = None
+
                 p = ProductoExistente(
                     id_fuente=res.get("id_fuente", "Unknown"),
                     nombre=res.get("nombre", "Unknown"),
                     categoria=res.get("categoria", "Unknown"),
                     usa_insumo_directo=res.get("usa_insumo_directo", True),
-                    fecha_dato=datetime.date.today(),
+                    fecha_dato=fecha_dato,
                     ingredientes=res.get("ingredientes", ""),
                     url=res.get("url", "")
                 )
