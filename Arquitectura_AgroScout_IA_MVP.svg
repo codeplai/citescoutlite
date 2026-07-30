@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1070" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2e7d32"/></marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2185b"/></marker>
+    <marker id="ai" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3949ab"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="1070" fill="#ffffff"/>
+  <text x="700" y="24" text-anchor="middle" font-size="16.5" font-weight="bold" fill="#222">AgroScout IA — MVP demostrable (walking skeleton = ADR-003 fase 1 con datos reducidos) · TODOS los pasos se prueban: P01-P13</text>
+
+  <!-- ===== CUENTAS DEMO ===== -->
+  <rect x="40" y="40" width="620" height="74" rx="8" fill="#fafafa" stroke="#999" stroke-dasharray="4 3"/>
+  <text x="54" y="58" font-size="11" font-weight="bold" fill="#777">CUENTAS DEMO (2 organizaciones distintas → prueba RLS) <tspan fill="#c2185b">[P01]</tspan></text>
+  <rect x="58" y="66" width="280" height="40" rx="6" fill="#fff" stroke="#666"/>
+  <text x="198" y="83" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#333">demo-gratuita (Mipyme)</text>
+  <text x="198" y="99" text-anchor="middle" font-size="9" fill="#555">solo etapas 1-3 · informe parcial</text>
+  <rect x="352" y="66" width="290" height="40" rx="6" fill="#fff" stroke="#b8860b" stroke-width="1.5"/>
+  <text x="497" y="83" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#7a5c00">demo-premium (Cooperativa)</text>
+  <text x="497" y="99" text-anchor="middle" font-size="9" fill="#555">DAG completo + agente on-demand</text>
+
+  <!-- ===== DIFERIDO ===== -->
+  <rect x="1000" y="40" width="360" height="160" rx="8" fill="#f0f0f0" stroke="#999" stroke-dasharray="5 4"/>
+  <text x="1014" y="60" font-size="11" font-weight="bold" fill="#777">DIFERIDO a fase 2/3 — NO bloquea la demo</text>
+  <text x="1014" y="80" font-size="9.5" fill="#888">• LB + 2-3 réplicas API (MVP: 1 nodo)</text>
+  <text x="1014" y="96" font-size="9.5" fill="#888">• Object storage (S3/R2) + CDN (MVP: snapshot local)</text>
+  <text x="1014" y="112" font-size="9.5" fill="#888">• mistral-embed (MVP: bge-m3 CPU)</text>
+  <text x="1014" y="128" font-size="9.5" fill="#888">• Ingesta completa FDA·EFSA·Codex·INACAL</text>
+  <text x="1014" y="144" font-size="9.5" fill="#888">• Nivel 2 cascada: API licenciada (stub en MVP)</text>
+  <text x="1014" y="160" font-size="9.5" fill="#888">• Promoción con muestreo sistemático (MVP: manual)</text>
+  <text x="1014" y="180" font-size="9.5" fill="#c2185b">Mintel y Trend Hunter NO se consumen (ADR-002/003)</text>
+
+  <!-- ===== CAPA DE APLICACIÓN ===== -->
+  <rect x="40" y="128" width="920" height="72" rx="8" fill="#f4f4f8" stroke="#7a7a9a"/>
+  <text x="54" y="146" font-size="11" font-weight="bold" fill="#55557a">CAPA DE APLICACIÓN — código real de producción, sin maquetas</text>
+  <rect x="58" y="154" width="280" height="38" rx="6" fill="#fff" stroke="#7a7a9a"/>
+  <text x="198" y="170" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">FastAPI · 1 nodo (MVP)</text>
+  <text x="198" y="185" text-anchor="middle" font-size="9" fill="#555">Vue 3 SPA · stateless (listo para réplicas)</text>
+  <rect x="352" y="154" width="290" height="38" rx="6" fill="#fff" stroke="#c2185b" stroke-width="1.5"/>
+  <text x="497" y="170" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Supabase: auth·planes·RLS por org</text>
+  <text x="497" y="185" text-anchor="middle" font-size="9" fill="#880e4f">PolíticaDeSuscripción → nivel_maximo_costo</text>
+  <rect x="656" y="154" width="290" height="38" rx="6" fill="#fff" stroke="#7a7a9a"/>
+  <text x="801" y="170" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Panel CITE</text>
+  <text x="801" y="185" text-anchor="middle" font-size="9" fill="#555">progreso de jobs · cost-meter · informes</text>
+
+  <line x1="198" y1="114" x2="198" y2="150" stroke="#555" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="497" y1="114" x2="497" y2="150" stroke="#555" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="500" y1="200" x2="500" y2="210" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+
+  <!-- ===== DAG 6 ETAPAS ===== -->
+  <rect x="40" y="214" width="1320" height="196" rx="8" fill="#e8f4e8" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="54" y="232" font-size="11" font-weight="bold" fill="#2e7d32">DAG EvaluarInsumo — LAS 6 ETAPAS REALES · insumos piloto: arándano · palta · espárrago · mango · quinua · costo auditado por etapa y tenant</text>
+
+  <g font-size="9">
+    <rect x="54" y="244" width="150" height="120" rx="6" fill="#fff" stroke="#2e7d32"/>
+    <text x="129" y="262" text-anchor="middle" font-weight="bold" font-size="10" fill="#1b5e20">1·InterpretarInsumo</text>
+    <text x="129" y="280" text-anchor="middle" fill="#444">glm-4.7-flashx</text>
+    <text x="129" y="294" text-anchor="middle" fill="#444">sinónimos ES/EN</text>
+    <text x="129" y="308" text-anchor="middle" fill="#444">2ª llamada = cache hit</text>
+    <text x="129" y="350" text-anchor="middle" font-weight="bold" fill="#c2185b">[P02]</text>
+
+    <rect x="214" y="244" width="150" height="120" rx="6" fill="#fff" stroke="#2e7d32"/>
+    <text x="289" y="262" text-anchor="middle" font-weight="bold" font-size="10" fill="#1b5e20">2a·MatchProductos</text>
+    <text x="289" y="280" text-anchor="middle" fill="#444">vectores + DuckDB</text>
+    <text x="289" y="294" text-anchor="middle" fill="#444">sin LLM · p95 &lt; 2 s</text>
+    <text x="289" y="350" text-anchor="middle" font-weight="bold" fill="#c2185b">[P03]</text>
+
+    <rect x="374" y="244" width="150" height="120" rx="6" fill="#fffde7" stroke="#1b5e20" stroke-width="2.2"/>
+    <text x="449" y="262" text-anchor="middle" font-weight="bold" font-size="10" fill="#1b5e20">2b·MapaComercial ★</text>
+    <text x="449" y="280" text-anchor="middle" fill="#444">puerto nivel 1 (snapshot)</text>
+    <text x="449" y="294" text-anchor="middle" fill="#444">país·marca·precio·URL</text>
+    <text x="449" y="308" text-anchor="middle" fill="#444">null nunca inventado</text>
+    <text x="449" y="350" text-anchor="middle" font-weight="bold" fill="#c2185b">[P04]</text>
+
+    <rect x="534" y="244" width="150" height="120" rx="6" fill="#fff" stroke="#2e7d32"/>
+    <text x="609" y="262" text-anchor="middle" font-weight="bold" font-size="10" fill="#1b5e20">3·InsightMercado</text>
+    <text x="609" y="280" text-anchor="middle" fill="#444">glm-4.7 (Z.ai)</text>
+    <text x="609" y="294" text-anchor="middle" fill="#444">cada afirmación</text>
+    <text x="609" y="308" text-anchor="middle" fill="#444">con cita a un dato</text>
+    <text x="609" y="350" text-anchor="middle" font-weight="bold" fill="#c2185b">[P05]</text>
+
+    <rect x="714" y="244" width="150" height="120" rx="6" fill="#fff8e1" stroke="#b8860b" stroke-width="1.5"/>
+    <text x="789" y="262" text-anchor="middle" font-weight="bold" font-size="10" fill="#7a5c00">4·Formulación</text>
+    <text x="789" y="280" text-anchor="middle" fill="#555">minería DuckDB</text>
+    <text x="789" y="294" text-anchor="middle" fill="#555">glm-5.2 flagship</text>
+    <text x="789" y="308" text-anchor="middle" font-style="italic" fill="#b8860b">premium</text>
+    <text x="789" y="350" text-anchor="middle" font-weight="bold" fill="#c2185b">[P07]</text>
+
+    <rect x="874" y="244" width="150" height="120" rx="6" fill="#fff8e1" stroke="#b8860b" stroke-width="1.5"/>
+    <text x="949" y="262" text-anchor="middle" font-weight="bold" font-size="10" fill="#7a5c00">5·Regulación</text>
+    <text x="949" y="280" text-anchor="middle" fill="#555">corpus mínimo:</text>
+    <text x="949" y="294" text-anchor="middle" fill="#555">eCFR piloto + DIGESA</text>
+    <text x="949" y="308" text-anchor="middle" font-style="italic" fill="#b8860b">premium · citas verificables</text>
+    <text x="949" y="350" text-anchor="middle" font-weight="bold" fill="#c2185b">[P08]</text>
+
+    <rect x="1034" y="244" width="150" height="120" rx="6" fill="#fff" stroke="#2e7d32"/>
+    <text x="1109" y="262" text-anchor="middle" font-weight="bold" font-size="10" fill="#1b5e20">6·InformeScout</text>
+    <text x="1109" y="280" text-anchor="middle" fill="#444">PDF (job de worker)</text>
+    <text x="1109" y="294" text-anchor="middle" fill="#444">evento en panel</text>
+    <text x="1109" y="308" text-anchor="middle" fill="#444">auditoría DAG en Postgres</text>
+    <text x="1109" y="350" text-anchor="middle" font-weight="bold" fill="#c2185b">[P09]</text>
+  </g>
+  <line x1="204" y1="304" x2="212" y2="304" stroke="#2e7d32" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="364" y1="304" x2="372" y2="304" stroke="#2e7d32" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="524" y1="304" x2="532" y2="304" stroke="#2e7d32" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="699" y1="244" x2="699" y2="376" stroke="#c2185b" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="699" y="392" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#880e4f">PAYWALL · early return con informe parcial <tspan fill="#c2185b">[P06]</tspan></text>
+  <line x1="684" y1="304" x2="712" y2="304" stroke="#c2185b" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+  <line x1="1024" y1="304" x2="1032" y2="304" stroke="#2e7d32" stroke-width="2" marker-end="url(#ag)"/>
+
+  <!-- ===== PUERTO + AGENTE ===== -->
+  <rect x="40" y="424" width="640" height="130" rx="8" fill="#fffde7" stroke="#1b5e20" stroke-width="2"/>
+  <text x="54" y="443" font-size="11" font-weight="bold" fill="#1b5e20">Puerto DescubrimientoComercial ★ — cascada · la app pasa nivel_maximo_costo</text>
+  <text x="54" y="462" font-size="9.5" fill="#2e7d32">N1 · Snapshot local (REAL, default) · N2 · API licenciada (STUB en MVP) · <tspan font-weight="bold" fill="#c2185b">N3 · Agente (REAL, presupuestado)</tspan></text>
+  <rect x="54" y="472" width="612" height="72" rx="5" fill="#fce4ec" stroke="#c2185b"/>
+  <text x="64" y="489" font-size="9" fill="#880e4f">AgenteInvestigadorComercial · Pydantic AI + Tavily (fallback Brave) · trafilatura · glm-5.2 tool-use <tspan font-weight="bold">[P11]</tspan></text>
+  <text x="64" y="504" font-size="9" fill="#555">topes demo: US$0.25/run · US$2/tenant·mes · US$10 global·mes + kill-switch → degrada a "sin dato", nunca error <tspan font-weight="bold" fill="#880e4f">[P12]</tspan></text>
+  <text x="64" y="519" font-size="9" fill="#555">job asíncrono (cola procrastinate) · progreso al panel · robots/allowlist · rate-limit por dominio · idempotente (insumo+país+mes)</text>
+  <text x="64" y="534" font-size="9" fill="#555">salida validada (schema) → staging_agente · grounding check: todo valor debe existir en el HTML de origen</text>
+  <path d="M449,364 V418 H360 V424" fill="none" stroke="#1b5e20" stroke-width="1.4" marker-end="url(#ag)"/>
+
+  <!-- ===== MIM ===== -->
+  <rect x="700" y="424" width="660" height="130" rx="8" fill="#e8eaf6" stroke="#3949ab" stroke-width="1.6"/>
+  <text x="714" y="443" font-size="11" font-weight="bold" fill="#283593">MIM — pipeline completo sobre el subset piloto <tspan fill="#c2185b">[P10]</tspan></text>
+  <rect x="714" y="452" width="200" height="92" rx="5" fill="#fff" stroke="#3949ab"/>
+  <text x="814" y="470" text-anchor="middle" font-size="10" font-weight="bold" fill="#283593">Taxonomía CITE v0.1</text>
+  <text x="814" y="487" text-anchor="middle" font-size="8.5" fill="#555">≤5 categorías · ~30 claims</text>
+  <text x="814" y="500" text-anchor="middle" font-size="8.5" fill="#555">~50 ingredientes</text>
+  <text x="814" y="513" text-anchor="middle" font-size="8.5" fill="#555">normalización LLM (schema)</text>
+  <text x="814" y="531" text-anchor="middle" font-size="8" font-style="italic" fill="#3949ab">completa con el CITE post-firma</text>
+  <rect x="926" y="452" width="200" height="92" rx="5" fill="#fff" stroke="#3949ab"/>
+  <text x="1026" y="470" text-anchor="middle" font-size="10" font-weight="bold" fill="#283593">Tendencias (DuckDB)</text>
+  <text x="1026" y="487" text-anchor="middle" font-size="8.5" fill="#555">≥8 trimestres de histórico</text>
+  <text x="1026" y="500" text-anchor="middle" font-size="8.5" fill="#555">% de cambio · marcas nuevas</text>
+  <text x="1026" y="513" text-anchor="middle" font-size="8.5" fill="#555">determinista · sin LLM</text>
+  <text x="1026" y="531" text-anchor="middle" font-size="8" font-style="italic" fill="#3949ab">metodología declarada (proxy OFF)</text>
+  <rect x="1138" y="452" width="208" height="92" rx="5" fill="#fff" stroke="#3949ab"/>
+  <text x="1242" y="470" text-anchor="middle" font-size="10" font-weight="bold" fill="#283593">Reportes de mercado</text>
+  <text x="1242" y="487" text-anchor="middle" font-size="8.5" fill="#555">deck PPT + ficha ProductoEnMercado</text>
+  <text x="1242" y="500" text-anchor="middle" font-size="8.5" fill="#555">misma estructura de campos que Mintel</text>
+  <text x="1242" y="513" text-anchor="middle" font-size="8.5" fill="#555">diseño visual propio</text>
+  <text x="1242" y="531" text-anchor="middle" font-size="8" font-style="italic" fill="#3949ab">"lo que hoy pagan a Mintel"</text>
+  <line x1="914" y1="498" x2="924" y2="498" stroke="#3949ab" stroke-width="1.6" marker-end="url(#ai)"/>
+  <line x1="1126" y1="498" x2="1136" y2="498" stroke="#3949ab" stroke-width="1.6" marker-end="url(#ai)"/>
+
+  <!-- ===== ALMACENES ===== -->
+  <rect x="40" y="568" width="1320" height="108" rx="8" fill="#e3f0fa" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="54" y="586" font-size="11" font-weight="bold" fill="#1565c0">ALMACENES DEL MVP — 1 nodo · snapshot local · Postgres gestionado (Supabase)</text>
+  <rect x="54" y="594" width="300" height="74" rx="5" fill="#fff" stroke="#1565c0"/>
+  <text x="204" y="611" text-anchor="middle" font-size="10" font-weight="bold" fill="#0d47a1">snapshot datasets/2026-07/ (local)</text>
+  <text x="204" y="627" text-anchor="middle" font-size="8.5" fill="#555">OFF subset (50-200 prod/insumo) + USDA + precios</text>
+  <text x="204" y="641" text-anchor="middle" font-size="8.5" fill="#555">DuckDB + vectores (bge-m3) · version_taxonomia=0.1</text>
+  <text x="204" y="655" text-anchor="middle" font-size="8.5" fill="#555">corpus regulatorio mínimo (eCFR + DIGESA)</text>
+  <rect x="366" y="594" width="280" height="74" rx="5" fill="#fffde7" stroke="#1b5e20" stroke-width="2"/>
+  <text x="506" y="611" text-anchor="middle" font-size="10" font-weight="bold" fill="#1b5e20">catalogo_comercial ★</text>
+  <text x="506" y="629" text-anchor="middle" font-size="8.5" fill="#555">ProductoEnMercado con fuente+url+fecha</text>
+  <text x="506" y="643" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#1b5e20">solo datos promovidos</text>
+  <rect x="658" y="594" width="300" height="74" rx="5" fill="#fff" stroke="#c2185b" stroke-width="1.6"/>
+  <text x="808" y="611" text-anchor="middle" font-size="10" font-weight="bold" fill="#880e4f">staging_agente (cuarentena)</text>
+  <text x="808" y="629" text-anchor="middle" font-size="8.5" fill="#555">provenance=agente · no_verificado · TTL</text>
+  <text x="808" y="643" text-anchor="middle" font-size="8.5" fill="#555">grounding check + reglas de dominio</text>
+  <text x="808" y="657" text-anchor="middle" font-size="8.5" fill="#555">promoción MANUAL en el MVP</text>
+  <rect x="970" y="594" width="376" height="74" rx="5" fill="#f3eefc" stroke="#6a4fa3" stroke-width="1.5"/>
+  <text x="1158" y="611" text-anchor="middle" font-size="10" font-weight="bold" fill="#4a3575">PostgreSQL (Supabase) · RLS 2 organizaciones</text>
+  <text x="1158" y="629" text-anchor="middle" font-size="8.5" fill="#555">historial · auditoría DAG · cache LLM · cola procrastinate (1 worker)</text>
+  <text x="1158" y="643" text-anchor="middle" font-size="8.5" fill="#880e4f">cost-meter por etapa y tenant → cuotas y presupuestos <tspan font-weight="bold">[P13]</tspan></text>
+  <text x="1158" y="657" text-anchor="middle" font-size="8.5" fill="#555">eventos de progreso de jobs al panel</text>
+  <line x1="657" y1="631" x2="649" y2="631" stroke="#c2185b" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- ===== FUENTES ===== -->
+  <rect x="40" y="690" width="1320" height="118" rx="8" fill="#faf3e3" stroke="#b8860b" stroke-width="1.5"/>
+  <text x="54" y="708" font-size="11" font-weight="bold" fill="#8a6508">FUENTES DEL MVP — subset de los 5 insumos piloto · ETL en worker · Mintel y Trend Hunter NO se consumen</text>
+  <g font-size="8.5">
+    <rect x="54" y="716" width="200" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
+    <text x="154" y="733" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1b5e20">Open Food Facts (subset)</text>
+    <text x="154" y="749" text-anchor="middle" fill="#555">categorías de los 5 insumos</text>
+    <text x="154" y="763" text-anchor="middle" fill="#555">≥8 trimestres para tendencias</text>
+    <text x="154" y="777" text-anchor="middle" fill="#777" font-style="italic">base del MIM · ODbL</text>
+    <rect x="266" y="716" width="200" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
+    <text x="366" y="733" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1b5e20">USDA Branded (subset) ✓API</text>
+    <text x="366" y="749" text-anchor="middle" fill="#555">composición + marca</text>
+    <text x="366" y="763" text-anchor="middle" fill="#555">key data.gov · CC0</text>
+    <text x="366" y="777" text-anchor="middle" fill="#777" font-style="italic">→ etapas 2a/4</text>
+    <rect x="478" y="716" width="200" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
+    <text x="578" y="733" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1b5e20">Open Prices + Comtrade</text>
+    <text x="578" y="749" text-anchor="middle" fill="#555">precio retail (parcial)</text>
+    <text x="578" y="763" text-anchor="middle" fill="#555">precio export US$/kg</text>
+    <text x="578" y="777" text-anchor="middle" fill="#c2185b" font-style="italic">hueco → lo llena el agente</text>
+    <rect x="690" y="716" width="200" height="82" rx="5" fill="#fff" stroke="#b8860b"/>
+    <text x="790" y="733" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#7a5c00">Corpus regulatorio mínimo</text>
+    <text x="790" y="749" text-anchor="middle" fill="#555">eCFR: aditivos del piloto</text>
+    <text x="790" y="763" text-anchor="middle" fill="#555">2-3 normas DIGESA (OCR)</text>
+    <text x="790" y="777" text-anchor="middle" fill="#777" font-style="italic">→ etapa 5 con citas</text>
+    <rect x="902" y="716" width="200" height="82" rx="5" fill="#fff" stroke="#b8860b"/>
+    <text x="1002" y="733" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#7a5c00">Fichas CITE + taxonomía v0.1</text>
+    <text x="1002" y="749" text-anchor="middle" fill="#555">know-how agroindustrial</text>
+    <text x="1002" y="763" text-anchor="middle" fill="#555">insumos de Chavimochic</text>
+    <text x="1002" y="777" text-anchor="middle" fill="#777" font-style="italic">el moat, en versión semilla</text>
+    <rect x="1114" y="716" width="232" height="82" rx="5" fill="#fdeef2" stroke="#c2185b"/>
+    <text x="1230" y="733" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#880e4f">Agente live (5 insumos piloto)</text>
+    <text x="1230" y="749" text-anchor="middle" fill="#555">buscar_web → abrir_url → extraer</text>
+    <text x="1230" y="763" text-anchor="middle" fill="#555">on-demand · premium · presupuestado</text>
+    <text x="1230" y="777" text-anchor="middle" fill="#777" font-style="italic">→ staging_agente (cuarentena)</text>
+  </g>
+
+  <!-- ===== PLAN DE PRUEBAS ===== -->
+  <rect x="40" y="822" width="1320" height="196" rx="8" fill="#eef7ee" stroke="#2e7d32" stroke-width="1.6"/>
+  <text x="54" y="841" font-size="11" font-weight="bold" fill="#1b5e20">PLAN DE PRUEBAS DE PUNTA A PUNTA — criterio: 13/13 en verde · CI previa: golden set ~30 productos + validación schema + smoke test del DAG</text>
+  <g font-size="9.5" fill="#333">
+    <text x="60" y="864"><tspan font-weight="bold" fill="#c2185b">P01</tspan> RLS + entitlement: cada organización ve solo lo suyo</text>
+    <text x="60" y="884"><tspan font-weight="bold" fill="#c2185b">P02</tspan> InterpretarInsumo + cache hit (2ª llamada = costo $0)</text>
+    <text x="60" y="904"><tspan font-weight="bold" fill="#c2185b">P03</tspan> Match local sin LLM · p95 &lt; 2 s</text>
+    <text x="60" y="924"><tspan font-weight="bold" fill="#c2185b">P04</tspan> Mapa comercial nivel 1 · campos sin dato = null, jamás inventados</text>
+    <text x="60" y="944"><tspan font-weight="bold" fill="#c2185b">P05</tspan> Insight: cada afirmación con cita a un dato entregado</text>
+    <text x="60" y="964"><tspan font-weight="bold" fill="#c2185b">P06</tspan> Paywall: early return con informe parcial (≠ guard 0-2 productos)</text>
+    <text x="60" y="984"><tspan font-weight="bold" fill="#c2185b">P07</tspan> Formulación premium: minería DuckDB + glm-5.2, refs reales</text>
+    <text x="710" y="864"><tspan font-weight="bold" fill="#c2185b">P08</tspan> Regulación: citas verificables al corpus · si no hay norma, lo declara</text>
+    <text x="710" y="884"><tspan font-weight="bold" fill="#c2185b">P09</tspan> InformeScout PDF por worker + auditoría DAG con costo por etapa</text>
+    <text x="710" y="904"><tspan font-weight="bold" fill="#c2185b">P10</tspan> MIM: ETL → taxonomía v0.1 → tendencias → deck PPT + ficha PDF</text>
+    <text x="710" y="924"><tspan font-weight="bold" fill="#c2185b">P11</tspan> Agente → cuarentena → grounding check → promoción manual → catálogo</text>
+    <text x="710" y="944"><tspan font-weight="bold" fill="#c2185b">P12</tspan> Presupuestos run/tenant/global + kill-switch → degrada, nunca error</text>
+    <text x="710" y="964"><tspan font-weight="bold" fill="#c2185b">P13</tspan> Cost-meter por tenant: ~US$0.01-0.05/consulta · agente ≤ US$0.25/run</text>
+    <text x="710" y="984" font-style="italic" fill="#1b5e20">Guion de demo (15 min): ver MVP-AgroScout-IA.md §5</text>
+  </g>
+
+  <!-- ===== FOOTER ===== -->
+  <text x="1360" y="1048" text-anchor="end" font-size="10" font-style="italic" fill="#555">AgroScout IA · MVP walking skeleton (ADR-003 fase 1 con datos reducidos) · nada de la demo se descarta: solo se agregan datos e infraestructura · CITEagroindustrial Chavimochic — Julio 2026</text>
+</svg>

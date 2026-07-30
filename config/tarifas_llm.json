@@ -1,0 +1,20 @@
+{
+  "deepseek-v4-flash": {
+    "entrada_por_1k": 0.000135,
+    "salida_por_1k": 0.000539,
+    "descripcion": "DeepSeek V4 Flash (Huawei MaaS) - modelo económico para etapas 1-2",
+    "proveedor": "huawei-maas"
+  },
+  "glm-4.7": {
+    "entrada_por_1k": 0.003,
+    "salida_por_1k": 0.006,
+    "descripcion": "GLM 4.7 - modelo estándar para análisis",
+    "proveedor": "huawei-maas"
+  },
+  "glm-5.2": {
+    "entrada_por_1k": 0.010,
+    "salida_por_1k": 0.020,
+    "descripcion": "GLM 5.2 - modelo flagship para agente y premium",
+    "proveedor": "huawei-maas"
+  }
+}

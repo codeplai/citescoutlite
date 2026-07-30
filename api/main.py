@@ -48,7 +48,8 @@ dependencias = Dependencias(
     auditoria=auditoria,
     verificador_fda=fda,
     verificador_rag=rag,
-    snapshot_version="2026-07"
+    snapshot_version="2026-07",
+    offline_mode=offline_mode
 )
 
 class ConsultaRequest(BaseModel):
