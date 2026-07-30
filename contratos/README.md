@@ -1,0 +1,11 @@
+# Contratos de AgroScout MVP
+
+Esquemas JSON Schema de los modelos de dominio.
+
+## Modelos
+
+- **InsumoInterpretado**: Definición completa en `schemas.json`
+- **ProductoExistente**: Definición completa en `schemas.json`
+- **ResultadoBusqueda**: Definición completa en `schemas.json`
+- **InsightDeMercado**: Definición completa en `schemas.json`
+- **InformeScout**: Definición completa en `schemas.json`

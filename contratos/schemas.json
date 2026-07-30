@@ -1,0 +1,273 @@
+{
+  "InsumoInterpretado": {
+    "properties": {
+      "insumo_normalizado": {
+        "title": "Insumo Normalizado",
+        "type": "string"
+      },
+      "reconocible": {
+        "title": "Reconocible",
+        "type": "boolean"
+      },
+      "sinonimos_busqueda": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 8,
+        "minItems": 1,
+        "title": "Sinonimos Busqueda",
+        "type": "array"
+      },
+      "terminos_ingles": {
+        "description": "Traducciones exactas al inglés del insumo (ej. 'mango peel')",
+        "items": {
+          "type": "string"
+        },
+        "title": "Terminos Ingles",
+        "type": "array"
+      }
+    },
+    "required": [
+      "insumo_normalizado",
+      "reconocible",
+      "sinonimos_busqueda"
+    ],
+    "title": "InsumoInterpretado",
+    "type": "object"
+  },
+  "ProductoExistente": {
+    "properties": {
+      "id_fuente": {
+        "title": "Id Fuente",
+        "type": "string"
+      },
+      "nombre": {
+        "title": "Nombre",
+        "type": "string"
+      },
+      "categoria": {
+        "title": "Categoria",
+        "type": "string"
+      },
+      "usa_insumo_directo": {
+        "title": "Usa Insumo Directo",
+        "type": "boolean"
+      },
+      "fecha_dato": {
+        "anyOf": [
+          {
+            "format": "date",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Fecha Dato"
+      },
+      "ingredientes": {
+        "default": "",
+        "title": "Ingredientes",
+        "type": "string"
+      },
+      "url": {
+        "default": "",
+        "title": "Url",
+        "type": "string"
+      }
+    },
+    "required": [
+      "id_fuente",
+      "nombre",
+      "categoria",
+      "usa_insumo_directo"
+    ],
+    "title": "ProductoExistente",
+    "type": "object"
+  },
+  "ResultadoBusqueda": {
+    "$defs": {
+      "ProductoExistente": {
+        "properties": {
+          "id_fuente": {
+            "title": "Id Fuente",
+            "type": "string"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "categoria": {
+            "title": "Categoria",
+            "type": "string"
+          },
+          "usa_insumo_directo": {
+            "title": "Usa Insumo Directo",
+            "type": "boolean"
+          },
+          "fecha_dato": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fecha Dato"
+          },
+          "ingredientes": {
+            "default": "",
+            "title": "Ingredientes",
+            "type": "string"
+          },
+          "url": {
+            "default": "",
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id_fuente",
+          "nombre",
+          "categoria",
+          "usa_insumo_directo"
+        ],
+        "title": "ProductoExistente",
+        "type": "object"
+      }
+    },
+    "properties": {
+      "productos": {
+        "items": {
+          "$ref": "#/$defs/ProductoExistente"
+        },
+        "title": "Productos",
+        "type": "array"
+      },
+      "n_directos": {
+        "title": "N Directos",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "productos",
+      "n_directos"
+    ],
+    "title": "ResultadoBusqueda",
+    "type": "object"
+  },
+  "InsightDeMercado": {
+    "properties": {
+      "cobertura": {
+        "description": "Nivel de cobertura de datos en bases abiertas",
+        "enum": [
+          "baja",
+          "media",
+          "alta"
+        ],
+        "title": "Cobertura",
+        "type": "string"
+      },
+      "resumen": {
+        "description": "Resumen orientativo sobre el uso actual en la industria",
+        "title": "Resumen",
+        "type": "string"
+      },
+      "hipotesis_formulacion": {
+        "description": "Ingeniería inversa de ingredientes y posible formulación",
+        "title": "Hipotesis Formulacion",
+        "type": "string"
+      },
+      "verificacion_regulatoria": {
+        "description": "Restricciones o consideraciones regulatorias sanitarias",
+        "title": "Verificacion Regulatoria",
+        "type": "string"
+      },
+      "formatos_comunes": {
+        "description": "Formatos comerciales (ej. Polvo, extracto, mermelada)",
+        "items": {
+          "type": "string"
+        },
+        "title": "Formatos Comunes",
+        "type": "array"
+      },
+      "citas": {
+        "description": "IDs de productos usados como referencia",
+        "items": {
+          "type": "string"
+        },
+        "title": "Citas",
+        "type": "array"
+      }
+    },
+    "required": [
+      "cobertura",
+      "resumen",
+      "hipotesis_formulacion",
+      "verificacion_regulatoria",
+      "formatos_comunes",
+      "citas"
+    ],
+    "title": "InsightDeMercado",
+    "type": "object"
+  },
+  "InformeScout": {
+    "properties": {
+      "parcial": {
+        "title": "Parcial",
+        "type": "boolean"
+      },
+      "snapshot_version": {
+        "title": "Snapshot Version",
+        "type": "string"
+      },
+      "ruta_pdf": {
+        "anyOf": [
+          {
+            "format": "path",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Ruta Pdf"
+      },
+      "ejecucion_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Ejecucion Id"
+      },
+      "markdown_content": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Markdown Content"
+      }
+    },
+    "required": [
+      "parcial",
+      "snapshot_version",
+      "ruta_pdf"
+    ],
+    "title": "InformeScout",
+    "type": "object"
+  }
+}

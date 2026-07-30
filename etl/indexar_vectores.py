@@ -50,12 +50,19 @@ def main():
     tabla = db.create_table("productos", data=data_lancedb, mode="overwrite")
 
     print(f"Creando índice vectorial...")
-    tabla.create_index(metric="cosine", num_partitions=4)
+    num_registros = tabla.count_rows()
+
+    if num_registros < 256:
+        print(f"  [INFO] {num_registros} registros < 256: usando búsqueda sin PQ")
+        print(f"  [INFO] En S2 con datos completos (~250+ productos) se activará PQ automático")
+    else:
+        tabla.create_index(metric="cosine", num_partitions=4)
+        print(f"  Índice PQ creado (cosine)")
 
     print(f"\nIndexación completada!")
-    print(f"  Tabla 'productos': {tabla.count_rows()} registros")
+    print(f"  Tabla 'productos': {num_registros} registros")
     print(f"  Dimensión de embeddings: {len(embeddings[0])}")
-    print(f"  Métrica: cosine")
+    print(f"  Métrica: cosine (búsqueda lineal por ahora)")
 
 if __name__ == "__main__":
     main()

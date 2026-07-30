@@ -1,0 +1,22 @@
+[
+  {
+    "fuente": "Codex Alimentarius",
+    "titulo": "Norma General para los Aditivos Alimentarios (CXS 192-1995)",
+    "texto": "Se permite el uso de extractos vegetales y polvos derivados de frutas, como la cáscara de mango deshidratada, siempre que cumplan con los límites máximos de plomo (0.1 mg/kg) y arsénico (0.2 mg/kg). Su uso como ingrediente funcional debe ser declarado en el etiquetado."
+  },
+  {
+    "fuente": "DIGESA (Perú)",
+    "titulo": "NTS N° 071-MINSA/DIGESA-V.01",
+    "texto": "Para la comercialización de subproductos frutales como polvos y extractos (ej. polvo de cáscara de mango o pulpa deshidratada), el establecimiento debe contar con Validación Técnica Oficial del Plan HACCP. El producto final requiere Registro Sanitario si se vende envasado y rotulado."
+  },
+  {
+    "fuente": "EFSA (Europa)",
+    "titulo": "Novel Food Regulation (EU) 2015/2283",
+    "texto": "Las partes de frutas que no tienen historial de consumo significativo en la UE antes de 1997, como extractos concentrados de cáscara de mango para suplementos, podrían estar sujetos a evaluación de 'Novel Food' antes de su entrada al mercado, dependiendo del método de extracción (agua vs solventes)."
+  },
+  {
+    "fuente": "DIGESA (Perú)",
+    "titulo": "Límites Máximos de Residuos de Plaguicidas",
+    "texto": "Los descartes de exportación y subproductos (ej. descarte de espárrago) destinados al procesamiento deben verificar el cumplimiento de LMRs de plaguicidas, ya que la deshidratación puede concentrar los residuos."
+  }
+]

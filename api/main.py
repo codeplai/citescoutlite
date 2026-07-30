@@ -1,9 +1,11 @@
 import os
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import sqlite3
+from pathlib import Path
 
 from casos_de_uso.dependencias import Dependencias
 from casos_de_uso.evaluar_insumo import evaluar_insumo
@@ -50,6 +52,20 @@ zai_api_key = os.getenv("HUAWEI_MAAS_API_KEY", "")
 zai_base_url = os.getenv("HUAWEI_MAAS_BASE_URL", "https://api-ap-southeast-1.modelarts-maas.com/openai/v1")
 offline_mode = os.getenv("AGROSCOUT_OFFLINE", "0") == "1"
 
+def cargar_snapshot_version() -> str:
+    """Carga versión del snapshot desde manifest.json."""
+    manifest_path = Path("datasets/2026-07/manifest.json")
+    if manifest_path.exists():
+        try:
+            with open(manifest_path) as f:
+                manifest = json.load(f)
+            return manifest.get("version_taxonomia", "0.1")
+        except Exception:
+            pass
+    return "0.1"
+
+snapshot_version = cargar_snapshot_version()
+
 redactor = RedactorGLM(api_key=zai_api_key, base_url=zai_base_url)
 catalogo = BusquedaLanceDB()
 cache_llm = CacheSQLite()
@@ -67,7 +83,7 @@ dependencias = Dependencias(
     auditoria=auditoria,
     verificador_fda=fda,
     verificador_rag=rag,
-    snapshot_version="2026-07",
+    snapshot_version=snapshot_version,
     offline_mode=offline_mode
 )
 

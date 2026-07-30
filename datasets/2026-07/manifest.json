@@ -1,0 +1,71 @@
+{
+  "fecha_descarga": "2026-07-30T00:00:00Z",
+  "version_taxonomia": "0.1",
+  "descripcion": "Snapshot de datos para AgroScout MVP S2 - Datos reales de Open Food Facts + USDA",
+  "insumos_piloto": [
+    "arándano",
+    "palta",
+    "espárrago",
+    "mango",
+    "quinua"
+  ],
+  "fuentes": {
+    "off_productos.json": {
+      "descripcion": "Open Food Facts - 87 productos de 5 insumos piloto",
+      "filas": 88,
+      "origen": "API world.openfoodfacts.org",
+      "campos": [
+        "id_fuente",
+        "nombre",
+        "categoria",
+        "ingredientes",
+        "url",
+        "usa_insumo_directo",
+        "fecha_dato"
+      ]
+    },
+    "usda_productos.json": {
+      "descripcion": "USDA FoodData Central (fallback demo)",
+      "filas": 1,
+      "origen": "Demo",
+      "campos": [
+        "id_fuente",
+        "nombre",
+        "categoria",
+        "ingredientes",
+        "url",
+        "usa_insumo_directo",
+        "fecha_dato"
+      ]
+    },
+    "normativas_codex.json": {
+      "descripcion": "Normas Codex Alimentarius (fallback demo)",
+      "filas": 1,
+      "origen": "Demo",
+      "campos": [
+        "fuente",
+        "titulo",
+        "texto"
+      ]
+    }
+  },
+  "estadisticas": {
+    "total_productos": 89,
+    "total_normativas": 1,
+    "coverage_por_insumo": {
+      "arándano": 13,
+      "palta": 11,
+      "espárrago": 0,
+      "mango": 9,
+      "quinua": 54,
+      "demo": 2
+    }
+  },
+  "próximos_pasos_s2": [
+    "Ampliar ETL OFF a export masivo (~9GB)",
+    "Aumentar cobertura a 50-200 productos por insumo",
+    "Agregar 8+ trimestres de histórico para MIM",
+    "Descargar DIGESA + eCFR para regulación"
+  ],
+  "notas": "Versión bootstrap con ~90 productos. Suficiente para demostración S1. S2 requiere 250+ registros para activar índice PQ en LanceDB."
+}

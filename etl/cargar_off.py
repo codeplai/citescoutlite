@@ -56,28 +56,105 @@ def cargar_off_masivo(insumos: List[str] = None, output_file: str = "data/off_pr
         except Exception as e:
             print(f"    Error descargando '{insumo}': {e}")
 
-    if not productos:
-        print("\n[FALLBACK] No se descargaron productos. Usando datos de demostración.")
-        productos = [
+    if len(productos) < 50:
+        print(f"\n[FALLBACK] Solo {len(productos)} productos descargados (OFF con problemas).")
+        print("[FALLBACK] Agregando datos de demostración para S1/S2...")
+
+        fallback_data = [
             {
-                "id_fuente": "OFF:999",
-                "nombre": "Mango Peel Powder",
-                "categoria": "Dietary supplements, Food ingredients",
-                "ingredientes": "100% dried mango peel",
-                "url": "https://world.openfoodfacts.org",
+                "id_fuente": "DEMO:1",
+                "nombre": "Mango Peel Extract Powder",
+                "categoria": "Food ingredients, Dietary supplements",
+                "ingredientes": "mango peel extract, maltodextrin",
+                "url": "https://example.com",
                 "usa_insumo_directo": False,
                 "fecha_dato": 1719705600
             },
             {
-                "id_fuente": "OFF:888",
-                "nombre": "Mango & Fiber Bar",
-                "categoria": "Snacks, Sweet snacks",
-                "ingredientes": "Oats, honey, dried mango, mango peel extract, citric acid",
-                "url": "https://world.openfoodfacts.org",
+                "id_fuente": "DEMO:2",
+                "nombre": "Organic Mango Bar",
+                "categoria": "Organic, Snacks",
+                "ingredientes": "organic mango, honey, nuts, mango juice concentrate",
+                "url": "https://example.com",
                 "usa_insumo_directo": False,
                 "fecha_dato": 1719619200
+            },
+            {
+                "id_fuente": "DEMO:3",
+                "nombre": "Freeze Dried Mango Chunks",
+                "categoria": "Dried fruit, Snacks",
+                "ingredientes": "freeze dried mango",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1719532800
+            },
+            {
+                "id_fuente": "DEMO:4",
+                "nombre": "Mango Lassi Drink Mix",
+                "categoria": "Beverage, Dairy",
+                "ingredientes": "mango pulp, yogurt powder, sugar, mango flavoring",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1719446400
+            },
+            {
+                "id_fuente": "DEMO:5",
+                "nombre": "Blueberry Mango Smoothie",
+                "categoria": "Beverage, Frozen",
+                "ingredientes": "blueberry concentrate, mango puree, yogurt, honey",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1719360000
+            },
+            {
+                "id_fuente": "DEMO:6",
+                "nombre": "Asparagus Soup Mix",
+                "categoria": "Soup, Dehydrated",
+                "ingredientes": "asparagus powder, salt, spices, asparagus extract",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1719273600
+            },
+            {
+                "id_fuente": "DEMO:7",
+                "nombre": "Quinoa Energy Bar",
+                "categoria": "Snacks, Energy bars",
+                "ingredientes": "quinoa, dark chocolate, almond butter, quinoa seeds",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1719187200
+            },
+            {
+                "id_fuente": "DEMO:8",
+                "nombre": "Avocado Oil (Palta)",
+                "categoria": "Oils, Cooking",
+                "ingredientes": "avocado oil, palta extract",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1719100800
+            },
+            {
+                "id_fuente": "DEMO:9",
+                "nombre": "Blueberry Powder",
+                "categoria": "Food ingredients",
+                "ingredientes": "freeze dried blueberry, blueberry extract",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1719014400
+            },
+            {
+                "id_fuente": "DEMO:10",
+                "nombre": "Cranberry Mango Juice",
+                "categoria": "Beverage, Juice",
+                "ingredientes": "mango juice, cranberry concentrate, water, mango flavor",
+                "url": "https://example.com",
+                "usa_insumo_directo": False,
+                "fecha_dato": 1718928000
             }
         ]
+
+        productos.extend(fallback_data)
+        print(f"  Agregados {len(fallback_data)} productos de demostración")
 
     os.makedirs("data", exist_ok=True)
     with open(output_file, "w", encoding="utf-8") as f:
