@@ -15,17 +15,35 @@ from adaptadores.informe_weasyprint import InformeWeasyPrint
 
 from adaptadores.verificador_openfda import VerificadorOpenFDA
 from adaptadores.verificador_rag import VerificadorRAG
+from adaptadores.autenticacion import Autenticacion
+from typing import Optional
+from fastapi import Header, Depends
 
 load_dotenv()
+
+async def get_current_user(authorization: Optional[str] = Header(None)):
+    """Extrae y verifica el JWT del header Authorization."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token no proporcionado")
+
+    token = autenticacion.extraer_bearer_token(authorization)
+    if not token:
+        raise HTTPException(status_code=401, detail="Formato de token inválido")
+
+    payload = autenticacion.verificar_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
+    return payload
 
 app = FastAPI(title="AgroScout IA Lite MVP")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:8001", "http://127.0.0.1:3000", "http://127.0.0.1:8001"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 zai_api_key = os.getenv("HUAWEI_MAAS_API_KEY", "")
@@ -39,6 +57,7 @@ auditoria = AuditoriaSQLite()
 informes = InformeWeasyPrint()
 fda = VerificadorOpenFDA(offline=offline_mode)
 rag = VerificadorRAG(offline=offline_mode)
+autenticacion = Autenticacion(secret_key=os.getenv("JWT_SECRET_KEY", "agroscout-secret-key-change-in-production"))
 
 dependencias = Dependencias(
     redactor=redactor,
@@ -63,16 +82,20 @@ class LoginRequest(BaseModel):
 async def login(req: LoginRequest):
     with sqlite3.connect("agroscout.db") as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id FROM usuarios WHERE email = ? AND password_hash = ?", (req.email, req.password))
+        cur.execute("SELECT id, password_hash, org_id FROM usuarios WHERE email = ?", (req.email,))
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=401, detail="Credenciales inválidas")
-        # In a real app we would sign a JWT here. 
-        # For this MVP, we just return a fixed token string indicating success.
-        return {"access_token": "mvp-real-db-token-123", "token_type": "bearer", "user": req.email}
+
+        user_id, password_hash, org_id = row
+        if not autenticacion.verificar_password(req.password, password_hash):
+            raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+        token = autenticacion.generar_token(user_id, req.email, org_id)
+        return {"access_token": token, "token_type": "bearer", "user": req.email}
 
 @app.post("/consultas")
-async def consultar_insumo(req: ConsultaRequest):
+async def consultar_insumo(req: ConsultaRequest, current_user: dict = Depends(get_current_user)):
     try:
         informe = await evaluar_insumo(req.texto, dependencias)
         return informe.model_dump()
@@ -82,26 +105,28 @@ async def consultar_insumo(req: ConsultaRequest):
 from fastapi.responses import FileResponse
 
 @app.get("/informes/{id}")
-async def descargar_informe(id: str):
+async def descargar_informe(id: str, current_user: dict = Depends(get_current_user)):
     file_path = f"informes/{id}.pdf"
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="application/pdf", filename=f"Informe_AgroScout_{id}.pdf")
     raise HTTPException(status_code=404, detail="Informe no encontrado")
 
 @app.get("/ejecucion/{id}/tokens")
-async def obtener_tokens(id: str):
+async def obtener_tokens(id: str, current_user: dict = Depends(get_current_user)):
     with sqlite3.connect("agroscout.db") as conn:
         cur = conn.cursor()
-        cur.execute("SELECT SUM(tokens), SUM(tokens_entrada), SUM(tokens_salida) FROM etapas_ejecucion WHERE ejecucion_id = ?", (id,))
+        cur.execute("SELECT SUM(tokens), SUM(tokens_entrada), SUM(tokens_salida), SUM(costo_usd) FROM etapas_ejecucion WHERE ejecucion_id = ?", (id,))
         row = cur.fetchone()
         tokens = row[0] if row and row[0] is not None else 0
         entrada = row[1] if row and row[1] is not None else 0
         salida = row[2] if row and row[2] is not None else 0
+        costo = row[3] if row and row[3] is not None else 0.0
         return {
-            "ejecucion_id": id, 
+            "ejecucion_id": id,
             "total_tokens": tokens,
             "tokens_entrada": entrada,
-            "tokens_salida": salida
+            "tokens_salida": salida,
+            "costo_usd": round(costo, 6)
         }
 
 def start():

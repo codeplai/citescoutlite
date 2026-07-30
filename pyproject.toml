@@ -20,6 +20,8 @@ dependencies = [
     "markdown>=3.1.4",
     "requests>=2.31.0",
     "xhtml2pdf>=0.2.15",
+    "bcrypt>=4.1.0",
+    "python-jose[cryptography]>=3.3.0",
 ]
 
 [project.scripts]

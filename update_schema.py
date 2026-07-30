@@ -1,26 +1,34 @@
 import sqlite3
+from adaptadores.autenticacion import Autenticacion
 
 def update_schema():
+    auth = Autenticacion()
+
     with sqlite3.connect("agroscout.db") as conn:
         cur = conn.cursor()
-        
+
         # 1. Create usuarios table
         cur.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
+            password_hash TEXT NOT NULL,
+            org_id INTEGER,
+            creado_en TEXT DEFAULT (datetime('now'))
         )
         """)
-        
-        # Insert admin user. In a real app we'd hash the password with passlib/bcrypt, 
-        # but since we are replacing a mock login we will just store plain for the MVP 
-        # or use a simple hash. Let's use plaintext for this MVP to keep it simple, 
-        # or we can use hashlib. Let's just store the plaintext for this quick prototype 
-        # as requested "login de verdad conectado a BD". I'll use plaintext for simplicity 
-        # unless we want to install `passlib` and `bcrypt`. I'll just use a direct query.
-        cur.execute("INSERT OR IGNORE INTO usuarios (email, password_hash) VALUES (?, ?)", 
-                    ("admin@cite.gob.pe", "cite2026"))
+
+        # Insert demo users with bcrypt hashed passwords
+        admin_hash = auth.hash_password("cite2026")
+        demo_gratuita_hash = auth.hash_password("demo2026")
+        demo_premium_hash = auth.hash_password("premium2026")
+
+        cur.execute("INSERT OR IGNORE INTO usuarios (email, password_hash, org_id) VALUES (?, ?, ?)",
+                    ("admin@cite.gob.pe", admin_hash, 1))
+        cur.execute("INSERT OR IGNORE INTO usuarios (email, password_hash, org_id) VALUES (?, ?, ?)",
+                    ("demo-gratuita@cite.gob.pe", demo_gratuita_hash, 1))
+        cur.execute("INSERT OR IGNORE INTO usuarios (email, password_hash, org_id) VALUES (?, ?, ?)",
+                    ("demo-premium@cite.gob.pe", demo_premium_hash, 1))
         
         # 2. Add tokens_entrada and tokens_salida to etapas_ejecucion
         # SQLite doesn't support ADD COLUMN IF NOT EXISTS easily, so we try/except

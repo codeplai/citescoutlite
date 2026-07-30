@@ -43,8 +43,12 @@ async def etapa(d: Dependencias, ejecucion: Ejecucion, num_etapa: int, func: Cal
         if hasattr(usage, 'completion_tokens'):
             tokens_salida = usage.completion_tokens
 
+    tarifa = d.tarifas_modelos.get(modelo, {})
+    costo_usd = (tokens_entrada * tarifa.get("entrada_por_1k", 0) / 1000) + \
+                (tokens_salida * tarifa.get("salida_por_1k", 0) / 1000)
+
     d.cache.guardar(clave, salida_dict)
-    d.auditoria.registrar_etapa(ejecucion, num_etapa, entrada_dict, salida_dict, duracion_ms, costo_usd=0.0, tokens=tokens_usados, tokens_entrada=tokens_entrada, tokens_salida=tokens_salida, modelo=modelo)
+    d.auditoria.registrar_etapa(ejecucion, num_etapa, entrada_dict, salida_dict, duracion_ms, costo_usd=costo_usd, tokens=tokens_usados, tokens_entrada=tokens_entrada, tokens_salida=tokens_salida, modelo=modelo)
     return resultado
 
 def etapa_sync(d: Dependencias, ejecucion: Ejecucion, num_etapa: int, func: Callable[[Dependencias, Any], T], entrada: Any) -> T:

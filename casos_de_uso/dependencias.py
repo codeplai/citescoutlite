@@ -24,6 +24,7 @@ class Dependencias:
         if self.tarifas_modelos is None:
             self.tarifas_modelos = {
                 "deepseek-v4-flash": {"entrada_por_1k": 0.000135, "salida_por_1k": 0.000539},
+                "glm-5.0": {"entrada_por_1k": 0.000539, "salida_por_1k": 0.002965},
                 "glm-4.7": {"entrada_por_1k": 0.003, "salida_por_1k": 0.006},
                 "glm-5.2": {"entrada_por_1k": 0.010, "salida_por_1k": 0.020},
             }
