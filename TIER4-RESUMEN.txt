@@ -1,0 +1,253 @@
+================================================================================
+TIER 4: EMBEDDINGS MASIVOS - RESUMEN PARA MÁQUINA CON GPU 8GB
+================================================================================
+
+TU MÁQUINA:
+  - GPU: NVIDIA 8GB
+  - RAM: 64GB
+  - OS: Windows
+
+OBJETIVO:
+  - Generar 28,236 embeddings bge-m3 (1024 dimensiones)
+  - Indexar en LanceDB
+  - ETA: 15-30 MINUTOS (vs 2-3 horas en CPU)
+
+================================================================================
+PASOS RÁPIDOS (30 minutos total)
+================================================================================
+
+1. COPIAR proyecto mvp/ a máquina con GPU
+
+2. ABRIR PowerShell EN carpeta mvp/
+
+3. SETUP (5 min):
+
+   python -m venv venv
+   venv\Scripts\activate
+   pip install --upgrade pip
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+   pip install sentence-transformers lancedb numpy
+
+4. EJECUTAR TIER 4 (15-30 min):
+
+   python etl/tier4_gpu.py
+
+5. VERIFICAR RESULTADO:
+
+   type datasets\2026-07\embeddings.log | find "SUCCESS"
+   # Debe mostrar: [SUCCESS] TIER 4 COMPLETADO (GPU)
+
+================================================================================
+ARCHIVOS GENERADOS PARA ESTA MÁQUINA
+================================================================================
+
+PRINCIPAL:
+  ✓ etl/tier4_gpu.py
+    - Script optimizado para GPU NVIDIA
+    - Usa batch_size=128 (GPU de 8GB)
+    - Detecta automáticamente GPU vs CPU
+
+DOCUMENTACIÓN:
+  ✓ TIER4-README.md
+    - Guía completa con todas las opciones
+    - Troubleshooting para GPU + Windows
+
+  ✓ TIER4-GPU-QUICK.md  ← LEE ESTO SI TIENES PRISA
+    - Quick start de 15 minutos
+    - Sólo lo esencial para GPU
+
+  ✓ TIER4-GPU-CHECKLIST.md
+    - Verificar que todo esté configurado
+    - Pre-ejecución
+
+  ✓ TIER4-RESUMEN.txt  ← ESTE ARCHIVO
+
+================================================================================
+REQUISITOS MÍNIMOS
+================================================================================
+
+✓ NVIDIA Driver instalado (verificar: nvidia-smi)
+✓ CUDA Toolkit 12.1 instalado
+✓ Python 3.9+
+✓ 20GB libres en disco
+✓ Internet (primera ejecución descarga modelo ~500MB)
+
+Si falta algo: VER TIER4-GPU-CHECKLIST.md sección "Troubleshooting"
+
+================================================================================
+TIMELINE
+================================================================================
+
+SETUP:           5 minutos
+EJECUCIÓN:       15-30 minutos
+INDEXACIÓN:      3-5 minutos
+───────────────────────────
+TOTAL:           25-40 minutos
+
+Si falta CUDA:   +30 minutos de instalación
+
+================================================================================
+PRÓXIMO PASO DESPUÉS DE TIER 4
+================================================================================
+
+Una vez que veas: [SUCCESS] TIER 4 COMPLETADO (GPU)
+
+1. Commit en git:
+   git add datasets/2026-07/manifest.json "vectores/productos.lance/*"
+   git commit -m "TIER 4: Embeddings GPU (28236, bge-m3, 15-30min)"
+   git push
+
+2. Pasar a TIER 5 (búsqueda vectorial + latencia p95):
+   Ver PLAN-TIERS-S2.md
+
+================================================================================
+CONTACTO / PROBLEMAS
+================================================================================
+
+Si hay problemas:
+
+1. VER: TIER4-GPU-CHECKLIST.md (verificar setup)
+2. VER: TIER4-GPU-QUICK.md (troubleshooting)
+3. VER: TIER4-README.md (full guide)
+
+Errores comunes:
+  - "GPU no detectada": Instalar CUDA 12.1
+  - "OutOfMemory": Editar batch_size de 128 a 64 en tier4_gpu.py
+  - "torch not found": pip install torch... con URL cu121
+  - "sentence-transformers not found": pip install sentence-transformers
+
+================================================================================
+ARCHIVOS CRÍTICOS A COPIAR
+================================================================================
+
+Mínimo para ejecutar TIER 4:
+  ✓ datasets/2026-07/productos_merged.json  (entrada)
+  ✓ etl/tier4_gpu.py                        (script)
+  ✓ vectores/                               (directorio para salida)
+  ✓ datasets/2026-07/manifest.json          (será actualizado)
+
+Documentación (copiar también):
+  ✓ TIER4-GPU-QUICK.md
+  ✓ TIER4-GPU-CHECKLIST.md
+  ✓ TIER4-README.md
+
+================================================================================
+CONFIGURACIÓN OPTIMIZADA PARA TU GPU
+================================================================================
+
+GPU 8GB NVIDIA:
+  - Batch size: 128
+  - Speed: 100-200 prod/s
+  - ETA: 15-30 minutos
+  - Memoria: ~6-7 GB
+
+Si OutOfMemory (raro):
+  Editar tier4_gpu.py línea ~80:
+  batch_size = 64  # reducir de 128 a 64
+  ETA seguirá siendo 20-30 minutos
+
+================================================================================
+VERIFICACIÓN RÁPIDA DE GPU (ANTES DE EJECUTAR)
+================================================================================
+
+Abrir PowerShell y ejecutar:
+
+  nvidia-smi
+  # Debe mostrar: GPU NVIDIA + 8GB + CUDA version
+
+  python << 'EOF'
+  import torch
+  print(f"CUDA: {torch.cuda.is_available()}")  # True
+  print(f"GPU: {torch.cuda.get_device_name(0)}")  # NVIDIA...
+  EOF
+
+Si muestra "False" o error:
+  → Instalar/actualizar CUDA 12.1
+  → Reiniciar
+  → Reintentar
+
+================================================================================
+DURANTE LA EJECUCIÓN
+================================================================================
+
+Pantalla esperada:
+
+[2026-07-30T21:23:17] [GPU] Detectada: NVIDIA GeForce RTX XXXX (8.0GB)
+[2026-07-30T21:23:35] [EMBED] Generando 28236 embeddings (batch_size=128)...
+[2026-07-30T21:25:35] [EMBED] 2000/28236 (7%) - 150.3 prod/s
+[2026-07-30T21:27:35] [EMBED] 4000/28236 (14%) - 148.2 prod/s
+...
+[2026-07-30T21:35:XX] [EMBED] OK en 600s (47.1 prod/s)
+[2026-07-30T21:35:XX] [INDEX] Indexando en LanceDB...
+[2026-07-30T21:40:XX] [SUCCESS] TIER 4 COMPLETADO (GPU)
+
+NO INTERRUMPIR mientras dice [EMBED]
+
+================================================================================
+DESPUÉS DE COMPLETAR
+================================================================================
+
+Archivos generados:
+  datasets/2026-07/embeddings.log          (log completo)
+  datasets/2026-07/manifest.json           (actualizado)
+  vectores/productos.lance/                (índice LanceDB)
+                                           (20-30GB)
+
+Verificar:
+  type datasets\2026-07\embeddings.log | find "SUCCESS"
+  # Debe mostrar: [SUCCESS] TIER 4 COMPLETADO (GPU)
+
+================================================================================
+VERSIONES DE SCRIPTS DISPONIBLES
+================================================================================
+
+etl/tier4_gpu.py         ← USA ESTE (GPU optimizado, 15-30 min)
+etl/tier4_cpu.py         (CPU optimizado, 2-3 horas, si GPU falla)
+etl/tier4_mejorado.py    (versión intermedia con progreso cada 1000)
+
+Recomendación: tier4_gpu.py (tu máquina tiene GPU)
+
+================================================================================
+CONFIGURACIÓN EXACTA PARA INSTALAR
+================================================================================
+
+Copiar y pegar esto EN PowerShell (con venv activado):
+
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install sentence-transformers lancedb numpy
+
+Luego:
+
+python etl/tier4_gpu.py
+
+================================================================================
+DUDAS MÁS COMUNES
+================================================================================
+
+P: ¿Cuánto dura?
+R: 15-30 minutos en GPU 8GB
+
+P: ¿Por qué tan rápido?
+R: GPU procesa 100-200 productos/s vs CPU que hace 4-5/s
+
+P: ¿Qué hago si aparece "OutOfMemory"?
+R: Editar batch_size 128→64 en tier4_gpu.py, seguirá siendo rápido
+
+P: ¿Qué pasa si interrumpo?
+R: No hagas eso. Si pasa, elimina vectores/productos.lance/ y reinicia
+
+P: ¿GPU detectada pero lenta (< 50 prod/s)?
+R: Cierra videojuegos/Blender, verifica batch_size=128
+
+P: ¿Cómo sé que está funcionando?
+R: Verás "100+ prod/s" en el output si usa GPU
+
+================================================================================
+
+¡Listo! Lleva esto a tu máquina con GPU y ejecuta:
+
+    python etl/tier4_gpu.py
+
+En 15-30 minutos verás: [SUCCESS] TIER 4 COMPLETADO (GPU)
+
+================================================================================
