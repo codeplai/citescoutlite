@@ -1,785 +1,92 @@
 [
   {
-    "id_fuente": "OFF:9809964000047",
-    "nombre": "Sin Azúcar Añadida TROZOS Chía Arándano",
-    "categoria": "en:Lácteos, en:Yogures, en:Yogures con frutas",
-    "ingredientes": "Leche descremada, preparado de frutas (fructosa, semilla de frutilla, frutilla trozados (6,0%), almidón, colorantes naturales (extracto de cúrcuma, ácido carmínico), acidulantes, cultivos lácteos, edulcorantes (sucralosa y acesulfame K), gelatina, almidón modificado, goma guar, goma xantana, saborizante idéntico al natural de frutilla), sucralosa (sucralosa también procesada en el mismo equipo).",
-    "url": "https://world.openfoodfacts.org/product/9809964000047/sin-azucar-anadida-trozos-chia-arandano-soprole",
+    "id_fuente": "DEMO:1",
+    "nombre": "Mango Peel Extract Powder",
+    "categoria": "Food ingredients, Dietary supplements",
+    "ingredientes": "mango peel extract, maltodextrin",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1784589996
+    "fecha_dato": 1719705600
   },
   {
-    "id_fuente": "OFF:8410175092021",
-    "nombre": "Mermelada Arándanos Diet",
-    "categoria": "Desconocido",
-    "ingredientes": "Arándanos, frambuesa, agua, edulcorantes (jarabe de sorbitol, glucósidos de steviol, sucralosa, acesulfamo K), gelificante (pectina, cloruro cálcico), correctores de acidez (ácido cítrico, citrato sódico), conservador (sorbato potásico).",
-    "url": "https://world.openfoodfacts.org/product/8410175092021/mermelada-arandanos-diet-hero",
+    "id_fuente": "DEMO:2",
+    "nombre": "Organic Mango Bar",
+    "categoria": "Organic, Snacks",
+    "ingredientes": "organic mango, honey, nuts, mango juice concentrate",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1782405528
+    "fecha_dato": 1719619200
   },
   {
-    "id_fuente": "OFF:7708104000010",
-    "nombre": "ARANDANOS IQF",
-    "categoria": "en:Arándanos congelados, en:Frutas, en:Frutas congeladas",
-    "ingredientes": "Arándanos frescos seleccionados",
-    "url": "https://world.openfoodfacts.org/product/7708104000010/arandanos-iqf-del-patagonia",
+    "id_fuente": "DEMO:3",
+    "nombre": "Freeze Dried Mango Chunks",
+    "categoria": "Dried fruit, Snacks",
+    "ingredientes": "freeze dried mango",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1781382065
+    "fecha_dato": 1719532800
   },
   {
-    "id_fuente": "OFF:7802107000227",
-    "nombre": "Cerveza Especial Arándano",
-    "categoria": "Cervezas, en:Bebidas, en:Bebidas alcohólicas, en:Cervezas, en:Cervezas de frutas, en:Cervezas saborizadas",
-    "ingredientes": "Agua: pura de Valdivia, Maltas: rubia y caramelo, Ingrediente especial: arándano, Lúpulos: Hallertauer Tradition, Levadura: ale",
-    "url": "https://world.openfoodfacts.org/product/7802107000227/cerveza-especial-arandano-kunstmann",
+    "id_fuente": "DEMO:4",
+    "nombre": "Mango Lassi Drink Mix",
+    "categoria": "Beverage, Dairy",
+    "ingredientes": "mango pulp, yogurt powder, sugar, mango flavoring",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1777801046
+    "fecha_dato": 1719446400
   },
   {
-    "id_fuente": "OFF:7861138614599",
-    "nombre": "KÉFIR Salud digestiva ARÁNDANOS",
-    "categoria": "Kéfir, en:Leches fermentadas, en:Lácteos",
-    "ingredientes": "Leche semidescremada pasteurizada, salsa de arándano, fibra de achicoria, enzima lactasa, conservante (bióxido de potasio), cultivos lácticos.",
-    "url": "https://world.openfoodfacts.org/product/7861138614599/kefir-salud-digestiva-arandanos-zeus",
+    "id_fuente": "DEMO:5",
+    "nombre": "Blueberry Mango Smoothie",
+    "categoria": "Beverage, Frozen",
+    "ingredientes": "blueberry concentrate, mango puree, yogurt, honey",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1776783948
+    "fecha_dato": 1719360000
   },
   {
-    "id_fuente": "OFF:7750632006521",
-    "nombre": "Yogurt Griego Descremado Arándano",
-    "categoria": "en:Lácteos, en:Yogures, en:Yogures griegos",
-    "ingredientes": "Leche descremada, pulpa de arandano edulcorado (pulpa de arandano, azúcar), almidón modificado (SIN 1442), sustancia conservadora (SIN 202), edulcorantes (SIN 950, SIN 955, SIN 960a), cultivos probióticos y lácticos (Bifidobacterium lactis, Lactobacillus acidophilus, Lactobacillus delbrueckii subsp. bulgaricus y Streptococcus thermophilus). Contiene Leche.",
-    "url": "https://world.openfoodfacts.org/product/7750632006521/yogurt-griego-descremado-arandano-danlac",
+    "id_fuente": "DEMO:6",
+    "nombre": "Asparagus Soup Mix",
+    "categoria": "Soup, Dehydrated",
+    "ingredientes": "asparagus powder, salt, spices, asparagus extract",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1775487547
+    "fecha_dato": 1719273600
   },
   {
-    "id_fuente": "OFF:7315120024069",
-    "nombre": "DRYCK BLÅBÄR - Zumo concentrado de arándano azul",
-    "categoria": "Zumo concentrado de arándanos",
-    "ingredientes": "Zumo de arándano azul a partir de concentrado (45 %) (Vaccinium corymbosum), azúcar, agua, corrector de acidez (E330), aroma de arándano.",
-    "url": "https://world.openfoodfacts.org/product/7315120024069/dryck-blabar-zumo-concentrado-de-arandano-azul-ikea",
+    "id_fuente": "DEMO:7",
+    "nombre": "Quinoa Energy Bar",
+    "categoria": "Snacks, Energy bars",
+    "ingredientes": "quinoa, dark chocolate, almond butter, quinoa seeds",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1774260675
+    "fecha_dato": 1719187200
   },
   {
-    "id_fuente": "OFF:7506161215916",
-    "nombre": "Arándanos cubiertos de chocolate",
-    "categoria": "Dulces de chocolate, Arándanos, Dulcería",
-    "ingredientes": "Chocolate con leche (azúcar, manteca de cacao, leche entera en polvo, pasta de cacao, sólidos lácteos, maltodextrina, empulsificante: lecitina de soya, poliglicerol de polmicinoleato, vainillina) arándano, goma arábiga, agua, capol, talco puede contener trazas de gluten y almendras",
-    "url": "https://world.openfoodfacts.org/product/7506161215916/arandanos-cubiertos-de-chocolate-sirianni",
+    "id_fuente": "DEMO:8",
+    "nombre": "Avocado Oil (Palta)",
+    "categoria": "Oils, Cooking",
+    "ingredientes": "avocado oil, palta extract",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1773189943
+    "fecha_dato": 1719100800
   },
   {
-    "id_fuente": "OFF:0745853400323",
-    "nombre": "Agua con Cranberry / Sin Gas",
-    "categoria": "en:Aguas, en:Aguas saborizadas, en:Aguas saborizadas con arándano rojo, en:Bebidas",
-    "ingredientes": "Agua filtrada, jugo concentrado de manzana, cranberry (3% m/m) y arándano.",
-    "url": "https://world.openfoodfacts.org/product/0745853400323/agua-con-cranberry-sin-gas-uniko",
+    "id_fuente": "DEMO:9",
+    "nombre": "Blueberry Powder",
+    "categoria": "Food ingredients",
+    "ingredientes": "freeze dried blueberry, blueberry extract",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1772312012
+    "fecha_dato": 1719014400
   },
   {
-    "id_fuente": "OFF:7757365000031",
-    "nombre": "Desconocido",
-    "categoria": "Arándanos azules",
-    "ingredientes": "Blueberries",
-    "url": "https://world.openfoodfacts.org/product/7757365000031/blueberries-anqas",
+    "id_fuente": "DEMO:10",
+    "nombre": "Cranberry Mango Juice",
+    "categoria": "Beverage, Juice",
+    "ingredientes": "mango juice, cranberry concentrate, water, mango flavor",
+    "url": "https://example.com",
     "usa_insumo_directo": false,
-    "fecha_dato": 1772249745
-  },
-  {
-    "id_fuente": "OFF:0677144695135",
-    "nombre": "TIKISNACK ARÁNDANOS DESHIDRATADOS CRANBERRIES Y PASAS",
-    "categoria": "Botanas, en:Frutas, en:Frutas deshidratadas, en:Frutas y verduras, en:Mezclas de frutas deshidratadas",
-    "ingredientes": "Cranberries infundidos en jugo de piña, pasas, arándanos liofilizados.",
-    "url": "https://world.openfoodfacts.org/product/0677144695135/tikisnack-arandanos-deshidratados-cranberries-y-pasas-tostaduria-nogal",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775144437
-  },
-  {
-    "id_fuente": "OFF:6411200004141",
-    "nombre": "Barrita de avena con arándano rojo, frambuesa y arábdano azul",
-    "categoria": "Barritas energéticas",
-    "ingredientes": "Avena integral y salvado de avena (43%), agua, aceite de colza, azúcar, humectante (glicerol), arándano rojo 5,5% (arándano rojo, azúcar, aceite de girasol), mezcla de fibras (garbanzo, maíz, agua), almidón ry modificado, jarabe de azúcar invertido, fécula de patata, frambuesa (2,7%), preparado de arándano azul 1,6% [azúcar, jarabe de glucosa, arándano, espesante (E401)), azúcar vainillina, jarabe de glucosa, emulgente (lecitina) sal gasificante (E500), conservador (E296). Puede contener trazas de otros cereales, leche. Avena 100% de cereales Conservación: Almacenar en lugar fresco y seco.",
-    "url": "https://world.openfoodfacts.org/product/6411200004141/barrita-de-avena-con-arandano-rojo-frambuesa-y-arabdano-azul-elovena",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1774671368
-  },
-  {
-    "id_fuente": "OFF:7500478039630",
-    "nombre": "AVENA INTEGRAL INSTANT SABOR SIN AZÚCAR ARÁNDANO",
-    "categoria": "Desconocido",
-    "ingredientes": "HOJUELAS DE AVENA, AVENA DE GRANO ENTERO, SOLIDOS DE LA LECHE, ARANDANOS 1%, SABORIZANTES NATURALES, FOSFATO TRICALCICO",
-    "url": "https://world.openfoodfacts.org/product/7500478039630/avena-integral-instant-sabor-sin-azucar-arandano-quaker",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1767057212
-  },
-  {
-    "id_fuente": "OFF:2493593045905",
-    "nombre": "Fresh -ENTRADA- ATÚN PALTA",
-    "categoria": "en:Comidas preparadas, en:Ensaladas, en:Ensaladas de atún, en:Ensaladas preparadas",
-    "ingredientes": "palta, ATUN, limon, lechuga, mayonesa (agua, aceites veg. (maravilla, SOYA), huevo, vinagre, sal, azucar, mostaza, jugo de limon, solidos de limon, edulcorante, colorante (saflor), solido de ajo, jugo de ajo, EDTA como antioxidante), pan (harina de trigo, agua, levadura, sal, azucar, aceite de maravilla, gluten, mejorador de masa (E300), conservante (E282), emulsionante (E472e), enzimas), sal, pimienta.",
-    "url": "https://world.openfoodfacts.org/product/2493593045905/fresh-entrada-atun-palta-cuisine-co",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1771957022
-  },
-  {
-    "id_fuente": "OFF:7801220002798",
-    "nombre": "PURÉ DE PALTA",
-    "categoria": "Desconocido",
-    "ingredientes": "Palta (Variedad Hass), sal (cloruro de sodio), ácido ascórbico, goma xanthan y ácido cítrico.",
-    "url": "https://world.openfoodfacts.org/product/7801220002798/pure-de-palta-minuto-verde",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775144077
-  },
-  {
-    "id_fuente": "OFF:5129260797446",
-    "nombre": "CÉSAR POLLO con palta",
-    "categoria": "Desconocido",
-    "ingredientes": "Pechuga de pollo (39%). Palta (17%). Hoja verde de estación (15%), Tomate cherry (13%), Mayonesa (EDTA) (huevo.mostaza), Yogurt griego natural (Leche fluida entera, leche en polvo descremada, almidón, gelatina, cepas de yogurt seleccionadas y sorbato de potasio) ( lácteo ), Queso parmesano ( lácteo ) (2%), Crutón (gluten), Sal, Antioxidante Palta (Acido citrico, ascorbato de sodio, citrato de sodio, azúcar, eritorbato de sodio, metabisulfito de sodio ). Mostaza dijon (Semillas de mostaza, vinagre, sal, metabisulfito de potasio, ácido citrico ), Jugo de limón, Vinagre de manzana, Aceite de oliva, Aceite de maravilla, Alcaparra, Sal, Limón, Perejil, Salsa inglesa ( Agua, vinagre, extracto de malta, extracto de levadura, colorante caramelo, maltodextrina, sal, azúcar, especias (cúrcuma, mostaza, pimienta, jengibre, clavo de olor, coriandro, nuez moscada, orégano y comino) benzoato de sodio) ácido acético, carragenina, alcohol etilico, preservantes (sorbato de potasio y gluten, mostaza ), Anchoa ( pescado ). Oregano, Pimienta, Ajo. Contiene: gluten, huevo, pescado, lácteo, sulfitos, mostaza. En líneas que también procesan: crustáceo, mani, soya, apio, nueces y productos derivados.",
-    "url": "https://world.openfoodfacts.org/product/5129260797446/cesar-pollo-con-palta-fork",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775144031
-  },
-  {
-    "id_fuente": "OFF:7808744500229",
-    "nombre": "PREMIUM AVE PALTA",
-    "categoria": "Desconocido",
-    "ingredientes": "Contiene: Gluten, soya, huevo, sulfito. Este producto es elaborado en líneas que también procesan leche (caseína-lactosa) y sésamo.",
-    "url": "https://world.openfoodfacts.org/product/7808744500229/premium-ave-palta-daily-fresh",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775143711
-  },
-  {
-    "id_fuente": "OFF:7804625092111",
-    "nombre": "ave palta",
-    "categoria": "Desconocido",
-    "ingredientes": "Relleno (pechuga pollo cocida, agua, aceites vegetales (sova, maravilla) (contiene carboximetilcelulosa sódica, ácido láctico, ácido cítrico, acido ascórbico), almidones modificados de maíz, azúcar, sal, vinagre de alcohol, cloruro de potasio, goma xanthan, ácido sórbico, acido fosfórico, jugo de limón concentrado, EDTA disódico cálcico, BHA, propil galato, ácido cítrico), palta (15%) (pulpa de palta, agua, goma xanthan, ácido cítrico, ácido ascórbico, benzoato de sodio, sorbato de potasio, metabisulfito de sodio), sazonador (fibra de soya, maltodextrina de maíz, sal, clorofila, glutamato monosódico, extracto de levadura, saborizante idéntico al natural, EDTA cálcico, ácido cítrico, metabisulfito de sodio, cúrcuma), conservante (lactato de sodio)), pan de molde blanco (49%) (harina de trigo, agua, levadura, mezcla de aceite vegetal refinado (soya y maravilla), azúcar, gluten de trigo, sal, suero de leche, ácido sórbico, mejorador (ésteres de glicerol de ácidos grasos y ácido diacetiltartárico y carbonato de calcio), propionato de calcio, fosfato monocálcico, mono y digliceridos de ácidos grasos, estearoil lactilato de sodio, enzimas, ácido láctico, leche entera en polvo, sulfato de amonio y ácido ascórbico).",
-    "url": "https://world.openfoodfacts.org/product/7804625092111/ave-palta-fresco",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775142198
-  },
-  {
-    "id_fuente": "OFF:1358971099219",
-    "nombre": "CIABATTA AVE PALTA",
-    "categoria": "Desconocido",
-    "ingredientes": "Pechuga de pollo, Harina de trigo (gluten), Puré de palta (palta (variedad hass), sal, ac.. ascorbico, ac. cítrico, goma xanthan), Mayonesa (EDTA) (huevo, mostaza ), Aceite de oliva, Semolina (gluten), Sal, Levadura. Contiene: gluten, huevo, mostaza. En líneas que también procesan: crustáceo, pescado, maní, soya, lácteo, sulfitos, apio, nueces y productos derivados.",
-    "url": "https://world.openfoodfacts.org/product/1358971099219/ciabatta-ave-palta-fork-go",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775141516
-  },
-  {
-    "id_fuente": "OFF:7803468003902",
-    "nombre": "Sándwich Miga Pollo Palta",
-    "categoria": "Sándwiches, en:Comidas preparadas, en:Sándwiches de miga, en:Sándwiches de pollo y palta",
-    "ingredientes": "Mezda pollo pollo mayonesa (41%) (pechuga de pollo cocida (pechuga deshuesada, agua, polifosfatos, sal, maltodextrina, proteina animal, tranglutaminaša, acetato de sodio, eritorbato de sodio), mayonesa (agua, aceites vegetales (soya, maravilla) (contienė BHA, propil galato y adido atrica), almidón modificado de maiz, huevo pasteurizado, azúcar, vinagre de alcohol, sal, doruro de potasio, goma xantan, aodo sórbico, ação fosfónico, jugo de limón concentrado, saborizantes naturales è idéntico a natural, EDTA disódico, cálico, betacaroteno (sintético)), agua, caldo de gallina en a, caldo de gallina en polvo (sal, maltodextrina, azúcar, grasa vegetal (palma, soya), glutamato monosodico, extracto de levadura, curcuma, acido atrico, saborizante natural e idéntico a natural, inosinato disódico, caramelo V, came de gallina en polvo, perejil, annato, laurel, tomillo)), Pan de molde (hariña de trigo, agua, aceite vegetal (mezda de aceite de soya (85%) y aceite de maravilla (15%), TBHQ como antioxidante), azúca ante), azúcar, gluten de trigo, levadura, sal, estearoil lactilato de sodio, propionato de calcio, mono y digliceridos de ácidos grasos, ácido sorbico, ácido láctico, goma quar, fosfato glicerol de ácidos grasos y diacetil tartánico, ácido ascorbico), palta (23%) (palta, aceste ve mezda de aceite de soya (85%) y aceste de maravilla (15%) como antioxidante), sal, antioxidante (sal, metabisulfito de sodentorbato de sodio, citrato de sodio).",
-    "url": "https://world.openfoodfacts.org/product/7803468003902/sandwich-miga-pollo-palta-castano",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775141432
-  },
-  {
-    "id_fuente": "OFF:7790801010188",
-    "nombre": "amodil palta anti-quiebre mas resistencia para pelo debil y quebradizo",
-    "categoria": "Desconocido",
-    "ingredientes": "CHAMPU\nIndustria Argent\u001bina\nINGREDIENTES: WATER, SODIUM LAURETH SULFATE,\nBETAINE, COCAMIDE DEA, GLYCOL DISTEARATE (AND)\nSODIUM LAURETH SULFATE, PERSEA GRATISSIMA\n(AVOCADO) EXTRACT, POLYQUATERNIUM-7, SODIUM\nCHLORIDE, FRAGRANCE, BUTYLPHENYL\nMETHYLPROPIONAL, BENZYL SALICYLATE,TOCOPHEROL\nEDTA, CITRIC ACID, METHYLCHLOROISOTHIAZOLINQE\n(AND) METHYLCHLOROTHIAZOLINONE.\nNATUREL S.A. LEG. N� 2199. M.S. R. N� 155/98.\nINT. NEYER 924 BECCAR BUENOSS AIRES\nLOTE Y VENCIMIENTO: VER EN EL ENVA\n10188",
-    "url": "https://world.openfoodfacts.org/product/7790801010188/amodil-palta-anti-quiebre-mas-resistencia-para-pelo-debil-y-quebradizo",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1618600315
-  },
-  {
-    "id_fuente": "OFF:7805000321161",
-    "nombre": "Hellmann's con aceite de palta",
-    "categoria": "Mayonesas, Mayonesas sin huevo, en:groceries",
-    "ingredientes": "Agua, laceites vegetales (maravilla Söya) (contiene BHA, propil galato y ácido citrico), almidones modificados, azúcar, aceite de palta (2%), sal, vinagre de alcohol, cloruro de potasio. saborizantes naturales, goma xantán, acido sórbico, complejo cuprico de clorofilina, ácido fosfórico, jugo de limón concentrado, EDTA disodico calcica saborizante idéntico natural, betacaroteno sintético.",
-    "url": "https://world.openfoodfacts.org/product/7805000321161/hellmann-s-con-aceite-de-palta-hellman-s",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775566622
-  },
-  {
-    "id_fuente": "OFF:7805000320515",
-    "nombre": "Mayonesa con aceite de palta",
-    "categoria": "Mayonesas, Mayonesas sin huevo, en:groceries",
-    "ingredientes": "Agua, aceites vegetales (aceite maravilla, aceite soya) (BHA, propil galato, ácido citrico), almidones modificados, azúcar, aceite de palta (2%), sal, vinagre de alcohol, cloruro de potasio, saborizantes naturales, goma xantán, ácido sórbico, complejo cúprico de clorofilina, ácido fosfórico, jugo de limón concentrado, EDTA disódico 5 cálcico, saborizante idéntico natural, betacaroteno sintético.",
-    "url": "https://world.openfoodfacts.org/product/7805000320515/mayonesa-con-aceite-de-palta-hellmann-s",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1775565929
-  },
-  {
-    "id_fuente": "OFF:7794000002340",
-    "nombre": "Mayonesa con Aceite de Palta y un Toque de Limón",
-    "categoria": "Productos sin gluten, Mayonesas con aceite de girasol",
-    "ingredientes": "Agua, aceites vegetales (girasol, palta), almidón modificado, huevo entero líquido pasteurizado, azúcar, vinagre de alcohol, sal, jugo concentrado de limón, aromatizantes naturales, estabilizante (goma xántica), colorantes (betacaroteno, clorofila), acidulante (ácido fosfórico), conservante (ácido sórbico), secuestrante (EDTA disódico cálcico), antioxidantes (BHA, BHT, ácido cítrico).",
-    "url": "https://world.openfoodfacts.org/product/7794000002340/mayonesa-con-aceite-de-palta-y-un-toque-de-limon-hellmann-s",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1692512322
-  },
-  {
-    "id_fuente": "OFF:8718989928193",
-    "nombre": "Vers sap appel mango sinaasappel",
-    "categoria": "Gekoelde Verse Multivruchtensappen",
-    "ingredientes": "35% Appelsap, 35% mangopuree, 30% sinaasappelsap, antioxidant: E300",
-    "url": "https://world.openfoodfacts.org/product/8718989928193/vers-sap-appel-mango-sinaasappel-plus",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1785224313
-  },
-  {
-    "id_fuente": "OFF:4061461293925",
-    "nombre": "Weiße Schokoladeneis mit Kokosgeschmack mit Mango und Passionsfruchtsauce",
-    "categoria": "Eis am Stiel",
-    "ingredientes": "Entrahmte Milch, Zucker, Milcheiweiß, Kakaobutter2, Kokosfett, Glukose-Fruktose-Sirup, Mango-Püree (4,3%), Butterreinfett, Magermilchpulver, Passionsfrucht aus Passionsfruchtkonzentrat (0,9%), natürliche Aromen, Vollmilchpulver, Emulgatoren: Mono - und Diglyceride von Speisefettsäuren, Lecithine (enthält Soja), Polyglycerin-Polyricinoleat; Kokosflocken (0,3%), Weizenstärke, Stärke, Weizenmehl, Stabilisatoren: Johannisbrotkernmehl, Guarkernmehl; Vanilleextrakt, Säureregulator: Natriumcitrate; Backtriebmittel: Natriumcarbonate.",
-    "url": "https://world.openfoodfacts.org/product/4061461293925/weisse-schokoladeneis-mit-kokosgeschmack-mit-mango-und-passionsfruchtsauce-mucci",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1785006329
-  },
-  {
-    "id_fuente": "OFF:7802910008595",
-    "nombre": "Vegetal Soya con trozos de Mango Maracuyá",
-    "categoria": "en:Alimentos a base de soya",
-    "ingredientes": "No visible",
-    "url": "https://world.openfoodfacts.org/product/7802910008595/vegetal-soya-con-trozos-de-mango-maracuya-lonco-leche",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784873741
-  },
-  {
-    "id_fuente": "OFF:0850038307240",
-    "nombre": "Mango Margarita",
-    "categoria": "Desconocido",
-    "ingredientes": "water, sugar, agave wine, natural flavors, glycerine, arabic gum, citric acid, fruit and vegetable juice for color, sodium benzoate, potassium sorbate",
-    "url": "https://world.openfoodfacts.org/product/0850038307240/mango-margarita-cooloo",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784834210
-  },
-  {
-    "id_fuente": "OFF:4025500305116",
-    "nombre": "Këfir arancia e mango",
-    "categoria": "Kefir",
-    "ingredientes": "Aroma naturale, purea di mango 2,7%, aroma naturale di arancia, amidi, zucchero, latte parzialmente scremato, fermenti lattici vivi, succo d'arancia da concentrato 2,6%",
-    "url": "https://world.openfoodfacts.org/product/4025500305116/kefir-arancia-e-mango-muller",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784922598
-  },
-  {
-    "id_fuente": "OFF:8904071302419",
-    "nombre": "Sweet mango pickle",
-    "categoria": "Pickles",
-    "ingredientes": "Mango (62%), Sugar lodi Cotton Seed Oil, Mustard Oil, Mustard, Fenugreek, Rea Chilli, Coriander, Cumin. Asefonda & Acidifying Agent (E260)",
-    "url": "https://world.openfoodfacts.org/product/8904071302419/sweet-mango-pickle",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784912122
-  },
-  {
-    "id_fuente": "OFF:5710405093266",
-    "nombre": "Semper Frugtmos m. æble og mango fra 6 mdr.",
-    "categoria": "en:Dagligvarer",
-    "ingredientes": "Æble 80%, mango 20%, citronjuice (fra koncentrat), vitamin C.",
-    "url": "https://world.openfoodfacts.org/product/5710405093266/semper-frugtmos-m-aeble-og-mango-fra-6-mdr",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784779242
-  },
-  {
-    "id_fuente": "OFF:0748367738364",
-    "nombre": "ALPHONSO MANGO AMCHUR",
-    "categoria": "Spices",
-    "ingredientes": "Alphonso mango, (Mangifera indica v. Alphonso)",
-    "url": "https://world.openfoodfacts.org/product/0748367738364/alphonso-mango-amchur-bo-tree",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784728714
-  },
-  {
-    "id_fuente": "OFF:00919425",
-    "nombre": "SINGLE ORIGIN SPICES ALPHONSO MANGO AMCHUR",
-    "categoria": "Spices",
-    "ingredientes": "Alphonso mango (Mangifera indica v. Alphonso)",
-    "url": "https://world.openfoodfacts.org/product/00919425/single-origin-spices-alphonso-mango-amchur-bo-tree",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784728448
-  },
-  {
-    "id_fuente": "OFF:7771714000237",
-    "nombre": "Cereal Crispies",
-    "categoria": "en:Breakfast cereals not fortified with vitamins and chemical elements, Mezclas de cereales inflados",
-    "ingredientes": "Insuflado de arroz, Insuflado de Quinua; Miel de Caña.",
-    "url": "https://world.openfoodfacts.org/product/7771714000237/cereal-crispies-tito-s",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1784827374
-  },
-  {
-    "id_fuente": "OFF:7771259330301",
-    "nombre": "Barra de Quinua + Chocolate, Chía & Almendras",
-    "categoria": "Productos sin gluten, en:Cereal bars with nuts, Barritas de cereales con chocolate",
-    "ingredientes": "Insuflado de quinua, chocolate, almendras amazónicas, glucosa, azúcar, aceite vegetal hidrogenado, saborizante artificial chocolate, chía, maltodextrina, lecitina de soya, sal.",
-    "url": "https://world.openfoodfacts.org/product/7771259330301/barra-de-quinua-chocolate-chia-almendras-comrural-xxi",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1778425752
-  },
-  {
-    "id_fuente": "OFF:7771260681232",
-    "nombre": "Postre Helado Deli Veggie Quinua con Chocolate",
-    "categoria": "Productos sin gluten, en:Ice cream in individual cup, Tarrinas y bloques de helado con leche vegetal",
-    "ingredientes": "Agua tratada, bebida vegetal de quinua (Agua tratada, quinua, aceite de girasol, sal marina), azúcar granulado, aceite vegetal de palma, azúcar invertido, cocoa en polvo, saborizante artificial chocolate, estabilizantes (SIN-471, SIN-410; SIN-412, SIN-407).",
-    "url": "https://world.openfoodfacts.org/product/7771260681232/postre-helado-deli-veggie-quinua-con-chocolate",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1782146309
-  },
-  {
-    "id_fuente": "OFF:7803520003062",
-    "nombre": "Biscuits Quinoa",
-    "categoria": "Botanas, en:Galletas, en:Galletas de quinoa",
-    "ingredientes": "Harina de trigo, azúcar, aceite de palma, leche descremada en polvo, cacao, emulsionante (lecitina de soja E322), sal, gasificantes (E500ii, E503ii), aroma de vainilla",
-    "url": "https://world.openfoodfacts.org/product/7803520003062/biscuits-quinoa-quinua",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1773793031
-  },
-  {
-    "id_fuente": "OFF:7772830160034",
-    "nombre": "Api de Quinua con Frutas",
-    "categoria": "Desayunos, Preparaciones de bebidas",
-    "ingredientes": "Harina de quinua, azúcar, ácido cítrico (E-330), canela, clavo de olor, anís, duraznos deshidratados, manzanas deshidratados, membrillos deshidratados.",
-    "url": "https://world.openfoodfacts.org/product/7772830160034/api-de-quinua-con-frutas-cocinero-pereira-d",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1772898614
-  },
-  {
-    "id_fuente": "OFF:7772501001079",
-    "nombre": "Pasta Larga Spaguetti",
-    "categoria": "en:Gluten-free dry pasta",
-    "ingredientes": "Arroz orgánico, Quinua orgánica.",
-    "url": "https://world.openfoodfacts.org/product/7772501001079/pasta-larga-spaguetti-bio-xxi",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1771610507
-  },
-  {
-    "id_fuente": "OFF:7772501000966",
-    "nombre": "Harina Premezla sin Gluten para Repostería",
-    "categoria": "Harinas de origen vegetal, Productos sin gluten, en:Baking Mixes",
-    "ingredientes": "Arroz, fécula de yuca, quinua, sorgo.",
-    "url": "https://world.openfoodfacts.org/product/7772501000966/harina-premezla-sin-gluten-para-reposteria-bio-xxi",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1767704922
-  },
-  {
-    "id_fuente": "OFF:7773400002785",
-    "nombre": "Quinua Chips de Chocolate",
-    "categoria": "Cookies con chocolate, Galletas secas, Galletas sin gluten",
-    "ingredientes": "Harina de quinua, harina de tapioca, harina de arroz, aceite vegetal sin hidrogenar, jarabe de caña, chispas de chocolate (chocolate amargo, azúcar, esencia de vainilla), pop de quinua, azúcar moreno, semillas de chía, bicarbonato de sodio E 500ii, esencia de vainilla.",
-    "url": "https://world.openfoodfacts.org/product/7773400002785/quinua-chips-de-chocolate-qkies",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1765232231
-  },
-  {
-    "id_fuente": "OFF:7771258780039",
-    "nombre": "Api Morado",
-    "categoria": "Desayunos, Preparaciones de bebidas",
-    "ingredientes": "Maíz morado, maíz amarillo, quinua, amaranto, manzana deshidratada, clavo de olor, limón, azúcar.",
-    "url": "https://world.openfoodfacts.org/product/7771258780039/api-morado-productos-la-glorieta",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1772895549
-  },
-  {
-    "id_fuente": "OFF:7772501000751",
-    "nombre": "Penne",
-    "categoria": "en:Gluten-free dry pasta, Penne Rigate sin gluten",
-    "ingredientes": "Arroz *, amaranto *, quinua *, *: orgánico.",
-    "url": "https://world.openfoodfacts.org/product/7772501000751/penne-bio-xxi",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1761003308
-  },
-  {
-    "id_fuente": "OFF:7773980120626",
-    "nombre": "Supermix",
-    "categoria": "Mueslis con frutas, en:Breakfast cereals not fortified with vitamins and chemical elements",
-    "ingredientes": "Quinua insuflada, Amaranto insuflado, banano deshidratado.",
-    "url": "https://world.openfoodfacts.org/product/7773980120626/supermix-bolivia-s-fruit",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1754185926
-  },
-  {
-    "id_fuente": "OFF:7772501000911",
-    "nombre": "Pudin de Chocolate",
-    "categoria": "Productos sin gluten, Mezclas para postres",
-    "ingredientes": "Azúcar orgánico, harina precocida de quinua orgánica, cocoa orgánico, fécula de yuca, sal.",
-    "url": "https://world.openfoodfacts.org/product/7772501000911/pudin-de-chocolate-bio-xxi",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1752976563
-  },
-  {
-    "id_fuente": "OFF:7774440260111",
-    "nombre": "Hamburguesa Quinua Real",
-    "categoria": "Productos sin gluten, en:Cereals and vegetables patties, en:Vegan patties",
-    "ingredientes": "Hojuela de quinua * roja orgánica, grano precocido de quinua * blanca orgánica, harina precocida de quinua * roja, zanahoria, pimentón, perejil, kale (col rizada), orégano, sal rosada, tomate, cilantro, pimienta, *: real.",
-    "url": "https://world.openfoodfacts.org/product/7774440260111/hamburguesa-quinua-real-andean-valley",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1783007802
-  },
-  {
-    "id_fuente": "OFF:7772501000904",
-    "nombre": "Harina Premezcla para Panqueques de Quinua",
-    "categoria": "Productos sin gluten, Mezcla para tortitas",
-    "ingredientes": "arroz *, quinua *, fécula de yuca, azúcar *, crémor tártaro, bicarbonato de sodio, esencia de vainilla, sal, *: orgánico.",
-    "url": "https://world.openfoodfacts.org/product/7772501000904/harina-premezcla-para-panqueques-de-quinua-bio-xxi",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1752946371
-  },
-  {
-    "id_fuente": "OFF:7779604030395",
-    "nombre": "Galletas Dulces con Quinua",
-    "categoria": "Galletas secas, Galletas sin gluten",
-    "ingredientes": "Almidón de yuca, harina de quinua, azúcar, manteca de palma no hidrógenada, aceite de girasol, hojuelas de quinua, agentes leudantes (bicarbonato de sodio), emulsificante (lecitina), sal yodada, estabilizante (goma guar E412).",
-    "url": "https://world.openfoodfacts.org/product/7779604030395/galletas-dulces-con-quinua-andes-tropico",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1752706608
-  },
-  {
-    "id_fuente": "OFF:7771259330219",
-    "nombre": "Quinua Negra",
-    "categoria": "Productos sin gluten, Quinoa",
-    "ingredientes": "QUINUA NEGRA EN GRANO.",
-    "url": "https://world.openfoodfacts.org/product/7771259330219/quinua-negra-quinut",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1771975149
-  },
-  {
-    "id_fuente": "OFF:7771259330202",
-    "nombre": "Quinua Roja",
-    "categoria": "Productos sin gluten, Quinoa roja",
-    "ingredientes": "QUINUA ROJA EN GRANO.",
-    "url": "https://world.openfoodfacts.org/product/7771259330202/quinua-roja-quinut",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1771975074
-  },
-  {
-    "id_fuente": "OFF:2000000152859",
-    "nombre": "Pan Negro Integral con Quinua",
-    "categoria": "Productos artesanales, Panes integrales",
-    "ingredientes": "Harina de trigo integral, fibra de trigo, harina de quinua, azúcar morena, sal, manteca de cerdo, levadura, agua.",
-    "url": "https://world.openfoodfacts.org/product/2000000152859/pan-negro-integral-con-quinua-chisiway-mama",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1751903831
-  },
-  {
-    "id_fuente": "OFF:7771712000536",
-    "nombre": "Chocolate con Quinua",
-    "categoria": "en:Flavoured milk chocolates, en:Milk chocolate bar, en:Puffed cereal milk chocolates",
-    "ingredientes": "Azúcar, mantequilla de cacao, leche entera en polvo, licor de cacao, quinua, lecitina de soya * (emulsionante), extracto de vainilla, sabor artificial a fresa. *: genéticamente modificada.",
-    "url": "https://world.openfoodfacts.org/product/7771712000536/chocolate-with-quinoa-chocolates-para-ti",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1750114659
-  },
-  {
-    "id_fuente": "OFF:7771711002067",
-    "nombre": "Barra de Chocolate con Quinua",
-    "categoria": "en:Flavoured milk chocolates, en:Milk chocolate bar",
-    "ingredientes": "Azúcar, leche entera, manteca de cacao, pasta de cacao, quinua pop, emulsificante (E-322), saborizante artificial a vainilla.",
-    "url": "https://world.openfoodfacts.org/product/7771711002067/barra-de-chocolate-con-quinua-el-ceibo",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1748042677
-  },
-  {
-    "id_fuente": "OFF:7771711001053",
-    "nombre": "QuinuCoa Instantánea",
-    "categoria": "Chocolates en polvo",
-    "ingredientes": "Azúcar molida, cacao en polvo, leche descremada en polvo, quinua molida, lecitina de soja, saborizante artificial a vainilla, estabilizante (goma xantana).",
-    "url": "https://world.openfoodfacts.org/product/7771711001053/quinucoa-instantanea-el-ceibo",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747959647
-  },
-  {
-    "id_fuente": "OFF:2000000152657",
-    "nombre": "Quinua Real en Grano",
-    "categoria": "Quinoa",
-    "ingredientes": "Quinua en grano.",
-    "url": "https://world.openfoodfacts.org/product/2000000152657/quinua-real-en-grano-los-andes",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747948270
-  },
-  {
-    "id_fuente": "OFF:0850012181071",
-    "nombre": "Premezcla Brownie Quinoa Chocolate",
-    "categoria": "Productos sin gluten, en:Brownies mixes",
-    "ingredientes": "Harina de quinua, azúcar, cocoa, maltodextrina, polvo para hornear, sal, saborizante a chocolate, saborizante a vainilla.",
-    "url": "https://world.openfoodfacts.org/product/0850012181071/premezcla-brownie-quinoa-chocolate-natuser",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747849513
-  },
-  {
-    "id_fuente": "OFF:0850012181088",
-    "nombre": "Premezcla Bizcochuelo Quinoa Vainilla",
-    "categoria": "Productos sin gluten, Mezcla para tartas",
-    "ingredientes": "Harina de quinua, azúcar, almidón de maíz, almidón de yuca, harina de arroz, polvo de hornear, saborizante a vainilla, sal.",
-    "url": "https://world.openfoodfacts.org/product/0850012181088/premezcla-bizcochuelo-quinoa-vainilla-natuser",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747848889
-  },
-  {
-    "id_fuente": "OFF:7771712000628",
-    "nombre": "Chocolates con Frutas",
-    "categoria": "Bombones, en:Flavoured milk chocolates, en:Milk chocolate with dried fruits, en:Puffed cereal milk chocolates",
-    "ingredientes": "Azúcar, leche entera en polvo, mantequilla de cacao, licor de cacao, almendra amazónica, maní, coco rallado, quinua, amaranto, lecitina de soya * (emulsionante), extracto de vainilla, *: genéticamente modificada.",
-    "url": "https://world.openfoodfacts.org/product/7771712000628/chocolates-con-frutas-chocolates-para-ti",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747581129
-  },
-  {
-    "id_fuente": "OFF:7773400002983",
-    "nombre": "Qkies Quinua Mango Naranja",
-    "categoria": "Galletas secas, Galletas sin gluten",
-    "ingredientes": "Harina de quinua, harina de tapioca, harina de arroz, aceite vegetal sin hidrogenar, jarabe de caña, azúcar moreno, quinua pop, esencia de naranja, esencia de mango, semillas de chía, bicarbonato de sodio E 500ii.",
-    "url": "https://world.openfoodfacts.org/product/7773400002983/qkies-quinua-mango-naranja-la-francesa",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747494717
-  },
-  {
-    "id_fuente": "OFF:7774440260074",
-    "nombre": "Harina Precocida Negra",
-    "categoria": "Productos sin gluten, Harinas de quinoa",
-    "ingredientes": "Grano de Quinua Negra Orgánica.",
-    "url": "https://world.openfoodfacts.org/product/7774440260074/harina-precocida-negra-andean-valley",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747327377
-  },
-  {
-    "id_fuente": "OFF:7772622212040",
-    "nombre": "Batido Verde",
-    "categoria": "Bebidas no alcohólicas, Bebidas endulzadas artificialmente, Bebidas no azucaradas, en:Cereals-based beverages, Bebidas con sabor",
-    "ingredientes": "Harina pregelatinizada de arroz, Harina pregelatinizada de quinua, maltodextrina en polvo (Emulsificante), espinaca deshidratada en polvo, apio deshidratado en polvo, menta deshidratada en polvo, harina de avena, almendra amazónica en polvo, jengibre deshidratado en polvo, espirulina deshidratada en polvo, aroma artificial a canela, sucralosa (edulcorante).",
-    "url": "https://world.openfoodfacts.org/product/7772622212040/batido-verde-foodness",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1773253066
-  },
-  {
-    "id_fuente": "OFF:7772685000271",
-    "nombre": "Grano de quinua",
-    "categoria": "Quinoa inflada",
-    "ingredientes": "Quinua.",
-    "url": "https://world.openfoodfacts.org/product/7772685000271/grano-de-quinua-ely",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1744309196
-  },
-  {
-    "id_fuente": "OFF:7774440410349",
-    "nombre": "Api de Quinua sin Azúcar",
-    "categoria": "Leches de quinoa en polvo",
-    "ingredientes": "Harina de quinua blanca, harina de maíz, canela molida.",
-    "url": "https://world.openfoodfacts.org/product/7774440410349/api-de-quinua-sin-azucar-anapqui",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1743721703
-  },
-  {
-    "id_fuente": "OFF:7707357440604",
-    "nombre": "Semilla de Quinua Roja",
-    "categoria": "Quinoa roja",
-    "ingredientes": "Semilla de quinua (variedad roja)",
-    "url": "https://world.openfoodfacts.org/product/7707357440604/semilla-de-quinua-roja-karavansay",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1742309932
-  },
-  {
-    "id_fuente": "OFF:7706989928962",
-    "nombre": "Quinua",
-    "categoria": "Desconocido",
-    "ingredientes": "Quinua pepa.",
-    "url": "https://world.openfoodfacts.org/product/7706989928962/quinua-behappy",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1742308320
-  },
-  {
-    "id_fuente": "OFF:7772622211982",
-    "nombre": "Leche con quinua",
-    "categoria": "Bebida lácteas, Bebidas endulzadas artificialmente, Bebidas instantáneas, Bebidas no azucaradas, Bebidas con sabor, en:Mixed drinks",
-    "ingredientes": "Leche en polvo descremada, harina de quinua, harina de avena, maltodextrina en polvo (emulsionante), suero de leche, harina de arroz, harina de maíz, aroma artificial a canela, sucralosa (edulcorante).",
-    "url": "https://world.openfoodfacts.org/product/7772622211982/leche-con-quinua-montecristo",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1747790168
-  },
-  {
-    "id_fuente": "OFF:7771259330417",
-    "nombre": "Quinua Pop",
-    "categoria": "Productos sin gluten, Quinoa inflada",
-    "ingredientes": "Quinua insuflada, azúcar.",
-    "url": "https://world.openfoodfacts.org/product/7771259330417/quinua-pop-quinut",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1739722475
-  },
-  {
-    "id_fuente": "OFF:7771259330400",
-    "nombre": "Barra de Quinua MIX + Chocolate, Chía & Almendra",
-    "categoria": "Productos sin gluten, en:Cereal bars with nuts, Barritas de cereales con chocolate",
-    "ingredientes": "Barra de Quinua con Chocolate 50% [Quinua insuflada, chocolate, almendras amazónicas, glucosa, azúcar, aceite vegetal hidrogenado, saborizante artificial chocolate, chía, maltodextrina, lecitina de soya, sal], Barra de Quinua con Chocolate Blanco 50% [Quinua insuflada, chocolate blanco, almendras amazónicas, glucosa, azúcar, aceite vegetal hidrogenado, saborizante artificial chocolate, chía, maltodextrina, lecitina de soya, sal].",
-    "url": "https://world.openfoodfacts.org/product/7771259330400/barra-de-quinua-mix-chocolate-chia-almendra-quinut",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1739565340
-  },
-  {
-    "id_fuente": "OFF:7773980120985",
-    "nombre": "Quinua Dulce Insuflada",
-    "categoria": "Quinoa inflada",
-    "ingredientes": "Quinua insuflada, azúcar.",
-    "url": "https://world.openfoodfacts.org/product/7773980120985/quinua-dulce-insuflada-bolivia-s-fruit",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1739555746
-  },
-  {
-    "id_fuente": "OFF:7771401000212",
-    "nombre": "Riwis Snacks",
-    "categoria": "Snacks dulces, Productos sin gluten, en:Extruded cereals",
-    "ingredientes": "Arroz, quinoa, edulcurantes (E-954, E-952).",
-    "url": "https://world.openfoodfacts.org/product/7771401000212/riwis-snacks",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1738704360
-  },
-  {
-    "id_fuente": "OFF:7771258730126",
-    "nombre": "Kumis Quinua",
-    "categoria": "Refrigerados, Yogures para beber, en:Mixed drinks, en:Plain whole fermented milk drink, en:fermented-milk-drinks-with-sugar",
-    "ingredientes": "Leche entera, harina de quinua, azúcar, estabilizante (Pectina (SIN-440), Adipato de dialmidón acetilado (SIN-1422)), conservantes (sorbato de potasio (SIN-202), benzoato de sodio (SIN-211)), regulador de acidez (citrato de sodio (SIN-331)). Cultivos lácticos seleccionados (Lactococcus lactis ssp cremoris).",
-    "url": "https://world.openfoodfacts.org/product/7771258730126/kumis-quinua-eba",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1773319610
-  },
-  {
-    "id_fuente": "OFF:7770016892960",
-    "nombre": "Mezcla Instantánea de Cereales en Polvo",
-    "categoria": "en:Cereals-based beverages, Mezclas de leches vegetales",
-    "ingredientes": "Avena laminada, cañahua, quinua, amaranto, wilkaparu.",
-    "url": "https://world.openfoodfacts.org/product/7770016892960/mezcla-instantanea-de-cereales-en-polvo-subsidio-prenatal-y-lactancia",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1736660039
-  },
-  {
-    "id_fuente": "OFF:7772622212057",
-    "nombre": "Vegan Protein",
-    "categoria": "Productos sin gluten, Bebidas instantáneas, Polvos de proteína",
-    "ingredientes": "Proteína aislada de soya, Harina de quinua, Harina de maca, Ácido cítrico, Aroma idéntico al natural, Sucralosa, Enmascarador de soya, Emulsificante, Vitaminas (A, D, C, E, B1, B2, PP, B5, B6, B12, H, K, Ácido fólico), Minerales (Hierro, cromo, calcio, magnesio, yodo, selenio).",
-    "url": "https://world.openfoodfacts.org/product/7772622212057/vegan-protein-montecristo",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1754102099
-  },
-  {
-    "id_fuente": "OFF:7771260670052",
-    "nombre": "Choconick",
-    "categoria": "en:Extruded cereals, en:Breakfast cereals not fortified with vitamins and chemical elements, en:Breakfast chocolate cereals not filled and not fortified with vitamins and chemical elements",
-    "ingredientes": "Gritz de maíz, quinua, chía, avena, soya, arroz, trigo, azúcar, chocolate, saborizante natural de chocolate, glucosa, edulcorante, colorante artificial (e155).",
-    "url": "https://world.openfoodfacts.org/product/7771260670052/choconick",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1736220384
-  },
-  {
-    "id_fuente": "OFF:7772622211999",
-    "nombre": "Licuado de Plátano",
-    "categoria": "Bebidas no alcohólicas, Bebidas endulzadas artificialmente, Bebidas instantáneas, Bebidas no azucaradas, Bebidas con sabor, Bebidas de fruta y leche, en:Milk-shakes preparations, en:Mixed drinks",
-    "ingredientes": "Leche descremada en polvo, plátano deshidratado en polvo, harina pregelatinizada de arroz, harina pregelatinizada de quinua, harina de avena, suero de leche en polvo, maltodextrina (emulsionante), semilla de chía, aroma artificial a plátano, sucralosa (edulcorante).",
-    "url": "https://world.openfoodfacts.org/product/7772622211999/licuado-de-platano-provecho",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1735770189
-  },
-  {
-    "id_fuente": "OFF:7771258731116",
-    "nombre": "Harina de Quinua Orgánica",
-    "categoria": "Harinas de quinoa",
-    "ingredientes": "Quinua blanca en grano orgánica.",
-    "url": "https://world.openfoodfacts.org/product/7771258731116/harina-de-quinua-organica-eba",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1735677335
-  },
-  {
-    "id_fuente": "OFF:7771258730508",
-    "nombre": "Galletas de Quinua, Almendra y Chips de Chocolate",
-    "categoria": "Cookies con chocolate, Galletas secas",
-    "ingredientes": "Harina de trigo fortificada (Vitamina B1, Vitamina B2, niacina, ácido fólico, hierro), harina de arroz, azúcar blanca granulada, almendra picada, harina de quinua, manteca vegetal, margarina vegetal, chips de chocolate, harina de maíz, harina de haba, Leudante (polvo de hornear), lecitina de soya, Conservante (propionato de calcio), sal yodada, esencia de vainilla, minerales (sulfato de zinc, sulfato ferroso, fosfato tricálcico).",
-    "url": "https://world.openfoodfacts.org/product/7771258730508/galletas-de-quinua-almendra-y-chips-de-chocolate-eba",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1735616764
-  },
-  {
-    "id_fuente": "OFF:2000000151784",
-    "nombre": "Hamburguesa de Quinua",
-    "categoria": "en:Frozen vegetarian patties, en:Vegan patties",
-    "ingredientes": "Quinua en grano, harina de quinua precocida, sal yodada fluorada, especias naturales.",
-    "url": "https://world.openfoodfacts.org/product/2000000151784/hamburguesa-de-quinua-marka",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1783007936
-  },
-  {
-    "id_fuente": "OFF:0736372567239",
-    "nombre": "Quinua en Grano Orgánica",
-    "categoria": "Quinoa",
-    "ingredientes": "Quinua Blanca en grano orgánico.",
-    "url": "https://world.openfoodfacts.org/product/0736372567239/quinua-en-grano-organica-subsidio-prenatal-y-lactancia",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1735583652
-  },
-  {
-    "id_fuente": "OFF:7772622210985",
-    "nombre": "Vegan Protein sabor Chocolate",
-    "categoria": "Productos sin gluten, Bebidas instantáneas, Polvos de proteína",
-    "ingredientes": "Proteína aislada de soya, Harina de quinua, Harina de maca, Aroma de chocolate, Cocoa alcalina en polvo, Sucralosa, Enmascarador de soya, Emulsionante, Vitaminas (A, D, C, E, B1, B2, PP, B5, B6, B12, H, K, Ácido Fólico), Minerales (Hierro, Cromo, Calcio, Magnesio, Yodo, Selenio).",
-    "url": "https://world.openfoodfacts.org/product/7772622210985/vegan-protein-sabor-chocolate-alma-nutrients",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1736403776
-  },
-  {
-    "id_fuente": "OFF:7774440970065",
-    "nombre": "Harina de Quinua Orgánica",
-    "categoria": "Harinas de quinoa",
-    "ingredientes": "Grano de quinua blanca orgánica.",
-    "url": "https://world.openfoodfacts.org/product/7774440970065/harina-de-quinua-organica-subsidio-prenatal-y-lactancia",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1735281215
-  },
-  {
-    "id_fuente": "OFF:7771259751601",
-    "nombre": "Chocopil Plus Chocolate",
-    "categoria": "Helados de palo",
-    "ingredientes": "HELADO DE LECHE [LECHE ENTERA, AZÚCAR, JARABE DE GLUCOSA, COCOA, ESTABILIZANTES, EMULSIFICANTES (SIN401, SIN410, SIN466, SIN471, SIN 477), ESENCIA IDÉNTICA A NATURAL DE CHOCOLATE], COBERTURA DE CHOCOLATE [GRASA VEGETAL, AZÚCAR, SUERO DE LECHE, PASTA DE CACAO, CACAO EN POLVO, EMULSIFICANTES (SIN322 LECITINA DE SOYA, SIN476), LECHE EN POLVO, AROMATIZANTE IDÉNTICO AL NATURAL Y ARTIFICIAL DE CHOCOLATE], QUINUA INSUFLADA [GRANO DE QUINUA INSUFLADA].",
-    "url": "https://world.openfoodfacts.org/product/7771259751601/chocopil-plus-chocolate-helados-pil",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1745252812
-  },
-  {
-    "id_fuente": "OFF:7771258730683",
-    "nombre": "Quinua Real en grano",
-    "categoria": "Productos sin gluten, Quinoa",
-    "ingredientes": "Quinua blanca en grano.",
-    "url": "https://world.openfoodfacts.org/product/7771258730683/quinua-real-en-grano-eba",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1732288390
-  },
-  {
-    "id_fuente": "OFF:7771258731147",
-    "nombre": "Hojuela de Quinua Orgánica",
-    "categoria": "Copos de quinoa",
-    "ingredientes": "Quinua blanca orgánica.",
-    "url": "https://world.openfoodfacts.org/product/7771258731147/hojuela-de-quinua-organica-eba",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1732288420
-  },
-  {
-    "id_fuente": "OFF:7771711001237",
-    "nombre": "Ceibolitos",
-    "categoria": "Surtido de chocolates, en:Flavoured milk chocolates",
-    "ingredientes": "Ceibolitos de leche 25% (Azúcar, manteca de cacao, leche entera en polvo, licor de cacao, lecitina de soja, vainilla), ceibolitos de quinua 25% (Azúcar, manteca de cacao, leche entera en polvo, licor de cacao, pipocas de quinua, lecitina de soja, vainilla), ceibolitos de amaranto 25% (Azúcar, manteca de cacao, leche entera en polvo, licor de cacao, pipocas de amaranto, lecitina de soja, vainilla), ceibolitos con maní 25% (Azúcar, manteca de cacao, leche entera en polvo, licor de cacao, partículas de maní tostado, lecitina de soja, vainilla).",
-    "url": "https://world.openfoodfacts.org/product/7771711001237/ceibolitos-el-ceibo",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1730593219
-  },
-  {
-    "id_fuente": "OFF:7771259420026",
-    "nombre": "Mermelada de Durazno & Quinua",
-    "categoria": "Mermeladas y confituras de melocotón",
-    "ingredientes": "Durazno, Quinua, Azúcar, Gelificante (SIN 466), Acidulante (SIN 330), Antioxidante (SIN 300).",
-    "url": "https://world.openfoodfacts.org/product/7771259420026/mermelada-de-durazno-quinua-bri-exotics-jams",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1726271464
-  },
-  {
-    "id_fuente": "OFF:7774440930014",
-    "nombre": "Quinua Real Blanca",
-    "categoria": "Quinoa",
-    "ingredientes": "Quinua Blanca en grano.",
-    "url": "https://world.openfoodfacts.org/product/7774440930014/quinua-real-blanca-subsidio-prenatal-y-lactancia",
-    "usa_insumo_directo": false,
-    "fecha_dato": 1735346216
+    "fecha_dato": 1718928000
   }
 ]

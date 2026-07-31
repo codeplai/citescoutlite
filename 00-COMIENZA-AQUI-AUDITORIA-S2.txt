@@ -1,0 +1,237 @@
+================================================================================
+                    AUDITORÍA SEMANA 2 - PUNTO DE ENTRADA
+================================================================================
+
+Fecha: 2026-07-30
+Auditoría completada para SEMANA 2 (Datos reales de los 5 insumos)
+Próximo hito: KICKOFF LUNES 5 DE AGOSTO 8:00 AM
+
+================================================================================
+                    ¿QUÉ SE ENTREGÓ? (7 DOCUMENTOS + PLAN EN TIERS)
+================================================================================
+
+📌 DOCUMENTO PRINCIPAL (NUEVO):
+
+  PLAN-TIERS-S2.md
+  └─ Semana 2 estructurada en TIERS de complejidad (como S1)
+     ├─ TIER 1: Preparación (Lun 5, 2-3h)
+     ├─ TIER 2: Descargas masivas (Mar 6-7, 8h, parallelizable)
+     ├─ TIER 3: Limpieza datos (Mié 7, 2-3h)
+     ├─ TIER 4: Embeddings masivos (Mié 7-Jue 8, 8-12h)
+     ├─ TIER 5: Búsqueda P03 (Jue 8, 4h)
+     ├─ TIER 6: Corpus regulatorio (Jue 8-Vie 9, 6h, parallelizable)
+     └─ TIER 7: Cierre y auditoría (Vie 9, 4h)
+
+  👉 LEER ESTO PRIMERO si quieres ejecutar S2
+
+---
+
+DOCUMENTOS DE SOPORTE:
+
+1. LECTURA-RECOMENDADA-S2.md
+   └─ Guía de navegación por rol (5-90 min según qué eres)
+
+2. KICKOFF-S2.md
+   └─ Acta oficial de inicio (decisiones críticas TIER 1)
+
+3. RESUMEN-S2-EJECUTIVO.md
+   └─ Checklist ejecutivo (5 minutos para stakeholders)
+
+4. PLAN-EJECUCION-S2.md
+   └─ Pseudocódigo ejecutable detallado [S2-T01 a S2-T09]
+
+5. AUDITORIA-SEMANA-2.md
+   └─ Análisis profundo (si necesitas entender a fondo)
+
+6. MATRIZ-DEPENDENCIAS-S2.md
+   └─ Visual de progreso + camino crítico (referencia diaria)
+
+================================================================================
+                        ¿CUÁL LEO PRIMERO?
+================================================================================
+
+TODOS (PRIMERO):                  → PLAN-TIERS-S2.md (estructura de 7 TIERS)
+                                    Entiende la semana de arriba a abajo
+
+LUEGO, SEGÚN TU ROL:
+────────────────────────────────────────────────────────────────────────────
+STAKEHOLDER / CITE                → RESUMEN-S2-EJECUTIVO.md (5 min)
+DEVELOPER (Dev A OFF/USDA)        → PLAN-TIERS-S2.md TIER 2 (pseudocódigo)
+DEVELOPER (Dev B Embeddings)      → PLAN-TIERS-S2.md TIER 4-5 (pseudocódigo)
+QA                                → PLAN-TIERS-S2.md TIER 7 (Golden set)
+TECH LEAD / ARQUITECTO            → PLAN-TIERS-S2.md (completo) + AUDITORIA-SEMANA-2.md
+
+TODOS JUNTOS LUNES 8 AM:          → KICKOFF-S2.md (15 min kickoff + decisiones)
+
+================================================================================
+                    ESTADO ACTUAL (Crítico → Bloqueado)
+================================================================================
+
+✓ CÓDIGO LISTO PARA EMPEZAR:
+  └─ cargar_off.py existe (necesita reescritura con reintentos)
+  └─ pyproject.toml tiene sentence-transformers declarado
+  └─ LanceDB disponible
+
+✗ BLOQUEADO POR SEMANA 1 (8 ITEMS CRÍTICOS):
+  1. Cost-meter real (no US$0.00 fijo)
+  2. fecha_dato real (no date.today())
+  3. usa_insumo_directo derivado (parsing)
+  4. Etapas 4,5 separadas (en etapa())
+  5. Modelo por etapa (E1≠E3)
+  6. Auth + JWT real
+  7. Contratos/ generado
+  8. Huawei MaaS verificado (modelos GLM accesibles)
+
+  👉 Si falta CUALQUIERA → S2 no arranca
+  👉 Verificar HOYA con: pytest test/test_cierre_s1.py
+
+================================================================================
+                        SEMANA 2 EN 30 SEGUNDOS
+================================================================================
+
+OBJETIVO:
+  Descargar 5 insumos piloto (250-1000 productos) de OFF + USDA
+  Indexar con embeddings bge-m3 (1024-dimensional)
+  Verificar p95 latencia < 2 segundos
+  P03 en verde (datos navegables)
+
+DURACIÓN:  5 días hábiles (Lun 5 - Vie 9 agosto)
+EQUIPO:    2 developers + 1 QA
+ESTRUCTURA: 7 TIERS de complejidad (como S1)
+
+  TIER 1: Preparación (Lun 5, 2-3h)
+  TIER 2: Descargas OFF+USDA (Mar 6-7, 8h, parallelizable)
+  TIER 3: Limpieza datos (Mié 7, 2-3h)
+  TIER 4: Embeddings bge-m3 (Mié-Jue, 8-12h)
+  TIER 5: Búsqueda p95<2s (Jue 8, 4h) ← P03
+  TIER 6: Corpus regulatorio (Jue-Vie, 6h, parallelizable)
+  TIER 7: Cierre + Golden set (Vie 9, 4h)
+
+TOTAL:    28h código + 12-24h espera (indexación, descargas)
+SALIDA:   datasets/2026-07/ + vectores/productos.lance/ + P03 verde
+
+================================================================================
+                    HITOS CRÍTICOS (VIERNES EOD)
+================================================================================
+
+✓ Datos reales: OFF ≥250 productos (sin DEMO si éxito)
+✓ USDA: ≥10 productos (o documentado "no disponible")
+✓ Embeddings: bge-m3 1024-dim en LanceDB
+✓ P95 latencia: < 2 segundos (100+ queries)
+✓ Golden set: 5/5 casos pasan
+✓ Corpus: eCFR ≥5 + DIGESA ≥2000 palabras
+
+SI TODO VERDE → S3 puede comenzar sin bloqueantes
+
+================================================================================
+                        ORDEN DE LECTURA (POR ROL)
+================================================================================
+
+TODOS (ANTES DE LUNES):
+  [30 min] PLAN-TIERS-S2.md (estructura + TIER por TIER)
+  [10 min] KICKOFF-S2.md §1-3 (decisiones críticas)
+
+LUNES 5 ago 8:00 AM KICKOFF:
+  [15 min] KICKOFF-S2.md (acta oficial, decisiones D-A + D-B)
+
+DESARROLLADORES (durante la semana):
+  PLAN-TIERS-S2.md [TU TIER] → pseudocódigo ejecutable
+  PLAN-EJECUCION-S2.md [TU TAREA] → detalles de código
+
+QA (durante la semana):
+  PLAN-TIERS-S2.md TIER 7 (Golden set + E2E)
+
+REFERENCE DIARIA:
+  MATRIZ-DEPENDENCIAS-S2.md (qué esperar cada día)
+
+TECH LEAD (si necesita escalaciones):
+  AUDITORIA-SEMANA-2.md (riesgos + mitigaciones)
+
+================================================================================
+                        DECISIONES QUE SE TOMAN HOY
+================================================================================
+
+D-A: OFF descarga (live API vs 2GB offline)?
+     → Prueba HOY antes de 10 AM: time python -m etl.cargar_off_masivo --test
+     → Si < 10 min: live; si ≥ 10 min: offline
+
+D-B: USDA_API_KEY disponible?
+     → Verificar en .env.local
+     → Si no: proceder solo OFF
+
+D-C: Motor PDF (información, no acción hoy)
+     → Mantener xhtml2pdf (funciona)
+
+================================================================================
+                    PRÓXIMOS PASOS (HOY 30-07-2026)
+================================================================================
+
+ANTES DE LAS 12:00 PM:
+  [ ] Verificar que S1 ha entregado 8 bloqueantes (KICKOFF-S2.md §2)
+  [ ] Todos leen: KICKOFF-S2.md (15 min)
+
+ANTES DE LAS 15:00 PM:
+  [ ] Ejecutar test de descarga OFF (ver decisión D-A)
+  [ ] Confirmar USDA_API_KEY disponible
+
+ANTES DE LAS 17:00 PM:
+  [ ] Developers leen su documento de tareas
+  [ ] QA amplia golden set a 5 casos
+
+LUNES 8:00 AM:
+  [ ] Kickoff oficial (30 min)
+  [ ] Dev A comienza OFF descarga
+  [ ] Dev B prepara scripts de embeddings
+
+================================================================================
+                    ARCHIVOS GENERADOS HOY
+================================================================================
+
+En el repositorio (raíz):
+  00-COMIENZA-AQUI-AUDITORIA-S2.txt        ← Este archivo
+  LECTURA-RECOMENDADA-S2.md               Guía de navegación
+  KICKOFF-S2.md                           Acta de inicio
+  RESUMEN-S2-EJECUTIVO.md                 Resumen 5 min
+  PLAN-EJECUCION-S2.md                    Pseudocódigo
+  AUDITORIA-SEMANA-2.md                   Análisis profundo
+  MATRIZ-DEPENDENCIAS-S2.md               Visual de progreso
+
+En memoria persistente:
+  memory/semana-2-auditoria.md            Para futuras conversaciones
+
+================================================================================
+                        CONTACTO PARA DUDAS
+================================================================================
+
+"¿Qué está bloqueando S2?"
+→ RESUMEN-S2-EJECUTIVO.md / KICKOFF-S2.md §2
+
+"¿Cómo implemento mi tarea?"
+→ PLAN-EJECUCION-S2.md [S2-T01 a S2-T09]
+
+"¿Qué riesgos hay?"
+→ AUDITORIA-SEMANA-2.md §5 / KICKOFF-S2.md §6
+
+"¿Cuándo hay que escalar?"
+→ MATRIZ-DEPENDENCIAS-S2.md §10 / KICKOFF-S2.md §6
+
+"Necesito todo con detalle"
+→ AUDITORIA-SEMANA-2.md (80 minutos de lectura)
+
+================================================================================
+                            STATUS FINAL
+================================================================================
+
+✓ Auditoría COMPLETADA
+✓ 6 documentos entregados + 1 en memoria
+✓ Pseudocódigo ejecutable listo
+✓ Camino crítico identificado
+✓ Riesgos documentados con planes B
+
+👉 PRÓXIMO PASO: Leer LECTURA-RECOMENDADA-S2.md o KICKOFF-S2.md según tu rol
+
+================================================================================
+Generado: 2026-07-30 19:30 UTC
+Plan: 4 semanas hacia demo CDR 2026-08-28
+Estatus: Semana 2 lista para kickoff (depende de S1)
+================================================================================

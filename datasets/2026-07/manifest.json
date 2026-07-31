@@ -61,11 +61,30 @@
       "demo": 2
     }
   },
-  "próximos_pasos_s2": [
-    "Ampliar ETL OFF a export masivo (~9GB)",
-    "Aumentar cobertura a 50-200 productos por insumo",
-    "Agregar 8+ trimestres de histórico para MIM",
-    "Descargar DIGESA + eCFR para regulación"
+  "decisiones_tier1": {
+    "D-A_estrategia_off": "OPCIÓN B (export offline)",
+    "D-A_razon": "OFF API retorna 503 Service Unavailable",
+    "D-B_usda_disponible": false,
+    "D-B_razon": "USDA_API_KEY no configurada en .env.local",
+    "D-C_motor_pdf": "xhtml2pdf (actual)",
+    "D-C_razon": "Funciona; WeasyPrint es para S4+"
+  },
+  "estado_s2": {
+    "tier1": "✓ COMPLETADO (2026-07-30 18:15 UTC)",
+    "tier2": "⏳ BLOQUEADO (Espera export offline OFF)",
+    "tier3": "⏳ PENDIENTE",
+    "tier4": "⏳ PENDIENTE",
+    "tier5": "⏳ PENDIENTE",
+    "tier6": "⏳ PENDIENTE",
+    "tier7": "⏳ PENDIENTE"
+  },
+  "próximos_pasos": [
+    "TIER 2 (Martes 6 ago): Descargar export OFF masivo (~2GB, 30-45 min)",
+    "TIER 3 (Miércoles 7): Deduplicar y mergear",
+    "TIER 4 (Miércoles-Jueves): Generar embeddings bge-m3",
+    "TIER 5 (Jueves): Medir p95 latencia < 2s (P03 verde)",
+    "TIER 6 (Jueves-Viernes): Corpus eCFR + DIGESA",
+    "TIER 7 (Viernes): Cierre, Golden set 5/5, E2E"
   ],
-  "notas": "Versión bootstrap con ~90 productos. Suficiente para demostración S1. S2 requiere 250+ registros para activar índice PQ en LanceDB."
+  "notas": "TIER 1 completado. OFF API down → Plan B: export offline. USDA no disponible. Proceder solo con OFF. Ambas son mitigaciones documentadas, no bloqueantes para S2."
 }

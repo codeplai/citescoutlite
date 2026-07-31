@@ -1,0 +1,8 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[2026-07-30T20:31:09.168824] ======================================================================
+[2026-07-30T20:31:09.191350] TIER 4: Embeddings masivos (bge-m3)
+[2026-07-30T20:31:09.227887] ======================================================================
+[2026-07-30T20:31:09.238372] Inicio: 2026-07-30T20:31:09.238351
+[2026-07-30T20:31:10.328753] [LOAD] Cargados 28236 productos
+[2026-07-30T20:31:10.372611] [MODEL] Cargando BAAI/bge-m3...
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|##########| 391/391 [00:00<00:00, 6538.71it/s]

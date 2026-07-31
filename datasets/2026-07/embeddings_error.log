@@ -1,0 +1,11 @@
+[2026-07-30T21:23:17.594015] ======================================================================
+[2026-07-30T21:23:17.596309] TIER 4: Embeddings masivos (bge-m3)
+[2026-07-30T21:23:17.598114] ======================================================================
+[2026-07-30T21:23:17.599785] [LOAD] Cargando productos...
+[2026-07-30T21:23:18.265775] [LOAD] Cargados 28236 productos
+[2026-07-30T21:23:18.268360] [MODEL] Cargando BAAI/bge-m3...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 6257.07it/s]
+[2026-07-30T21:23:25.958598] [MODEL] Listo. Dimensiones: 1024
+[2026-07-30T21:23:25.960146] [EMBED] Generando embeddings (batch_size=8)...
+[2026-07-30T21:23:42.893608] [EMBED] Progreso: 8/28236 (0%) - 0 prod/s
