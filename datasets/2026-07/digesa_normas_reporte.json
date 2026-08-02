@@ -1,0 +1,77 @@
+[
+  {
+    "id": "RM_865-2020-MINSA",
+    "estado": "ok",
+    "paginas": 9,
+    "palabras_extraidas": 2131,
+    "pasajes": 9,
+    "palabras_utiles": 1915,
+    "url": "http://www.digesa.minsa.gob.pe/noticias/Octubre2020/RM_865-2020-MINSA.pdf"
+  },
+  {
+    "id": "RM_854-2020-MINSA",
+    "estado": "ok",
+    "paginas": 20,
+    "palabras_extraidas": 1051,
+    "pasajes": 5,
+    "palabras_utiles": 1036,
+    "url": "http://www.digesa.minsa.gob.pe/noticias/Octubre2020/RM-854-2020-MINSA.pdf"
+  },
+  {
+    "id": "RD_043-2017-DIGESA",
+    "estado": "escaneado_sin_texto",
+    "paginas": 5,
+    "url": "http://www.digesa.minsa.gob.pe/NormasLegales/Normas/RD_N_043-2017-DIGESA-SA.pdf"
+  },
+  {
+    "id": "DS_010-2014-SA",
+    "estado": "escaneado_sin_texto",
+    "paginas": 4,
+    "url": "http://www.digesa.minsa.gob.pe/NormasLegales/Normas/DS_010-2014-SA.PDF"
+  },
+  {
+    "id": "RD_192-2017-DIGESA",
+    "estado": "escaneado_sin_texto",
+    "paginas": 4,
+    "url": "http://www.digesa.minsa.gob.pe/Orientacion/RESOLUCION_DIRECTORAL_192-2017-DIGESA-SA.pdf"
+  },
+  {
+    "id": "DIRECTIVA_87-2020",
+    "estado": "escaneado_sin_texto",
+    "paginas": 4,
+    "url": "http://www.digesa.minsa.gob.pe/Orientacion/CARTILLA_DIRECTIVA_SANITARIA_87-2020-DIGESA-MINSA.pdf"
+  },
+  {
+    "id": "GUIA_ALIMENTOS",
+    "estado": "ok",
+    "paginas": 32,
+    "palabras_extraidas": 2086,
+    "pasajes": 9,
+    "palabras_utiles": 2085,
+    "url": "http://www.digesa.minsa.gob.pe/Orientacion/GUIA-DIDACTICA-ALIMENTOS.pdf"
+  },
+  {
+    "id": "CRITERIOS_TECNICOS",
+    "estado": "escaneado_sin_texto",
+    "paginas": 10,
+    "url": "http://www.digesa.minsa.gob.pe/orientacion/Informe_criterios_tecnicos_C.pdf"
+  },
+  {
+    "id": "ART_SIN_AUTORIZACION",
+    "estado": "ok",
+    "paginas": 17,
+    "palabras_extraidas": 1331,
+    "pasajes": 7,
+    "palabras_utiles": 1329,
+    "url": "http://www.digesa.minsa.gob.pe/DEPA/juguetes_utiles/pdf/Articulos_que_no_requieren_autorizacion_sanitaria.pdf"
+  },
+  {
+    "id": "DECALOGO_ALIMENTOS",
+    "estado": "ok",
+    "paginas": 1,
+    "palabras_extraidas": 237,
+    "pasajes": 2,
+    "palabras_utiles": 237,
+    "url": "http://www.digesa.minsa.gob.pe/orientacion/decalogo_alimentos.pdf"
+  }
+]

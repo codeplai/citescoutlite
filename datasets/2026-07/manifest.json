@@ -47,6 +47,18 @@
         "titulo",
         "texto"
       ]
+    },
+    "ecfr_aditivos.json": {
+      "descripcion": "eCFR Title 21 Parts 182/184 (GRAS) + 145/146/150 (frutas, jugos, mermeladas)",
+      "filas": 702,
+      "origen": "API versioner ecfr.gov",
+      "vigencia_oficial": "2026-07-29"
+    },
+    "digesa_normas.json": {
+      "descripcion": "PDFs normativos DIGESA con capa de texto (5 de 10; 5 eran escaneos descartados)",
+      "filas": 32,
+      "origen": "digesa.minsa.gob.pe",
+      "palabras": 6602
     }
   },
   "estadisticas": {
@@ -71,11 +83,11 @@
   },
   "estado_s2": {
     "tier1": "✓ COMPLETADO (2026-07-30 18:15 UTC)",
-    "tier2": "⏳ BLOQUEADO (Espera export offline OFF)",
-    "tier3": "⏳ PENDIENTE",
-    "tier4": "⏳ PENDIENTE",
-    "tier5": "⏳ PENDIENTE",
-    "tier6": "⏳ PENDIENTE",
+    "tier2": "✓ COMPLETADO (28.236 productos OFF)",
+    "tier3": "✓ COMPLETADO (2026-07-30)",
+    "tier4": "✓ COMPLETADO (2026-07-31, bge-m3 1024-dim, CUDA)",
+    "tier5": "✓ COMPLETADO (2026-08-02, p95 45.2ms GPU / 173.0ms CPU - Gate P03 VERDE)",
+    "tier6": "✓ COMPLETADO (2026-08-02, 734 pasajes: 702 eCFR + 32 DIGESA)",
     "tier7": "⏳ PENDIENTE"
   },
   "próximos_pasos": [
@@ -94,5 +106,30 @@
     "dispositivo": "CUDA",
     "batch_size": 32,
     "timestamp": "2026-07-31T08:35:34.257561"
+  },
+  "busqueda": {
+    "adaptador": "adaptadores/busqueda_lancedb.py",
+    "tipo": "vectorial (bge-m3 + LanceDB IvfPq)",
+    "metrica": "cosine",
+    "p95_ms_gpu": 45.2,
+    "p95_ms_cpu": 173.0,
+    "gate_p03_ms": 2000,
+    "gate_p03": "PASA",
+    "num_samples": 100,
+    "k": 30,
+    "timestamp": "2026-08-02"
+  },
+  "regulatorio": {
+    "tabla": "regulatorio",
+    "modelo": "BAAI/bge-m3",
+    "dimensiones": 1024,
+    "metrica": "cosine",
+    "filas": 734,
+    "documentos_por_tipo": {
+      "eCFR": 702,
+      "DIGESA": 32
+    },
+    "palabras_totales": 105935,
+    "timestamp": "2026-08-02T05:37:03Z"
   }
 }

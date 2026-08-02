@@ -10,3 +10,4 @@ class ProductoExistente(BaseModel):
     fecha_dato: Optional[date] = None
     ingredientes: str = ""
     url: str = ""
+    similitud: Optional[float] = None
