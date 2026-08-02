@@ -56,26 +56,23 @@ class MergeDatasets:
 
         return productos_off, productos_usda
 
+    @staticmethod
+    def clave_dedup(p: Dict) -> tuple | None:
+        """
+        Clave de duplicado: marca + primeros 20 caracteres del nombre.
+
+        Devuelve None si el producto no tiene marca, en cuyo caso no se
+        considera duplicado de nada (no hay con qué compararlo con confianza).
+        """
+        marca = (p.get("marca") or "").lower().strip()
+        if not marca:
+            return None
+        return (marca, (p.get("nombre") or "")[:20].lower().strip())
+
     def similar_product(self, p1: Dict, p2: Dict) -> bool:
-        """
-        Detecta duplicados por marca + nombre (heurística simple).
-        Para datos reales de OFF, esto es suficiente.
-        """
-        # Obtener marca (normalizar)
-        marca1 = (p1.get("marca") or "").lower().strip()
-        marca2 = (p2.get("marca") or "").lower().strip()
-
-        if not marca1 or not marca2:
-            return False
-
-        if marca1 != marca2:
-            return False
-
-        # Primeros 20 caracteres del nombre (normalizar)
-        nombre1 = (p1.get("nombre") or "")[:20].lower().strip()
-        nombre2 = (p2.get("nombre") or "")[:20].lower().strip()
-
-        return nombre1 == nombre2
+        """Compara dos productos por la clave de deduplicación."""
+        clave1 = self.clave_dedup(p1)
+        return clave1 is not None and clave1 == self.clave_dedup(p2)
 
     def merge_y_dedup(self, productos_off: List[Dict], productos_usda: List[Dict]) -> List[Dict]:
         """
@@ -88,17 +85,18 @@ class MergeDatasets:
         merged = productos_off.copy()
         duplicados = 0
 
-        # Agregar productos de USDA que no están duplicados
-        for p_usda in productos_usda:
-            is_dup = False
-            for p_off in productos_off:
-                if self.similar_product(p_usda, p_off):
-                    is_dup = True
-                    duplicados += 1
-                    break
+        # Índice de claves de OFF. El bucle anidado original hacía
+        # len(OFF) x len(USDA) comparaciones (28.236 x 990 = 28M); con un set
+        # el merge es lineal y las mismas reglas de duplicado se conservan.
+        claves_off = {c for c in (self.clave_dedup(p) for p in productos_off)
+                      if c is not None}
 
-            if not is_dup:
-                merged.append(p_usda)
+        for p_usda in productos_usda:
+            clave = self.clave_dedup(p_usda)
+            if clave is not None and clave in claves_off:
+                duplicados += 1
+                continue
+            merged.append(p_usda)
 
         self.log(f"[MERGE] Duplicados removidos: {duplicados}")
         self.log(f"[MERGE] Total final: {len(merged)}")

@@ -1,5 +1,5 @@
 {
-  "fecha_descarga": "2026-07-30T00:00:00Z",
+  "fecha_descarga": "2026-08-02T16:11:53.380652+00:00",
   "version_taxonomia": "0.1",
   "descripcion": "Snapshot de datos para AgroScout MVP S2 - Datos reales de Open Food Facts + USDA",
   "insumos_piloto": [
@@ -11,84 +11,90 @@
   ],
   "fuentes": {
     "off_productos.json": {
-      "descripcion": "Open Food Facts - 87 productos de 5 insumos piloto",
-      "filas": 88,
-      "origen": "API world.openfoodfacts.org",
-      "campos": [
-        "id_fuente",
-        "nombre",
-        "categoria",
-        "ingredientes",
-        "url",
-        "usa_insumo_directo",
-        "fecha_dato"
-      ]
+      "descripcion": "Open Food Facts — export offline filtrado",
+      "origen": "API/export world.openfoodfacts.org",
+      "filas": 28236,
+      "tamaño_bytes": 33304895,
+      "sha256": "bb31b00ca6181f483ef54425a0a2781234c8a8abac4f52eee9bd4c167528640d"
     },
     "usda_productos.json": {
-      "descripcion": "USDA FoodData Central (fallback demo)",
-      "filas": 1,
-      "origen": "Demo",
-      "campos": [
-        "id_fuente",
-        "nombre",
-        "categoria",
-        "ingredientes",
-        "url",
-        "usa_insumo_directo",
-        "fecha_dato"
-      ]
+      "descripcion": "USDA FoodData Central — dataType Branded",
+      "origen": "api.nal.usda.gov/fdc/v1",
+      "filas": 990,
+      "tamaño_bytes": 543693,
+      "sha256": "aaee7c48aa344bf288e3e15812e956dd47c1e2556edf799e7630b324d8d31d1f"
     },
-    "normativas_codex.json": {
-      "descripcion": "Normas Codex Alimentarius (fallback demo)",
-      "filas": 1,
-      "origen": "Demo",
-      "campos": [
-        "fuente",
-        "titulo",
-        "texto"
-      ]
+    "productos_merged.json": {
+      "descripcion": "OFF + USDA deduplicado por marca+nombre",
+      "origen": "TIER 3 (etl.merge_datasets)",
+      "filas": 29054,
+      "tamaño_bytes": 33768482,
+      "sha256": "e0a139ae44b2e797d7a4f80a3bca3cde74e0772d8e331a4a7821a0c26f1ea43b"
     },
     "ecfr_aditivos.json": {
-      "descripcion": "eCFR Title 21 Parts 182/184 (GRAS) + 145/146/150 (frutas, jugos, mermeladas)",
-      "filas": 702,
+      "descripcion": "eCFR Title 21 partes 182/184/145/146/150",
       "origen": "API versioner ecfr.gov",
-      "vigencia_oficial": "2026-07-29"
+      "filas": 702,
+      "tamaño_bytes": 842330,
+      "sha256": "484d2f5a4e8a565a3c4aeb58aee51c0e196450e73f96c062ba1d345dea01498d"
     },
     "digesa_normas.json": {
-      "descripcion": "PDFs normativos DIGESA con capa de texto (5 de 10; 5 eran escaneos descartados)",
-      "filas": 32,
+      "descripcion": "PDFs normativos DIGESA con capa de texto",
       "origen": "digesa.minsa.gob.pe",
-      "palabras": 6602
+      "filas": 32,
+      "tamaño_bytes": 57105,
+      "sha256": "2daa2860a21a5c27e70cb0db90b5b9949af9efb3c2838f7764b92a45dc8e2e76"
+    },
+    "normativas_codex.json": {
+      "descripcion": "Normas Codex (demo S1, sustituido por el corpus TIER 6)",
+      "origen": "Demo",
+      "filas": 4,
+      "tamaño_bytes": 1576,
+      "sha256": "38db1437e32af6a9d45edae9166b25f31d3ca11e6995b5df1e07aa4c520892cc"
     }
   },
   "estadisticas": {
-    "total_productos": 89,
-    "total_normativas": 1,
+    "total_productos": 29054,
+    "por_fuente": {
+      "OFF": 28236,
+      "USDA": 818
+    },
     "coverage_por_insumo": {
-      "arándano": 13,
-      "palta": 11,
-      "espárrago": 0,
-      "mango": 9,
-      "quinua": 54,
-      "demo": 2
+      "arándano": 5877,
+      "palta": 3218,
+      "espárrago": 902,
+      "mango": 11124,
+      "quinua": 9127
+    },
+    "productos_sin_fecha_dato": 0,
+    "productos_sin_url": 0,
+    "regulatorio": {
+      "ecfr": {
+        "documentos": 702,
+        "palabras": 99333
+      },
+      "digesa": {
+        "documentos": 32,
+        "palabras": 6602
+      }
     }
   },
   "decisiones_tier1": {
     "D-A_estrategia_off": "OPCIÓN B (export offline)",
     "D-A_razon": "OFF API retorna 503 Service Unavailable",
-    "D-B_usda_disponible": false,
-    "D-B_razon": "USDA_API_KEY no configurada en .env.local",
+    "D-B_usda_disponible": true,
+    "D-B_razon": "USDA_API_KEY configurada en .env al cerrar S2 (TIER 7); 990 productos Branded descargados",
     "D-C_motor_pdf": "xhtml2pdf (actual)",
     "D-C_razon": "Funciona; WeasyPrint es para S4+"
   },
   "estado_s2": {
     "tier1": "✓ COMPLETADO (2026-07-30 18:15 UTC)",
-    "tier2": "✓ COMPLETADO (28.236 productos OFF)",
-    "tier3": "✓ COMPLETADO (2026-07-30)",
+    "tier2": "✓ COMPLETADO (28.236 OFF + 990 USDA; USDA cerrado en TIER 7)",
+    "tier3": "✓ COMPLETADO (29.054 tras merge con USDA)",
     "tier4": "✓ COMPLETADO (2026-07-31, bge-m3 1024-dim, CUDA)",
     "tier5": "✓ COMPLETADO (2026-08-02, p95 45.2ms GPU / 173.0ms CPU - Gate P03 VERDE)",
     "tier6": "✓ COMPLETADO (2026-08-02, 734 pasajes: 702 eCFR + 32 DIGESA)",
-    "tier7": "⏳ PENDIENTE"
+    "tier7": "✓ COMPLETADO (2026-08-02, golden set 5/5, SHA256, E2E 7/7)"
   },
   "próximos_pasos": [
     "TIER 2 (Martes 6 ago): Descargar export OFF masivo (~2GB, 30-45 min)",
@@ -111,13 +117,14 @@
     "adaptador": "adaptadores/busqueda_lancedb.py",
     "tipo": "vectorial (bge-m3 + LanceDB IvfPq)",
     "metrica": "cosine",
-    "p95_ms_gpu": 45.2,
-    "p95_ms_cpu": 173.0,
+    "p95_ms_gpu": 66.3,
+    "p95_ms_cpu": 176.2,
     "gate_p03_ms": 2000,
     "gate_p03": "PASA",
     "num_samples": 100,
     "k": 30,
-    "timestamp": "2026-08-02"
+    "timestamp": "2026-08-02",
+    "filas_indexadas": 29054
   },
   "regulatorio": {
     "tabla": "regulatorio",
@@ -131,5 +138,24 @@
     },
     "palabras_totales": 105935,
     "timestamp": "2026-08-02T05:37:03Z"
+  },
+  "snapshot_version": "2026-07",
+  "reproducibilidad": {
+    "verificar": "sha256sum de cada archivo debe coincidir con fuentes[].sha256",
+    "pipeline": [
+      "python -m etl.cargar_off_bulk",
+      "python -m etl.cargar_usda",
+      "python -m etl.merge_datasets",
+      "python -m etl.tier4_gpu",
+      "python -m etl.indexar_incremental",
+      "python -m etl.procesar_ecfr",
+      "python -m etl.procesar_digesa",
+      "python -m etl.procesar_regulatorio",
+      "python -m etl.finalizar_manifest"
+    ],
+    "validar": [
+      "python -m evals.runner_s2",
+      "python -m pytest test/ -v"
+    ]
   }
 }

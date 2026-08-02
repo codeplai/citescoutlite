@@ -1,160 +1,173 @@
 # Dataset Semana 2: 5 Insumos Piloto
 
-**Fecha de generación:** 2026-07-30  
-**Versión snapshot:** 2026-07  
-**Versión taxonomía:** 0.1
+**Snapshot:** 2026-07 · **Taxonomía:** 0.1
+**Cerrado:** 2026-08-02 (TIER 7)
+
+| | |
+|---|---|
+| Productos | **29.054** (28.236 OFF + 818 USDA) |
+| Embeddings | BAAI/bge-m3, 1024-dim, LanceDB métrica cosine |
+| Corpus regulatorio | **734 pasajes** (702 eCFR + 32 DIGESA) |
+| Sin `fecha_dato` | 0 |
+| Sin `url` | 0 |
 
 ---
 
 ## Procedimiento de reproducibilidad
 
-### 1. Descarga OFF Masivo
-
-**Estrategia decidida:** OPCIÓN B (Export offline)
-
-**Razón:** OFF API retorna 503 (Service Unavailable). Usar export local es más confiable.
+Los comandos se ejecutan desde la raíz del repo con el intérprete de `venv/`
+(el entorno que tiene `lancedb`, `sentence-transformers` y `torch`):
 
 ```bash
-# Descargar export masivo de OFF (~2GB)
-wget -c "https://world.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz" \
-  -O ~/off_export.csv.gz
-
-# Descomprimir (toma ~2-5 min)
-tar xzf ~/off_export.csv.gz -C datasets/2026-07/
-
-# Filtrar a los 5 insumos piloto
-python -m etl.cargar_off_masivo --bulk datasets/2026-07/en.openfoodfacts.org.products.csv
+./venv/Scripts/python.exe -m <modulo>     # Windows
 ```
 
-**Esperado:** `datasets/2026-07/off_productos.json` ≥250 filas
+### 1. Descarga OFF
 
-**Alternativa si Opción B falla:**
-```bash
-# Volver a intentar API live
-python etl/cargar_off.py
-```
-
-### 2. Descarga USDA Branded
-
-**Estado:** USDA_API_KEY NO disponible en esta máquina
+**Estrategia: OPCIÓN B (export offline).** Decidida en TIER 1 porque la API
+live devolvía 503.
 
 ```bash
-# Si en el futuro se obtiene clave:
-USDA_API_KEY=$YOUR_KEY python -m etl.cargar_usda
+python -m etl.cargar_off_bulk
 ```
 
-**Por ahora:** Proceder solo con OFF
+Descarga el export masivo, lo filtra a los 5 insumos piloto y escribe
+`off_productos.json`. **Esperado:** 28.236 productos.
+
+### 2. Descarga USDA
+
+Requiere `USDA_API_KEY` en `.env` (se obtiene gratis en
+<https://fdc.nal.usda.gov/api-key-signup>).
+
+```bash
+python -m etl.cargar_usda
+```
+
+Descarga `dataType=Branded` para los 5 insumos en inglés. **Esperado:** 990
+productos únicos, todos con `fecha_dato` real.
+
+Sin clave el módulo **no descarga nada y no genera datos de respaldo**: se
+prefiere un dataset vacío a uno inventado.
 
 ### 3. Merge y deduplicación
 
 ```bash
-python -m etl.dedup_merge_datasets
+python -m etl.merge_datasets
 ```
 
-**Esperado:** `datasets/2026-07/productos_merged.json` ≥250 filas
+Deduplica por marca + primeros 20 caracteres del nombre.
+**Esperado:** 29.054 productos (172 duplicados removidos).
 
-### 4. Embeddings con bge-m3
+### 4. Embeddings
+
+Primera vez (genera los ~29.000 embeddings, 15-30 min en GPU):
 
 ```bash
-# Genera embeddings 1024-dimensional
-python -m etl.indexar_vectores
+python -m etl.tier4_gpu
 ```
 
-**Esperado:** `vectores/productos.lance/` con tabla `productos` indexada
-
-### 5. Validación completa
+Después de añadir productos nuevos — indexa **solo los que faltan**:
 
 ```bash
-# Validar dataset completo
-python -m evals.validar_dataset --dataset 2026-07
+python -m etl.indexar_incremental --dry-run   # muestra cuántos faltan
+python -m etl.indexar_incremental
 ```
 
-**Criterios:**
-- manifest.json válido
-- ≥250 productos
-- Embeddings presentes (1024-dim)
-- p95 latencia < 2s
-- URLs navegables
+**Esperado:** `vectores/productos.lance` con 29.054 filas de 1024 dimensiones.
+
+### 5. Corpus regulatorio
+
+```bash
+python -m etl.procesar_ecfr          # eCFR Title 21: partes 182/184/145/146/150
+python -m etl.procesar_digesa        # PDFs de DIGESA (descarta escaneos)
+python -m etl.procesar_regulatorio   # embeddings -> tabla `regulatorio`
+```
+
+**Esperado:** 702 pasajes eCFR (99.333 palabras) + 32 pasajes DIGESA (6.602
+palabras).
+
+### 6. Cierre del manifest
+
+```bash
+python -m etl.finalizar_manifest
+```
+
+Calcula SHA256 y tamaño de cada fuente y **regenera las estadísticas leyendo
+los archivos reales**, para que el manifest no se desincronice del snapshot.
 
 ---
 
-## Insumos piloto
+## Validación
 
+```bash
+python -m evals.runner_s2      # golden set: 5/5
+python -m pytest test/ -v      # 18 tests
 ```
-├─ Arándano (blueberry)
-├─ Palta (avocado)
-├─ Espárrago (asparagus)
-├─ Mango
-└─ Quinua (quinoa)
-```
+
+| Comprobación | Gate | Estado |
+|---|---|---|
+| Productos indexados | ≥ 250 | 29.054 ✓ |
+| Dimensiones | 1024 | ✓ |
+| p95 de búsqueda | < 2 s | 45 ms GPU / 173 ms CPU ✓ |
+| Documentos eCFR | ≥ 5 | 702 ✓ |
+| Palabras DIGESA | ≥ 2000 | 6.602 ✓ |
+| Golden set | 5/5 | ✓ |
+| SHA256 del manifest | coincide | ✓ |
 
 ---
 
-## Decisiones de S2 (TIER 1)
+## Verificar integridad del snapshot
+
+```bash
+sha256sum productos_merged.json   # debe coincidir con fuentes[].sha256 del manifest
+```
+
+`test_e2e_s2.py::test_e2e_manifest_sha256_coincide` lo recalcula automáticamente.
+
+---
+
+## Insumos piloto y cobertura
+
+| Insumo | Inglés | Productos |
+|---|---|---|
+| Arándano | blueberry | 5.877 |
+| Palta | avocado | 3.218 |
+| Espárrago | asparagus | 902 |
+| Mango | mango | 11.124 |
+| Quinua | quinoa | 9.127 |
+
+Un producto puede contar en más de un insumo (contiene varios).
+
+---
+
+## Decisiones de S2
 
 | Decisión | Valor | Razón |
 |---|---|---|
-| **D-A: Estrategia OFF** | Opción B (offline) | OFF API down (503) |
-| **D-B: USDA disponible** | No | API key no configurada |
-| **D-C: Motor PDF** | xhtml2pdf (actual) | Funciona; WeasyPrint es S4+ |
+| **D-A: Estrategia OFF** | Opción B (offline) | La API live devolvía 503 |
+| **D-B: USDA** | Sí (desde TIER 7) | La clave se configuró al cerrar S2; en TIER 2 no estaba |
+| **D-C: Motor PDF** | xhtml2pdf | Funciona; WeasyPrint queda para S4+ |
+| **D-E: Endpoint eCFR** | `versioner` | El `renderer` que proponía el plan devuelve 404 |
+| **D-F: OCR de DIGESA** | No | 5 de 10 PDFs son escaneos; se descartan antes que inventar texto |
 
 ---
 
-## Estructura de archivos
+## Estructura
 
 ```
 datasets/2026-07/
-  ├── README.md                    (este archivo)
-  ├── manifest.json               (metadatos versionado)
-  ├── off_productos.json          (TIER 2)
-  ├── usda_productos.json         (TIER 2, si disponible)
-  ├── productos_merged.json       (TIER 3)
-  ├── ecfr_aditivos.json         (TIER 6)
-  └── digesa_normas.json         (TIER 6)
+  ├── README.md                     (este archivo)
+  ├── manifest.json                 (SHA256 + estadísticas, TIER 7)
+  ├── off_productos.json            (TIER 2 · 28.236)
+  ├── usda_productos.json           (TIER 2/7 · 990)
+  ├── productos_merged.json         (TIER 3 · 29.054)
+  ├── ecfr_aditivos.json            (TIER 6 · 702 pasajes)
+  ├── digesa_normas.json            (TIER 6 · 32 pasajes)
+  ├── digesa_normas_reporte.json    (TIER 6 · qué PDFs se descartaron y por qué)
+  └── normativas_codex.json         (S1 · demo, sustituido por el corpus TIER 6)
 
 vectores/
-  └── productos.lance/           (TIER 4)
-      ├── _versions/
-      ├── data/
-      └── _transactions/
+  ├── productos.lance/              (29.054 filas)
+  ├── regulatorio.lance/            (734 pasajes)
+  └── normativas.lance/             (S1 · demo, con fallback desde verificador_rag)
 ```
-
----
-
-## Métricas esperadas (Viernes 9 ago EOD)
-
-```
-TIER 2 (Descargas):
-  ✓ OFF: 250-1000 productos
-  ✓ USDA: 0 (no disponible)
-  ✓ Total: ≥250
-
-TIER 3 (Limpieza):
-  ✓ productos_merged.json: ≥250 filas
-  ✓ Duplicados removidos: 0-5
-
-TIER 4 (Embeddings):
-  ✓ Indexed: ≥250 filas
-  ✓ Dimensiones: 1024
-  ✓ Tiempo: <30 min
-
-TIER 5 (Búsqueda):
-  ✓ p95 latencia: <2s
-  ✓ Consultas: ≥100
-  ✓ Sin DEMO data: 100%
-
-TIER 6 (Corpus):
-  ✓ eCFR: ≥5 docs (si disponible)
-  ✓ DIGESA: ≥2000 palabras (si disponible)
-
-TIER 7 (Cierre):
-  ✓ Golden set: 5/5 pases
-  ✓ E2E workflow: PASSED
-  ✓ Manifest SHA256: Listo
-```
-
----
-
-**Procedimiento escrito:** 2026-07-30  
-**Última actualización:** Lunes 5 agosto (post-TIER 1)
-

@@ -1,9 +1,64 @@
+# Golden set S2 (TIER 7 · T7.1)
+#
+# Los 5 insumos piloto. Se evalúa la capa determinista del pipeline —búsqueda
+# vectorial y derivación de uso directo— sin invocar al LLM: `interpretar_insumo`
+# y `generar_insight` dependen de una API externa que haría el set caro, lento y
+# no reproducible. Los sinónimos se fijan aquí porque son lo que esa etapa
+# produce; el resto del flujo se ejerce igual.
+#
+# `informe_parcial` replica la regla de casos_de_uso/evaluar_insumo.py:26
+# (n_directos <= 2 => informe parcial).
+#
+# Umbrales: medidos el 2026-08-02 sobre el snapshot de 29.054 productos, los 5
+# insumos devuelven 30/30 resultados con 30 directos. Los mínimos se fijan en 3
+# a propósito, para que el set detecte una regresión real de cobertura sin
+# romperse ante variaciones normales del ranking.
+
+version: "2026-07"
+k: 30
+
 casos:
-  - texto: "Cáscara de mango"
+  - id: "S2-arandano"
+    texto: "Arándano"
+    sinonimos: ["arándano", "arandano", "blueberry", "blueberries"]
     esperado:
-      n_directos_max: 2
-      informe_parcial: true
-  - texto: "Descarte de espárrago"
-    esperado:
-      n_directos_max: 10
+      min_coincidencias: 3
+      min_directos: 3
       informe_parcial: false
+    verificacion: "Cobertura OFF + USDA; blueberry en inglés"
+
+  - id: "S2-palta"
+    texto: "Palta"
+    sinonimos: ["palta", "aguacate", "avocado", "avocados"]
+    esperado:
+      min_coincidencias: 3
+      min_directos: 3
+      informe_parcial: false
+    verificacion: "Debe cubrir aguacate/avocado, no solo el término 'palta'"
+
+  - id: "S2-esparrago"
+    texto: "Descarte de espárrago"
+    sinonimos: ["espárrago", "esparrago", "asparagus"]
+    esperado:
+      min_coincidencias: 3
+      min_directos: 3
+      informe_parcial: false
+    verificacion: "Asparagus en inglés; tenía 0 cobertura en el snapshot de 89 productos"
+
+  - id: "S2-mango"
+    texto: "Cáscara de mango"
+    sinonimos: ["mango", "mangoes"]
+    esperado:
+      min_coincidencias: 3
+      min_directos: 3
+      informe_parcial: false
+    verificacion: "Buena cobertura en OFF"
+
+  - id: "S2-quinua"
+    texto: "Quinua"
+    sinonimos: ["quinua", "quinoa"]
+    esperado:
+      min_coincidencias: 3
+      min_directos: 3
+      informe_parcial: false
+    verificacion: "Quinoa en inglés"

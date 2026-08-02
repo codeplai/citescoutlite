@@ -6,11 +6,40 @@ regulatorio). Sin esto cada adaptador cargaría su propia copia: bge-m3 son
 ~568M parámetros, así que serían ~2.3 GB duplicados y ~8 s extra de arranque.
 """
 import os
+import sys
 
 MODELO = "BAAI/bge-m3"
 DIMENSIONES = 1024
 
 _modelo = None
+
+
+def limpiar_datasets_fantasma():
+    """
+    Quita de `sys.modules` el paquete `datasets` falso que crea este repo.
+
+    **Llamar justo antes de cada escritura en LanceDB que venga después de un
+    `encode()`.** No basta con hacerlo una vez al cargar el modelo: `encode()`
+    vuelve a disparar el import.
+
+    `sentence_transformers` hace un `import datasets` protegido para soportar
+    HuggingFace Datasets. Como el proyecto tiene una carpeta `datasets/` en la
+    raíz y el directorio de trabajo está en `sys.path`, Python la resuelve como
+    *namespace package* vacío: el import "funciona", sentence-transformers
+    captura el ImportError posterior y sigue... pero deja la entrada en
+    `sys.modules`.
+
+    Después, LanceDB comprueba `if "datasets" in sys.modules` para registrar sus
+    conversores opcionales, da por hecho que es HuggingFace y hace
+    `from datasets import Dataset`, que revienta sin captura. El síntoma es un
+    `ImportError: cannot import name 'Dataset' from 'datasets' (unknown
+    location)` al llamar a `table.add()`, sin relación aparente con la causa.
+    """
+    modulo = sys.modules.get("datasets")
+    if modulo is not None and getattr(modulo, "__file__", None) is None:
+        rutas = list(getattr(modulo, "__path__", []))
+        if any(os.path.basename(r.rstrip("\\/")) == "datasets" for r in rutas):
+            del sys.modules["datasets"]
 
 
 def dispositivo() -> str:
