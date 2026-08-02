@@ -43,7 +43,7 @@ else:
 # LOAD
 log("[LOAD] Leyendo 28236 productos...")
 try:
-    with open("datasets/2026-07/productos_merged.json") as f:
+    with open("datasets/2026-07/productos_merged.json", encoding="utf-8") as f:
         productos = json.load(f)
     log(f"[LOAD] OK: {len(productos)} productos")
 except Exception as e:
@@ -55,31 +55,63 @@ log(f"[MODEL] Cargando bge-m3 en {device.upper()}...")
 start_model = time.time()
 try:
     model = SentenceTransformer("BAAI/bge-m3", device=device)
-    log(f"[MODEL] OK en {time.time()-start_model:.0f}s")
+    # CRITICO para 8GB VRAM: bge-m3 acepta hasta 8192 tokens y la memoria crece
+    # con el texto mas largo del batch (causa del OOM al 60% en la corrida anterior).
+    # 512 tokens sobra para nombre+ingredientes y reduce memoria y tiempo drasticamente.
+    model.max_seq_length = 512
+    log(f"[MODEL] OK en {time.time()-start_model:.0f}s (max_seq_length=512)")
 except Exception as e:
     log(f"[ERROR] MODEL: {e}")
     sys.exit(1)
 
 # EMBED
-batch_size = 128 if device == "cuda" else 4
+# batch_size=32: seguro para GPU de 8GB VRAM junto con max_seq_length=512
+batch_size = 32 if device == "cuda" else 4
 log(f"[EMBED] Generando 28236 embeddings (batch_size={batch_size})...")
 start_emb = time.time()
+CKPT_PATH = Path("datasets/2026-07/embeddings_checkpoint.npy")
+
 try:
     texts = [f"{p.get('nombre','')} {p.get('ingredientes','')}" for p in productos]
 
+    # Reanudar desde checkpoint si existe (de una corrida anterior interrumpida)
     embeddings_list = []
-    for i in range(0, len(texts), batch_size):
+    resume_from = 0
+    if CKPT_PATH.exists():
+        try:
+            prev = np.load(CKPT_PATH)
+            if prev.ndim == 2 and prev.shape[1] == 1024 and prev.shape[0] <= len(texts):
+                embeddings_list = list(prev)
+                resume_from = prev.shape[0]
+                log(f"[RESUME] Checkpoint encontrado: reanudando desde {resume_from}/{len(texts)}")
+            else:
+                log("[RESUME] Checkpoint invalido, empezando de cero")
+        except Exception as ce:
+            log(f"[RESUME] No se pudo leer checkpoint ({ce}), empezando de cero")
+
+    ckpt_interval = 2000  # guardar avance cada ~2000 productos
+    last_ckpt = resume_from
+    for i in range(resume_from, len(texts), batch_size):
         batch = texts[i:i+batch_size]
         batch_embs = model.encode(batch, batch_size=batch_size, show_progress_bar=False)
         embeddings_list.extend(batch_embs)
+        done = min(i + batch_size, len(texts))
 
-        # Log cada 2000 productos (GPU) o 500 (CPU)
-        log_interval = 2000 if device == "cuda" else 500
-        if (i + batch_size) % log_interval == 0:
+        # Checkpoint + limpieza de VRAM
+        if done - last_ckpt >= ckpt_interval or done == len(texts):
+            np.save(CKPT_PATH, np.array(embeddings_list))
+            last_ckpt = done
+            if device == "cuda":
+                torch.cuda.empty_cache()
+
+        # Log cada ~1000 productos (GPU) o ~100 (CPU) - se activa al cruzar cada umbral
+        log_interval = 1000 if device == "cuda" else 100
+        if done % log_interval < batch_size or done == len(texts):
             elapsed = time.time() - start_emb
-            rate = (i + batch_size) / elapsed
-            pct = 100 * (i + batch_size) // len(texts)
-            log(f"[EMBED] {i+batch_size}/{len(texts)} ({pct}%) - {rate:.1f} prod/s")
+            rate = (done - resume_from) / elapsed if elapsed > 0 else 0
+            pct = 100 * done // len(texts)
+            eta_min = (len(texts) - done) / rate / 60 if rate > 0 else 0
+            log(f"[EMBED] {done}/{len(texts)} ({pct}%) - {rate:.1f} prod/s - ETA {eta_min:.1f} min")
 
     embeddings = np.array(embeddings_list)
     elapsed_emb = time.time() - start_emb
@@ -121,8 +153,21 @@ try:
         pass
 
     table = db.create_table("productos", data=data, mode="create")
-    table.create_index()
     count = table.count_rows()
+
+    # Crear indice vectorial sobre la columna 'embedding' (el default busca 'vector' y falla).
+    # Metrica cosine: la recomendada para bge-m3 / busqueda semantica.
+    try:
+        try:
+            from lancedb.index import IvfPq
+            table.create_index("embedding", config=IvfPq(distance_type="cosine"))
+        except ImportError:
+            table.create_index(vector_column_name="embedding", metric="cosine")
+        log("[INDEX] Indice vectorial creado sobre 'embedding' (cosine)")
+    except Exception as ie:
+        # No es fatal: con 28k filas la busqueda exacta sin indice sigue siendo rapida
+        log(f"[WARN] Indice ANN no creado ({ie}). La tabla funciona igual con busqueda exacta.")
+
     log(f"[INDEX] OK en {time.time()-start_idx:.0f}s: {count} filas")
 except Exception as e:
     log(f"[ERROR] INDEX: {e}")
@@ -131,7 +176,7 @@ except Exception as e:
 # MANIFEST
 log("[MANIFEST] Actualizando...")
 try:
-    with open("datasets/2026-07/manifest.json") as f:
+    with open("datasets/2026-07/manifest.json", encoding="utf-8") as f:
         manifest = json.load(f)
 
     manifest["embeddings"] = {
@@ -143,12 +188,20 @@ try:
         "timestamp": datetime.now().isoformat()
     }
 
-    with open("datasets/2026-07/manifest.json", "w") as f:
-        json.dump(manifest, f, indent=2, default=str)
+    with open("datasets/2026-07/manifest.json", "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, default=str, ensure_ascii=False)
 
     log("[MANIFEST] OK")
 except Exception as e:
     log(f"[WARN] MANIFEST: {e}")
+
+# Limpiar checkpoint (ya no hace falta: todo quedo indexado en LanceDB)
+try:
+    if CKPT_PATH.exists():
+        CKPT_PATH.unlink()
+        log("[CLEANUP] Checkpoint eliminado")
+except Exception:
+    pass
 
 log("[SUCCESS] TIER 4 COMPLETADO (GPU)")
 log("="*70)

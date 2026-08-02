@@ -86,5 +86,13 @@
     "TIER 6 (Jueves-Viernes): Corpus eCFR + DIGESA",
     "TIER 7 (Viernes): Cierre, Golden set 5/5, E2E"
   ],
-  "notas": "TIER 1 completado. OFF API down → Plan B: export offline. USDA no disponible. Proceder solo con OFF. Ambas son mitigaciones documentadas, no bloqueantes para S2."
+  "notas": "TIER 1 completado. OFF API down → Plan B: export offline. USDA no disponible. Proceder solo con OFF. Ambas son mitigaciones documentadas, no bloqueantes para S2.",
+  "embeddings": {
+    "modelo": "BAAI/bge-m3",
+    "dimensiones": 1024,
+    "filas": 28236,
+    "dispositivo": "CUDA",
+    "batch_size": 32,
+    "timestamp": "2026-07-31T08:35:34.257561"
+  }
 }

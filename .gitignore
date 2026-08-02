@@ -24,6 +24,9 @@ __pycache__/
 informes/*
 !informes/.gitkeep
 
+#vectores
+vectores/*
+
 # IDEs y Editores
 .vscode/
 .idea/
