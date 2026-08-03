@@ -22,6 +22,13 @@ class Dependencias:
 
     def __post_init__(self):
         if self.tarifas_modelos is None:
+            # Claves SIN el prefijo 'openai/' del enrutado de litellm; el
+            # ejecutor lo normaliza antes de buscar aqui.
+            #
+            # Servidos por el endpoint de ModelArts (verificado 2026-08-02):
+            # deepseek-v4-flash, deepseek-v3 y glm-5.2. glm-5.0 y glm-4.7
+            # devuelven 404 y se conservan solo para poder valorar el historico
+            # que los referencia.
             self.tarifas_modelos = {
                 "deepseek-v4-flash": {"entrada_por_1k": 0.000135, "salida_por_1k": 0.000539},
                 "glm-5.0": {"entrada_por_1k": 0.000539, "salida_por_1k": 0.002965},

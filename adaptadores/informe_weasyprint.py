@@ -145,12 +145,26 @@ class InformeWeasyPrint(RepositorioInformes):
         </html>
         """
         
-        # Generar PDF con WeasyPrint
-        from weasyprint import HTML, CSS
-        from io import BytesIO
-        html_obj = HTML(string=estilos_html)
-        html_obj.write_pdf(pdf_path)
-            
+        # Generar PDF con xhtml2pdf.
+        #
+        # No es WeasyPrint pese al nombre del modulo (historico; renombrarlo es
+        # limpieza barata para T7). WeasyPrint necesita las librerias nativas de
+        # GTK/Pango, que en Windows no estan: la llamada moria en
+        # `cannot load library 'libgobject-2.0-0'` y por eso informes/ tenia 0
+        # PDFs y solo el .md, que se escribe antes. Ademas la plantilla de
+        # arriba ya estaba escrita para xhtml2pdf: @frame, -pdf-frame-content y
+        # <pdf:pagenumber> son directivas suyas que WeasyPrint no entiende.
+        from xhtml2pdf import pisa
+
+        with open(pdf_path, "wb") as salida:
+            resultado = pisa.CreatePDF(src=estilos_html, dest=salida,
+                                       encoding="utf-8")
+        if resultado.err:
+            raise RuntimeError(
+                f"No se pudo generar el PDF de {ejecucion.id}: "
+                f"{resultado.err} error(es) de composicion")
+
+
         return InformeScout(
             parcial=parcial,
             snapshot_version=ejecucion.snapshot_version,

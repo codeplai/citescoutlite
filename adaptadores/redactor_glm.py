@@ -11,17 +11,25 @@ class RedactorGLM(RedactorLLM):
         self.client = instructor.from_litellm(acompletion)
         self.api_key = api_key
         self.base_url = base_url
+        # Claves de tipo str: la numeracion de etapas es '1','2a','2b','3','4','5','6'
+        # desde el esquema de S3 (D6). Con claves int el ejecutor no encontraba
+        # el modelo y caia al de por defecto, corrompiendo la clave de cache.
+        # Verificado contra el endpoint el 2026-08-02: ModelArts sirve
+        # deepseek-v4-flash, deepseek-v3 y glm-5.2. glm-5.0 y glm-4.7 devuelven
+        # 404 'ModelArts.81009 Invalid model'. La etapa 3 apuntaba a glm-5.0 y
+        # por eso fallaba en vivo; el golden set de S2 no lo detectaba porque
+        # corria sobre cache.
         self.modelo_por_etapa = {
-            1: "openai/deepseek-v4-flash",
-            2: "openai/deepseek-v4-flash",
-            3: "openai/glm-5.0",
-            4: "openai/glm-5.2",
-            5: "openai/glm-5.2",
+            "1": "openai/deepseek-v4-flash",
+            "2a": "openai/deepseek-v4-flash",
+            "3": "openai/glm-5.2",
+            "4": "openai/glm-5.2",
+            "5": "openai/glm-5.2",
         }
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def interpretar(self, texto: str) -> InsumoInterpretado:
-        modelo = self.modelo_por_etapa.get(1, "openai/glm-5.2")
+        modelo = self.modelo_por_etapa.get("1", "openai/glm-5.2")
         resp = await self.client.chat.completions.create(
             model=modelo,
             response_model=InsumoInterpretado,
@@ -36,7 +44,7 @@ class RedactorGLM(RedactorLLM):
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     async def redactar_insight(self, productos: ResultadoBusqueda, contexto_regulatorio: str = "") -> InsightDeMercado:
-        modelo = self.modelo_por_etapa.get(3, "openai/glm-5.2")
+        modelo = self.modelo_por_etapa.get("3", "openai/glm-5.2")
         productos_str = productos.model_dump_json()
 
         system_prompt = (

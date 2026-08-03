@@ -9,7 +9,10 @@ dependencies = [
     "uvicorn>=0.30.6",
     "pydantic>=2.9.2",
     "instructor>=1.6.4",
-    "litellm>=1.49.2",
+    # 1.92 movio el cliente a un bridge de Rust y dejo de publicar wheel
+    # universal; 1.94.1 es la primera que vuelve a traer wheel de Windows.
+    # Por debajo de ese piso, uv compila desde sdist y exige MSVC.
+    "litellm>=1.94.1",
     "tenacity>=9.0.0",
     "lancedb>=0.14.0",
     "duckdb>=1.1.2",
@@ -24,6 +27,7 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "sentence-transformers>=2.2.2",
     "pdfplumber>=0.11.0",
+    "psycopg[binary,pool]>=3.2",
 ]
 
 [project.scripts]

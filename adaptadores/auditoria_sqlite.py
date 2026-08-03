@@ -1,16 +1,20 @@
-import sqlite3
 import json
+import sqlite3
 import uuid
-from datetime import datetime
+
+from adaptadores.ejecucion import EjecucionConcreta
+from adaptadores.migracion_sqlite import asegurar_esquema
 from puertos.auditoria import Auditoria, Ejecucion
 
-class EjecucionConcreta:
-    def __init__(self, id_ej: str, snapshot_version: str, insumo_texto: str):
-        self.id = id_ej
-        self.snapshot_version = snapshot_version
-        self.insumo_texto = insumo_texto
 
 class AuditoriaSQLite(Auditoria):
+    """Rama local. Es el plan B de la demo (D5) y el modo en que corren los
+    tests que no deben depender de la red.
+
+    Escribe al vuelo, sin acumular como el adaptador de Postgres: contra un
+    archivo local no hay RTT que amortizar.
+    """
+
     def __init__(self, db_path: str = "agroscout.db"):
         self.db_path = db_path
         self._init_db()
@@ -21,9 +25,11 @@ class AuditoriaSQLite(Auditoria):
             conn.execute("""
             CREATE TABLE IF NOT EXISTS ejecuciones (
                 id TEXT PRIMARY KEY,
+                usuario_id TEXT,
                 insumo_texto TEXT,
                 snapshot_version TEXT,
                 estado TEXT CHECK(estado IN ('ok','parcial','reformular','error')),
+                motivo_parcial TEXT CHECK(motivo_parcial IS NULL OR motivo_parcial IN ('paywall','pocos_productos','presupuesto')),
                 creado_en TEXT DEFAULT (datetime('now'))
             );
             """)
@@ -42,19 +48,38 @@ class AuditoriaSQLite(Auditoria):
                 snapshot_version TEXT
             );
             """)
+        # Los CREATE de arriba no tocan un archivo que ya existe: la puesta al
+        # dia de un .db viejo la hace esto (ver T2.3).
+        asegurar_esquema(self.db_path)
 
-    def iniciar(self, texto: str, snapshot_version: str) -> Ejecucion:
+    def iniciar(self, texto: str, snapshot_version: str,
+                usuario_id: str | None = None) -> Ejecucion:
         id_ej = str(uuid.uuid4())
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
-            INSERT INTO ejecuciones (id, insumo_texto, snapshot_version, estado)
-            VALUES (?, ?, ?, 'ok')
-            """, (id_ej, texto, snapshot_version))
-        return EjecucionConcreta(id_ej, snapshot_version, texto)
+            INSERT INTO ejecuciones (id, usuario_id, insumo_texto, snapshot_version, estado)
+            VALUES (?, ?, ?, ?, 'ok')
+            """, (id_ej, usuario_id, texto, snapshot_version))
+        return EjecucionConcreta(id_ej, snapshot_version, texto, usuario_id)
 
-    def registrar_etapa(self, ejecucion: Ejecucion, etapa: int, entrada: dict, salida: dict, duracion_ms: int, costo_usd: float, tokens: int = 0, tokens_entrada: int = 0, tokens_salida: int = 0, modelo: str = None) -> None:
+    def registrar_etapa(self, ejecucion: Ejecucion, etapa: str, entrada: dict,
+                        salida: dict, duracion_ms: int, costo_usd: float,
+                        tokens: int = 0, tokens_entrada: int = 0,
+                        tokens_salida: int = 0, modelo: str | None = None,
+                        cache_hit: bool = False) -> None:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
-            INSERT INTO etapas_ejecucion (ejecucion_id, etapa, modelo, entrada_json, salida_json, duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida, snapshot_version)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (ejecucion.id, str(etapa), modelo, json.dumps(entrada), json.dumps(salida), duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida, ejecucion.snapshot_version))
+            INSERT INTO etapas_ejecucion (ejecucion_id, etapa, modelo, entrada_json, salida_json, duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida, snapshot_version, cache_hit)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (ejecucion.id, str(etapa), modelo,
+                  json.dumps(entrada, ensure_ascii=False),
+                  json.dumps(salida, ensure_ascii=False),
+                  duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida,
+                  ejecucion.snapshot_version, int(cache_hit)))
+
+    def cerrar(self, ejecucion: Ejecucion, estado: str,
+               motivo_parcial: str | None = None) -> None:
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+            UPDATE ejecuciones SET estado = ?, motivo_parcial = ? WHERE id = ?
+            """, (estado, motivo_parcial, ejecucion.id))
