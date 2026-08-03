@@ -9,6 +9,7 @@ Esquemas JSON Schema de los modelos de dominio.
 - **ResultadoBusqueda**: Definición completa en `schemas.json`
 - **ProductoEnMercado**: Definición completa en `schemas.json`
 - **MapaComercial**: Definición completa en `schemas.json`
+- **PrecioMateriaPrima**: Definición completa en `schemas.json`
 - **InsightDeMercado**: Definición completa en `schemas.json`
 - **HipotesisFormulacion**: Definición completa en `schemas.json`
 - **DossierRegulatorio**: Definición completa en `schemas.json`

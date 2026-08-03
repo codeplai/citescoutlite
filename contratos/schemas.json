@@ -346,6 +346,92 @@
   },
   "MapaComercial": {
     "$defs": {
+      "PrecioMateriaPrima": {
+        "description": "Una observación de precio mayorista, con su fuente y su fecha.",
+        "properties": {
+          "insumo": {
+            "description": "Insumo piloto: 'palta', 'espárrago'…",
+            "title": "Insumo",
+            "type": "string"
+          },
+          "producto": {
+            "description": "La variedad tal como la nombra el boletín: 'PALTA FUERTE COSTA'. No se traduce ni se agrupa",
+            "title": "Producto",
+            "type": "string"
+          },
+          "mercado": {
+            "description": "GMML | MMF2",
+            "title": "Mercado",
+            "type": "string"
+          },
+          "mercado_nombre": {
+            "title": "Mercado Nombre",
+            "type": "string"
+          },
+          "precio_soles_kg": {
+            "description": "S/ por kilogramo",
+            "exclusiveMinimum": 0,
+            "title": "Precio Soles Kg",
+            "type": "number"
+          },
+          "precio_semana_anterior": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Para poder leer la variación sin recalcularla",
+            "title": "Precio Semana Anterior"
+          },
+          "variacion_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Respecto a la semana anterior. None si el boletín no la da",
+            "title": "Variacion Pct"
+          },
+          "fecha": {
+            "description": "Fecha del boletín, no de la descarga",
+            "format": "date",
+            "title": "Fecha",
+            "type": "string"
+          },
+          "fuente": {
+            "default": "MIDAGRI · SISAP",
+            "title": "Fuente",
+            "type": "string"
+          },
+          "url_boletin": {
+            "description": "El PDF exacto del que salió",
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Url Boletin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "insumo",
+          "producto",
+          "mercado",
+          "mercado_nombre",
+          "precio_soles_kg",
+          "fecha",
+          "url_boletin"
+        ],
+        "title": "PrecioMateriaPrima",
+        "type": "object"
+      },
       "ProductoEnMercado": {
         "description": "Un producto real, con su procedencia, tal como lo ve el mapa comercial.",
         "properties": {
@@ -541,12 +627,106 @@
         "description": "Filas no publicadas, por motivo (mojibake, url inválida...)",
         "title": "Descartadas",
         "type": "object"
+      },
+      "precios_materia_prima": {
+        "description": "Observaciones de precio mayorista (MIDAGRI). [] = el boletín no publica precio para este insumo",
+        "items": {
+          "$ref": "#/$defs/PrecioMateriaPrima"
+        },
+        "title": "Precios Materia Prima",
+        "type": "array"
       }
     },
     "required": [
       "insumo"
     ],
     "title": "MapaComercial",
+    "type": "object"
+  },
+  "PrecioMateriaPrima": {
+    "description": "Una observación de precio mayorista, con su fuente y su fecha.",
+    "properties": {
+      "insumo": {
+        "description": "Insumo piloto: 'palta', 'espárrago'…",
+        "title": "Insumo",
+        "type": "string"
+      },
+      "producto": {
+        "description": "La variedad tal como la nombra el boletín: 'PALTA FUERTE COSTA'. No se traduce ni se agrupa",
+        "title": "Producto",
+        "type": "string"
+      },
+      "mercado": {
+        "description": "GMML | MMF2",
+        "title": "Mercado",
+        "type": "string"
+      },
+      "mercado_nombre": {
+        "title": "Mercado Nombre",
+        "type": "string"
+      },
+      "precio_soles_kg": {
+        "description": "S/ por kilogramo",
+        "exclusiveMinimum": 0,
+        "title": "Precio Soles Kg",
+        "type": "number"
+      },
+      "precio_semana_anterior": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Para poder leer la variación sin recalcularla",
+        "title": "Precio Semana Anterior"
+      },
+      "variacion_pct": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Respecto a la semana anterior. None si el boletín no la da",
+        "title": "Variacion Pct"
+      },
+      "fecha": {
+        "description": "Fecha del boletín, no de la descarga",
+        "format": "date",
+        "title": "Fecha",
+        "type": "string"
+      },
+      "fuente": {
+        "default": "MIDAGRI · SISAP",
+        "title": "Fuente",
+        "type": "string"
+      },
+      "url_boletin": {
+        "description": "El PDF exacto del que salió",
+        "format": "uri",
+        "maxLength": 2083,
+        "minLength": 1,
+        "title": "Url Boletin",
+        "type": "string"
+      }
+    },
+    "required": [
+      "insumo",
+      "producto",
+      "mercado",
+      "mercado_nombre",
+      "precio_soles_kg",
+      "fecha",
+      "url_boletin"
+    ],
+    "title": "PrecioMateriaPrima",
     "type": "object"
   },
   "InsightDeMercado": {
@@ -946,12 +1126,106 @@
             "description": "Filas no publicadas, por motivo (mojibake, url inválida...)",
             "title": "Descartadas",
             "type": "object"
+          },
+          "precios_materia_prima": {
+            "description": "Observaciones de precio mayorista (MIDAGRI). [] = el boletín no publica precio para este insumo",
+            "items": {
+              "$ref": "#/$defs/PrecioMateriaPrima"
+            },
+            "title": "Precios Materia Prima",
+            "type": "array"
           }
         },
         "required": [
           "insumo"
         ],
         "title": "MapaComercial",
+        "type": "object"
+      },
+      "PrecioMateriaPrima": {
+        "description": "Una observación de precio mayorista, con su fuente y su fecha.",
+        "properties": {
+          "insumo": {
+            "description": "Insumo piloto: 'palta', 'espárrago'…",
+            "title": "Insumo",
+            "type": "string"
+          },
+          "producto": {
+            "description": "La variedad tal como la nombra el boletín: 'PALTA FUERTE COSTA'. No se traduce ni se agrupa",
+            "title": "Producto",
+            "type": "string"
+          },
+          "mercado": {
+            "description": "GMML | MMF2",
+            "title": "Mercado",
+            "type": "string"
+          },
+          "mercado_nombre": {
+            "title": "Mercado Nombre",
+            "type": "string"
+          },
+          "precio_soles_kg": {
+            "description": "S/ por kilogramo",
+            "exclusiveMinimum": 0,
+            "title": "Precio Soles Kg",
+            "type": "number"
+          },
+          "precio_semana_anterior": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Para poder leer la variación sin recalcularla",
+            "title": "Precio Semana Anterior"
+          },
+          "variacion_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Respecto a la semana anterior. None si el boletín no la da",
+            "title": "Variacion Pct"
+          },
+          "fecha": {
+            "description": "Fecha del boletín, no de la descarga",
+            "format": "date",
+            "title": "Fecha",
+            "type": "string"
+          },
+          "fuente": {
+            "default": "MIDAGRI · SISAP",
+            "title": "Fuente",
+            "type": "string"
+          },
+          "url_boletin": {
+            "description": "El PDF exacto del que salió",
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Url Boletin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "insumo",
+          "producto",
+          "mercado",
+          "mercado_nombre",
+          "precio_soles_kg",
+          "fecha",
+          "url_boletin"
+        ],
+        "title": "PrecioMateriaPrima",
         "type": "object"
       },
       "ProductoEnMercado": {

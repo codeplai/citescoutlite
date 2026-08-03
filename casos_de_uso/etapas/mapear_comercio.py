@@ -37,11 +37,16 @@ def mapear_comercio(d: Dependencias,
     """Productos reales en el mercado para el insumo ya normalizado."""
     insumo = interpretado.insumo_normalizado
 
+    # Precio de materia prima: lectura local, sin red y sin coste. Va aunque no
+    # haya adaptador de descubrimiento, porque son fuentes independientes.
+    precios = d.precios.para_insumo(insumo) if d.precios is not None else []
+
     if d.descubrimiento is None:
         return MapaComercial(
             insumo=insumo,
             nivel_alcanzado=0,
             niveles_no_disponibles=[int(n) for n in NivelDescubrimiento],
+            precios_materia_prima=precios,
         )
 
     productos = d.descubrimiento.descubrir(insumo, NIVEL_PEDIDO)
@@ -52,4 +57,5 @@ def mapear_comercio(d: Dependencias,
         nivel_alcanzado=int(NivelDescubrimiento.SNAPSHOT),
         niveles_no_disponibles=d.descubrimiento.niveles_no_disponibles(NIVEL_PEDIDO),
         descartadas=dict(getattr(d.descubrimiento, "descartadas", {}) or {}),
+        precios_materia_prima=precios,
     )

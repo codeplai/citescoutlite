@@ -16,6 +16,7 @@ from adaptadores.autenticacion import Autenticacion
 from adaptadores.busqueda_lancedb import BusquedaLanceDB
 from adaptadores.descubrimiento_snapshot import DescubrimientoSnapshot
 from adaptadores.entorno import ruta_db_sqlite
+from adaptadores.precios_sisap import PreciosSISAP
 from adaptadores.informe_weasyprint import InformeWeasyPrint
 from adaptadores.redactor_glm import RedactorGLM
 from adaptadores.verificador_openfda import VerificadorOpenFDA
@@ -105,6 +106,8 @@ catalogo = BusquedaLanceDB()
 # Etapa 2b (S4). Nivel 1 de la cascada del ADR-001: el snapshot local. Sin red
 # y sin LLM, asi que tambien funciona con AGROSCOUT_OFFLINE=1.
 descubrimiento = DescubrimientoSnapshot()
+# Precio de materia prima (MIDAGRI). Lee un snapshot local: sin red.
+precios = PreciosSISAP()
 
 if USA_SUPABASE:
     from adaptadores.auth_supabase import (TokenInvalido, VerificadorSupabase,
@@ -148,6 +151,7 @@ dependencias = Dependencias(
     verificador_rag=rag,
     suscripciones=suscripciones,
     descubrimiento=descubrimiento,
+    precios=precios,
     snapshot_version=snapshot_version,
     offline_mode=offline_mode
 )

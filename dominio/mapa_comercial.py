@@ -18,6 +18,7 @@ from collections import Counter
 
 from pydantic import BaseModel, Field
 
+from dominio.precio_materia_prima import PrecioMateriaPrima
 from dominio.producto_en_mercado import ProductoEnMercado
 
 
@@ -39,6 +40,19 @@ class MapaComercial(BaseModel):
     descartadas: dict[str, int] = Field(
         default_factory=dict,
         description="Filas no publicadas, por motivo (mojibake, url inválida...)",
+    )
+
+    #: Precio del insumo como MATERIA PRIMA en el mercado mayorista.
+    #:
+    #: Va aparte de `productos` a propósito y no como una columna suya: son dos
+    #: preguntas distintas. `ProductoEnMercado.precio_rango` es el precio de
+    #: góndola del producto terminado y sigue vacío; esto es a cuánto está el
+    #: kilo del insumo. Juntarlos daría a entender que el precio de góndola
+    #: existe y está detrás del plan de pago.
+    precios_materia_prima: list[PrecioMateriaPrima] = Field(
+        default_factory=list,
+        description="Observaciones de precio mayorista (MIDAGRI). [] = el "
+                    "boletín no publica precio para este insumo",
     )
 
     # -- lecturas para el informe y el prompt -------------------------------

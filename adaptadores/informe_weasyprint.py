@@ -72,6 +72,8 @@ class InformeWeasyPrint(RepositorioInformes):
             f"**{len(mapa.productos)} productos** en **{len(paises)} países** y "
             f"**{len(marcas)} marcas**, del snapshot `2026-07`.\n\n")
 
+        contenido += self._seccion_precio(mapa)
+
         # Columnas pensadas desde quien lee: un tecnólogo de alimentos. Fuera
         # `fecha` (es la última modificación del registro en OFF, no el
         # lanzamiento del producto) y fuera `presentación`, para dejarle sitio a
@@ -133,6 +135,44 @@ class InformeWeasyPrint(RepositorioInformes):
 
         contenido += self._nota_niveles(mapa)
         return contenido + f"{self.MARCA_MAPA_FIN}\n\n"
+
+    @staticmethod
+    def _seccion_precio(mapa) -> str:
+        """Precio de la materia prima. Sección propia, no columna de la tabla.
+
+        Va separada del listado de productos a propósito. Son dos preguntas
+        distintas —a cuánto está el kilo de palta, frente a a cuánto vende su
+        guacamole una marca— y ponerlas en la misma tabla haría creer que el
+        precio de góndola existe y está detrás del plan de pago. No existe.
+        """
+        precios = getattr(mapa, "precios_materia_prima", None) or []
+
+        contenido = "### 💰 Precio de la materia prima\n\n"
+        if not precios:
+            return contenido + (
+                f"_El boletín diario de MIDAGRI no publica precio mayorista para "
+                f"**{mapa.insumo}**. Los mercados de Lima no lo comercializan en "
+                f"volumen: en el caso del arándano, porque casi toda la "
+                f"producción peruana va a exportación._\n\n")
+
+        contenido += "| Variedad | Mercado | S/ por kg | Var. semanal |\n"
+        contenido += "|---|---|---:|---:|\n"
+        for p in precios:
+            variacion = (f"{p.variacion_pct:+.1f} %"
+                         if p.variacion_pct is not None else "_sin dato_")
+            contenido += (f"| {p.producto} | {p.mercado} "
+                          f"| {p.precio_soles_kg:.2f} | {variacion} |\n")
+        contenido += "\n"
+
+        reciente = max(precios, key=lambda p: p.fecha)
+        contenido += (
+            f"_Fuente: {reciente.fuente}, boletín del "
+            f"{reciente.fecha.strftime('%d/%m/%Y')} en "
+            f"{reciente.mercado_nombre}._\n\n"
+            "> Este es el precio del **insumo como materia prima**, que es con "
+            "el que se costea una formulación. **No es el precio en góndola de "
+            "los productos de la tabla siguiente**, que no lo tenemos.\n\n")
+        return contenido
 
     @staticmethod
     def _nota_niveles(mapa) -> str:

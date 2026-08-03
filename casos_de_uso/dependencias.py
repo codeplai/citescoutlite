@@ -23,6 +23,9 @@ class Dependencias:
     # error. Es lo que permite que los tests deterministas de S2 sigan armando
     # Dependencias sin tocar LanceDB.
     descubrimiento: DescubrimientoComercial = None
+    # Precio de MATERIA PRIMA (MIDAGRI). Sin el, la etapa 2b devuelve el mapa
+    # igual y la lista de precios vacia: nada de esto es bloqueante.
+    precios: Any = None
     # Contador del run en curso (T6.3). Es lo unico mutable de este objeto, y
     # por eso cada run trabaja sobre una copia hecha con dataclasses.replace:
     # Dependencias se construye una sola vez al arrancar y se comparte entre

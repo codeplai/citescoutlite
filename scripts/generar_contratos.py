@@ -22,6 +22,7 @@ def generar_contratos():
         from dominio.producto_existente import ProductoExistente
         from dominio.producto_en_mercado import ProductoEnMercado
         from dominio.mapa_comercial import MapaComercial
+        from dominio.precio_materia_prima import PrecioMateriaPrima
         from dominio.informe_scout import InformeScout
         from puertos.auditoria import Ejecucion
 
@@ -37,6 +38,9 @@ def generar_contratos():
             # etapas_ejecucion.salida_json: es la evidencia de procedencia que
             # sustituye a la tabla catalogo_comercial cortada en §0.
             "MapaComercial": MapaComercial.model_json_schema(),
+            # Precio de MATERIA PRIMA (MIDAGRI). Distinto de
+            # ProductoEnMercado.precio_rango, que es el de gondola y sigue vacio.
+            "PrecioMateriaPrima": PrecioMateriaPrima.model_json_schema(),
             # Etapas 3, 4 y 5. Hasta S2 eran un solo objeto: los dos campos
             # premium salian de la misma llamada que el resumen gratuito.
             "InsightDeMercado": InsightDeMercado.model_json_schema(),

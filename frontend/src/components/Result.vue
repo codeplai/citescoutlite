@@ -47,11 +47,48 @@
         <div class="cifra"><strong>{{ nMarcas }}</strong><span>marcas</span></div>
       </div>
 
+      <!--
+        Precio de la MATERIA PRIMA. Bloque propio, y separado de la tabla de
+        productos a propósito: son dos preguntas distintas. A cuánto está el kilo
+        de palta se sabe; a cuánto vende su guacamole una marca, no. Ponerlos
+        juntos haría creer que el segundo existe y está detrás del plan de pago.
+      -->
+      <div class="precio-bloque">
+        <h5>💰 Precio de la materia prima</h5>
+
+        <div v-if="precios.length" class="precio-lista">
+          <div v-for="p in precios" :key="p.producto + p.mercado" class="precio-item">
+            <span class="precio-valor">S/ {{ p.precio_soles_kg.toFixed(2) }}</span>
+            <span class="precio-unidad">por kg</span>
+            <span class="precio-nombre">{{ p.producto }}</span>
+            <span
+              v-if="p.variacion_pct !== null"
+              class="precio-var"
+              :class="p.variacion_pct >= 0 ? 'sube' : 'baja'"
+            >{{ p.variacion_pct >= 0 ? '▲' : '▼' }} {{ Math.abs(p.variacion_pct).toFixed(1) }} %</span>
+            <span v-else class="sin-dato">var. sin dato</span>
+          </div>
+          <p class="precio-fuente">
+            {{ precioReciente.fuente }} · boletín del {{ precioReciente.fecha }} ·
+            {{ precioReciente.mercado_nombre }} ·
+            <a :href="precioReciente.url_boletin" target="_blank" rel="noopener">ver PDF</a>
+          </p>
+        </div>
+
+        <p v-else class="matiz">
+          El boletín diario de MIDAGRI no publica precio mayorista para
+          <strong>{{ mapa.insumo }}</strong>: los mercados de Lima no lo
+          comercializan en volumen.
+        </p>
+      </div>
+
       <p class="mapa-hueco">
-        <strong>Presentación, precio y canal salen vacíos en todas las filas.</strong>
-        No es un fallo de este informe: esos tres campos no existen en el snapshot
-        de datos abiertos. Rellenarlos es el trabajo del nivel 3 de descubrimiento
-        comercial, que no está disponible en esta versión.
+        <strong>El precio de la tabla de abajo sale vacío en todas las filas</strong>,
+        y la presentación y el canal ni siquiera se recogen. Es el precio en
+        <em>góndola</em> del producto terminado, que no está en el snapshot de datos
+        abiertos y que <strong>no se desbloquea con ningún plan</strong>: una sonda
+        sobre 100 códigos de barras encontró precio para el 3 %, ninguno en Perú.
+        No confundirlo con el precio de materia prima de aquí arriba, que sí lo hay.
       </p>
 
       <!--
@@ -298,6 +335,13 @@ const nPaises = computed(() =>
 // ellos y contarlos como una marca más inflaría la cifra que se dice en la demo.
 const nMarcas = computed(() =>
   new Set((mapa.value?.productos ?? []).map(p => p.marca).filter(Boolean)).size
+)
+
+// Precio de materia prima. Lista vacía = MIDAGRI no publica precio para este
+// insumo; no es lo mismo que "vale cero" ni que "está detrás del paywall".
+const precios = computed(() => mapa.value?.precios_materia_prima ?? [])
+const precioReciente = computed(() =>
+  precios.value.reduce((a, b) => (a.fecha >= b.fecha ? a : b), precios.value[0])
 )
 
 const nivelesFaltan = computed(() =>
@@ -582,6 +626,64 @@ const descargar = async () => {
   letter-spacing: 0.04em;
   color: var(--text-muted);
 }
+
+/* --- Precio de materia prima --------------------------------------------- */
+
+.precio-bloque {
+  margin: 0 0 14px 0;
+  padding: 14px 16px;
+  border-radius: 6px;
+  border-left: 3px solid #10B981;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.precio-bloque h5 {
+  margin: 0 0 10px 0;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.precio-item {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.precio-valor {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.precio-unidad {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.precio-nombre {
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.precio-var {
+  font-size: 0.78rem;
+  margin-left: auto;
+}
+
+.precio-var.sube { color: #DC2626; }
+.precio-var.baja { color: #059669; }
+
+.precio-fuente {
+  margin: 10px 0 0 0;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.precio-fuente a { color: var(--primary-color); }
 
 .mapa-hueco {
   margin: 0;
