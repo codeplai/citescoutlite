@@ -22,6 +22,10 @@ from dominio.producto_en_mercado import ProductoEnMercado
 SCHEMAS = Path("contratos/schemas.json")
 
 CAMPOS = {"insumo", "producto_id", "nombre", "marca", "paises_iso",
+          # Formulación: todo se lee del texto de ingredientes del snapshot,
+          # que está al 100 % y no cuesta ni una llamada de red.
+          "ingredientes", "lista_ingredientes", "n_ingredientes",
+          "aditivos", "alergenos",
           "presentacion", "precio_rango", "canal", "fuente", "url", "fecha_dato"}
 
 REQUERIDOS = {"insumo", "producto_id", "nombre", "fuente", "url", "fecha_dato"}
@@ -55,6 +59,19 @@ def test_forma_del_contrato():
     assert set(esquema["properties"]) == CAMPOS
     assert set(esquema["required"]) == REQUERIDOS
     print(f"PASS: {len(CAMPOS)} campos, {len(REQUERIDOS)} requeridos")
+
+
+def test_alergenos_vacio_no_significa_sin_alergenos():
+    """El campo admite `[]`, y `[]` es "la etiqueta no lo declara".
+
+    Se fija aquí porque es una distinción de seguridad alimentaria: si alguien
+    la convierte en un `bool` o en un "ninguno", el informe pasa a afirmar algo
+    que el dato no dice.
+    """
+    p = ProductoEnMercado(**_valido())
+    assert p.alergenos == [] and p.aditivos == []
+    assert p.ingredientes is None and p.n_ingredientes is None
+    print("PASS: alergenos y aditivos nacen vacíos, sin afirmar nada")
 
 
 def test_el_hueco_es_opcional_y_nace_en_none():

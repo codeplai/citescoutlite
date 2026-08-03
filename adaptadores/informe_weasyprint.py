@@ -14,10 +14,14 @@ class InformeWeasyPrint(RepositorioInformes):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
 
-    #: Filas de la tabla del mapa. El mapa trae hasta 200 productos; 200 filas
-    #: son siete páginas de PDF que nadie lee. Se enseñan las primeras y se dice
-    #: cuántas hay, que es distinto de recortar en silencio.
-    FILAS_TABLA = 25
+    #: Filas de la tabla del mapa en el **PDF**.
+    #:
+    #: Con los ingredientes a texto completo cada fila ocupa casi media página:
+    #: con 25 el informe salía de 13 páginas y la tabla se comía el 85 % del
+    #: documento. Con 12 se queda en ~7 y el resto del informe vuelve a pesar
+    #: algo. La aplicación no tiene este problema y las pagina todas, así que lo
+    #: que aquí se recorta no se pierde: se dice cuántas hay y dónde están.
+    FILAS_TABLA = 12
 
     @staticmethod
     def _bloque_paywall(que_falta: str) -> str:
@@ -68,7 +72,12 @@ class InformeWeasyPrint(RepositorioInformes):
             f"**{len(mapa.productos)} productos** en **{len(paises)} países** y "
             f"**{len(marcas)} marcas**, del snapshot `2026-07`.\n\n")
 
-        contenido += "| Producto | País | Marca | Presentación | Precio | Fecha |\n"
+        # Columnas pensadas desde quien lee: un tecnólogo de alimentos. Fuera
+        # `fecha` (es la última modificación del registro en OFF, no el
+        # lanzamiento del producto) y fuera `presentación`, para dejarle sitio a
+        # los ingredientes. `Precio` se queda porque es el hueco que hay que
+        # enseñar, y con una columna vacía basta para enseñarlo.
+        contenido += "| Producto | País | Marca | Precio | Aditivos | Ingredientes |\n"
         contenido += "|---|---|---|---|---|---|\n"
         for p in mapa.productos[:self.FILAS_TABLA]:
             # El nombre enlaza a la ficha de origen: la URL entera ocuparia
@@ -79,18 +88,23 @@ class InformeWeasyPrint(RepositorioInformes):
             if len(nombre) > 38:
                 nombre = nombre[:37].rstrip() + "…"
             producto = f"[{nombre}]({p.url})"
+            # Los ingredientes van en texto plano y completos: es la columna que
+            # de verdad se lee en un informe impreso, y recortarla la volveria
+            # decorativa.
             contenido += (
                 f"| {producto} "
                 f"| {self._celda(p.paises_iso)} "
                 f"| {self._celda(p.marca)} "
-                f"| {self._celda(p.presentacion)} "
                 f"| {self._celda(p.precio_rango)} "
-                f"| {self._celda(p.fecha_dato)} |\n")
+                f"| {self._celda(p.aditivos)} "
+                f"| {self._celda(p.ingredientes)} |\n")
         contenido += "\n"
 
         if len(mapa.productos) > self.FILAS_TABLA:
             contenido += (f"_Se muestran {self.FILAS_TABLA} de "
-                          f"{len(mapa.productos)} productos._\n\n")
+                          f"{len(mapa.productos)} productos; los "
+                          f"{len(mapa.productos)} están en la aplicación, "
+                          f"paginados._\n\n")
 
         sin_marca = mapa.sin_marca()
         if sin_marca:
@@ -100,11 +114,22 @@ class InformeWeasyPrint(RepositorioInformes):
         # Lo que la tabla enseña vacio, dicho con todas las letras. Es la
         # afirmacion que sostiene el bloque 2 del guion, y es verificable.
         contenido += (
-            "> **Presentación, precio y canal salen vacíos en todas las filas.** "
-            "No es un fallo de este informe: esos tres campos no existen en el "
-            "snapshot de datos abiertos. Rellenarlos es el trabajo del nivel 3 "
-            "de descubrimiento comercial, que no está disponible en esta "
+            "> **La columna Precio sale vacía en todas las filas**, y la "
+            "presentación y el canal de venta ni siquiera se recogen. No es un "
+            "fallo de este informe ni una limitación del plan contratado: esos "
+            "tres campos no existen en el snapshot de datos abiertos, y una "
+            "sonda sobre 100 códigos de barras encontró precio para el 3 %, "
+            "ninguno en Perú. Rellenarlos es el trabajo del nivel 3 de "
+            "descubrimiento comercial, que no está disponible en esta "
             "versión.\n\n")
+
+        con_aditivos = sum(1 for p in mapa.productos if p.aditivos)
+        con_alergenos = sum(1 for p in mapa.productos if p.alergenos)
+        contenido += (
+            f"_Aditivos leídos del texto de la etiqueta en {con_aditivos} de "
+            f"{len(mapa.productos)} productos. Alérgenos **declarados** en "
+            f"{con_alergenos}: una celda vacía significa que la etiqueta no los "
+            f"declara, no que el producto no los tenga._\n\n")
 
         contenido += self._nota_niveles(mapa)
         return contenido + f"{self.MARCA_MAPA_FIN}\n\n"
@@ -310,6 +335,41 @@ class InformeWeasyPrint(RepositorioInformes):
                     font-family: "Courier New", Courier, monospace;
                     font-size: 10pt;
                     color: #c0392b;
+                }}
+                /*
+                   Tabla del mapa comercial. Hasta S4 ningun informe traia
+                   tablas, asi que no habia estilos y xhtml2pdf la componia con
+                   los suyos por defecto: con la columna de ingredientes a texto
+                   completo, salia desbordada del ancho de pagina.
+
+                   table-layout fijo y font pequena es lo que hace que las seis
+                   columnas quepan en un A4 con margenes de 2 cm.
+                */
+                table {{
+                    width: 100%;
+                    table-layout: fixed;
+                    border-collapse: collapse;
+                    font-size: 6.5pt;
+                    margin: 10px 0;
+                }}
+                th {{
+                    background-color: #ebf5fb;
+                    border: 1px solid #bdc3c7;
+                    padding: 3px 4px;
+                    text-align: left;
+                    font-size: 7pt;
+                }}
+                td {{
+                    border: 1px solid #d5dbdb;
+                    padding: 3px 4px;
+                    text-align: left;
+                    vertical-align: top;
+                    word-wrap: break-word;
+                }}
+                td em {{
+                    color: #7f8c8d;
+                    font-style: normal;
+                    font-size: 6pt;
                 }}
             </style>
         </head>

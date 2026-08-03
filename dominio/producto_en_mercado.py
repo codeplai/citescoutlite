@@ -34,6 +34,30 @@ class ProductoEnMercado(BaseModel):
         description="ISO-3166 alpha-2 normalizado (T2.1); [] si no se pudo mapear",
     )
 
+    # --- Formulación. Todo sale del texto de ingredientes del snapshot. ---
+    ingredientes: str | None = Field(
+        default=None,
+        description="Texto de la etiqueta tal cual. 100 % del snapshot lo trae",
+    )
+    lista_ingredientes: list[str] = Field(
+        default_factory=list,
+        description="El mismo texto partido por comas fuera de paréntesis, para "
+                    "enseñarlo como lista sin romper los subcompuestos",
+    )
+    n_ingredientes: int | None = Field(
+        default=None,
+        description="len(lista_ingredientes). Un solo número para una sola lista",
+    )
+    aditivos: list[str] = Field(
+        default_factory=list,
+        description="Los que aparecen escritos, con número E: 'Pectina (E440)'",
+    )
+    alergenos: list[str] = Field(
+        default_factory=list,
+        description="Solo los que la etiqueta DECLARA. [] = sin declaración, "
+                    "nunca 'no tiene'",
+    )
+
     # --- El hueco, declarado. Ver §0 y §R2 del plan. ---
     presentacion: str | None = Field(
         default=None,

@@ -65,7 +65,8 @@
           <thead>
             <tr>
               <th>Producto</th><th>País</th><th>Marca</th>
-              <th>Presentación</th><th>Precio</th><th>Fecha</th>
+              <th>Precio</th><th>Aditivos</th><th>Ingredientes</th>
+              <!-- Aditivos e Ingredientes abren la misma ficha, cada uno en su sección. -->
             </tr>
           </thead>
           <tbody>
@@ -80,6 +81,35 @@
               -->
               <td v-for="(celda, i) in fila.celdas" :key="i">
                 <span v-if="celda">{{ celda }}</span>
+                <span v-else class="sin-dato">sin dato</span>
+              </td>
+
+              <!--
+                Tres estados, no dos. Sin texto de etiqueta es "sin dato"; con
+                texto y cero aditivos reconocidos es **ninguno**, que no es un
+                hueco sino un producto de etiqueta limpia: para quien formula,
+                eso es información, no ausencia de información.
+              -->
+              <td>
+                <button
+                  v-if="fila.producto.aditivos.length"
+                  class="btn-ficha"
+                  @click="abrir(fila.producto, 'aditivos')"
+                >
+                  {{ fila.producto.aditivos.length }} aditivos
+                </button>
+                <span v-else-if="fila.producto.ingredientes" class="ninguno">ninguno</span>
+                <span v-else class="sin-dato">sin dato</span>
+              </td>
+
+              <td>
+                <button
+                  v-if="fila.producto.ingredientes"
+                  class="btn-ficha"
+                  @click="abrir(fila.producto, 'ingredientes')"
+                >
+                  Ver {{ fila.producto.n_ingredientes }} ingredientes
+                </button>
                 <span v-else class="sin-dato">sin dato</span>
               </td>
             </tr>
@@ -101,7 +131,86 @@
       <p v-if="nivelesFaltan" class="mapa-niveles">
         Fuentes no consultadas: {{ nivelesFaltan }}
       </p>
-    </div>
+
+      <!--
+        Ficha de formulación. Se superpone **solo al panel del mapa**, no a toda
+        la página: quien la abre está comparando filas, y oscurecer el informe
+        entero para enseñar una etiqueta le quita de la vista justo el contexto
+        desde el que preguntó.
+
+        Se cierra con Escape, con la ✕ o pinchando fuera.
+      -->
+      <div v-if="abierto" class="modal-fondo" @click.self="abierto = null">
+      <div class="modal" role="dialog" aria-modal="true">
+        <header class="modal-cabecera">
+          <div>
+            <h4>{{ abierto.nombre }}</h4>
+            <p class="modal-sub">
+              {{ abierto.marca || 'sin marca' }} ·
+              {{ abierto.paises_iso.join(', ') || 'sin país' }} ·
+              <a :href="abierto.url" target="_blank" rel="noopener">ver ficha original</a>
+            </p>
+          </div>
+          <button class="modal-cerrar" @click="abierto = null" aria-label="Cerrar">×</button>
+        </header>
+
+        <div class="modal-cuerpo">
+          <section ref="seccionAditivos" :class="{ destacada: foco === 'aditivos' }">
+            <h5>Aditivos <span class="cuenta">{{ abierto.aditivos.length }}</span></h5>
+            <ul v-if="abierto.aditivos.length" class="etiquetas">
+              <li v-for="a in abierto.aditivos" :key="a">{{ a }}</li>
+            </ul>
+            <!--
+              Cero aditivos no es un hueco: es un producto de etiqueta limpia.
+              Lo que sí hay que decir es hasta dónde llega el reconocimiento.
+            -->
+            <p v-else class="matiz">
+              Ninguno de los aditivos reconocibles aparece en esta etiqueta.
+            </p>
+            <p class="matiz nota-alcance">
+              Se reconocen por su nombre en el texto; el número entre paréntesis
+              es el del Codex. Un aditivo escrito con un nombre comercial que no
+              está en la lista no se detecta.
+            </p>
+          </section>
+
+          <section ref="seccionIngredientes" :class="{ destacada: foco === 'ingredientes' }">
+            <h5>Ingredientes <span class="cuenta">{{ abierto.n_ingredientes }}</span></h5>
+            <!--
+              Numerados y en el orden de la etiqueta, que no es decorativo: en
+              una lista de ingredientes el orden es descendente por peso, así
+              que el nº 1 es el componente mayoritario.
+            -->
+            <ol v-if="abierto.lista_ingredientes.length" class="lista-ingredientes">
+              <li v-for="(ing, i) in abierto.lista_ingredientes" :key="i">{{ ing }}</li>
+            </ol>
+            <p v-else class="ingredientes-texto">{{ abierto.ingredientes }}</p>
+          </section>
+
+          <section>
+            <h5>Alérgenos declarados</h5>
+            <ul v-if="abierto.alergenos.length" class="etiquetas alergenos">
+              <li v-for="a in abierto.alergenos" :key="a">{{ a }}</li>
+            </ul>
+            <!--
+              Vacío NO es "no tiene". La etiqueta no lo declara en este texto, y
+              deducir alergenicidad de un ingrediente sería inventar un dato de
+              seguridad alimentaria.
+            -->
+            <p v-else class="matiz">
+              La etiqueta no declara alérgenos en este texto.
+              <strong>No significa que el producto no los contenga.</strong>
+            </p>
+          </section>
+        </div>
+
+        <footer class="modal-pie">
+          Leído del texto de la etiqueta que publica Open Food Facts. Los
+          aditivos se reconocen por su nombre; el número E es el del Codex.
+        </footer>
+        </div><!-- /.modal -->
+      </div><!-- /.modal-fondo -->
+    </div><!-- /.mapa-panel -->
 
     <div class="glass-panel content-card">
       <div class="markdown-body" v-html="sanitizedHtml"></div>
@@ -122,7 +231,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { api, NoAutorizado } from '../api.js'
@@ -225,18 +334,50 @@ const filas = computed(() =>
       id: p.producto_id,
       nombre: p.nombre,
       url: p.url,
-      // El orden es el de las columnas de la cabecera. `null` = sin dato; se
-      // normaliza aquí para que la plantilla no tenga que distinguir entre
-      // null, cadena vacía y lista vacía.
+      producto: p,
+      // El orden es el de las columnas intermedias de la cabecera (País, Marca,
+      // Precio, Aditivos). `null` = sin dato; se normaliza aquí para que la
+      // plantilla no distinga entre null, cadena vacía y lista vacía.
       celdas: [
         p.paises_iso?.length ? p.paises_iso.join(', ') : null,
         p.marca || null,
-        p.presentacion || null,
-        p.precio_rango || null,
-        p.fecha_dato || null
+        p.precio_rango || null
       ]
     }))
 )
+
+/* --- Ficha de formulación ------------------------------------------------ */
+
+// El producto cuyo modal está abierto, o null.
+const abierto = ref(null)
+
+// Qué sección se destaca al abrir. Las dos columnas abren la MISMA ficha —
+// aditivos e ingredientes son la misma etiqueta leída de dos maneras, y tenerlas
+// en modales separados obligaría a cerrar uno para ver el otro— pero cada botón
+// lleva a lo suyo.
+const foco = ref('ingredientes')
+const seccionAditivos = ref(null)
+const seccionIngredientes = ref(null)
+
+const abrir = async (producto, seccion) => {
+  abierto.value = producto
+  foco.value = seccion
+  await nextTick()
+  const destino = seccion === 'aditivos'
+    ? seccionAditivos.value
+    : seccionIngredientes.value
+  destino?.scrollIntoView({ block: 'nearest' })
+}
+
+// Cerrar con Escape: un modal del que solo se sale con el ratón estorba a quien
+// está recorriendo la tabla con el teclado.
+const alPulsarTecla = (e) => { if (e.key === 'Escape') abierto.value = null }
+onMounted(() => window.addEventListener('keydown', alPulsarTecla))
+onUnmounted(() => window.removeEventListener('keydown', alPulsarTecla))
+
+// Cambiar de página con un modal abierto dejaría en pantalla una ficha que ya
+// no está en la tabla de debajo.
+watch(pagina, () => { abierto.value = null })
 
 /**
  * El informe sin la sección del mapa.
@@ -407,6 +548,9 @@ const descargar = async () => {
   padding: 20px 24px;
   margin-bottom: 20px;
   text-align: left;
+  /* Ancla del overlay de la ficha: sin esto, `position: absolute` treparía
+     hasta el viewport y volvería a tapar la página entera. */
+  position: relative;
 }
 
 .mapa-titulo {
@@ -556,6 +700,209 @@ const descargar = async () => {
 .pag-estado {
   margin-left: auto;
   font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.btn-ficha {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.btn-ficha:hover {
+  background: rgba(56, 189, 248, 0.24);
+}
+
+/*
+  "ninguno" no se pinta como "sin dato": son cosas distintas. Sin texto de
+  etiqueta no sabemos nada; con texto y cero aditivos, sabemos que no los lleva.
+*/
+.ninguno {
+  font-size: 0.8rem;
+  color: var(--text-main);
+}
+
+/* --- Ficha de formulación ------------------------------------------------ */
+
+/*
+  `absolute`, no `fixed`: la ficha se superpone al panel del mapa y nada más. El
+  resto del informe —el aviso de plan, el insight, el botón de descarga— sigue
+  visible y utilizable, que es lo que se espera cuando lo que se consulta es el
+  detalle de una fila.
+
+  El radio coincide con el del panel para que el velo no desborde sus esquinas.
+*/
+.modal-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.modal {
+  width: 100%;
+  max-width: 620px;
+  /* Del alto del panel, no del viewport: la ficha vive dentro de su caja. */
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg, #fff);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.4);
+}
+
+.modal-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.modal-cabecera h4 {
+  margin: 0 0 4px 0;
+  font-size: 1.02rem;
+}
+
+.modal-sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.modal-sub a {
+  color: var(--primary-color);
+}
+
+.modal-cerrar {
+  margin-left: auto;
+  border: none;
+  background: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.modal-cuerpo {
+  padding: 18px 22px;
+  overflow-y: auto;
+}
+
+.modal-cuerpo section + section {
+  margin-top: 20px;
+}
+
+/* La sección desde la que se abrió la ficha, para no perderla de vista. */
+.modal-cuerpo section.destacada {
+  margin-left: -12px;
+  padding-left: 9px;
+  border-left: 3px solid var(--primary-color);
+}
+
+.nota-alcance {
+  margin-top: 8px;
+  font-size: 0.76rem;
+}
+
+.modal-cuerpo h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.cuenta {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 9px;
+  background: rgba(100, 116, 139, 0.16);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+}
+
+.ingredientes-texto {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--text-main);
+}
+
+/*
+  Dos columnas: una lista de 47 ingredientes en una sola columna obliga a
+  desplazarse para verla entera, y lo que se quiere es abarcarla de un vistazo.
+  Se reduce a una columna cuando no hay ancho.
+*/
+.lista-ingredientes {
+  margin: 0;
+  padding-left: 22px;
+  columns: 2;
+  column-gap: 24px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.lista-ingredientes li {
+  margin-bottom: 3px;
+  /* Que un ingrediente no se parta entre las dos columnas. */
+  break-inside: avoid;
+}
+
+@media (max-width: 560px) {
+  .lista-ingredientes {
+    columns: 1;
+  }
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etiquetas li {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--primary-color);
+}
+
+.etiquetas.alergenos li {
+  background: rgba(245, 158, 11, 0.18);
+  color: #B45309;
+}
+
+.matiz {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.modal-pie {
+  padding: 12px 22px;
+  border-top: 1px solid var(--card-border);
+  font-size: 0.76rem;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 

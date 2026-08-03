@@ -67,10 +67,17 @@ def _emitir(tmp_path, mapa, insight=None):
 # --- la tabla --------------------------------------------------------------
 
 def test_la_tabla_tiene_las_seis_columnas(tmp_path):
+    """Columnas pensadas desde quien lee: un tecnólogo de alimentos.
+
+    Fuera `Fecha` (es la última modificación del registro en OFF, no el
+    lanzamiento) y fuera `Presentación`, para dejarle sitio a los ingredientes.
+    `Precio` se queda: es el hueco que hay que enseñar.
+    """
     md = _emitir(tmp_path, _mapa(), _insight()).markdown_content
-    for columna in ("Producto", "País", "Marca", "Presentación", "Precio", "Fecha"):
+    for columna in ("Producto", "País", "Marca", "Precio", "Aditivos", "Ingredientes"):
         assert f"| {columna} " in md or f"{columna} |" in md, columna
-    print("PASS: la tabla trae las 6 columnas")
+    assert "| Fecha |" not in md
+    print("PASS: la tabla trae las 6 columnas útiles")
 
 
 def test_el_hueco_se_pinta_sin_dato_en_cada_fila(tmp_path):
@@ -82,21 +89,50 @@ def test_el_hueco_se_pinta_sin_dato_en_cada_fila(tmp_path):
 
 
 def test_no_se_rellena_con_guiones_ni_se_oculta(tmp_path):
-    """Las dos maneras faciles de que el hueco desaparezca."""
+    """Las dos maneras faciles de que el hueco desaparezca.
+
+    `Precio` es la columna que sostiene el bloque 2 del guion: si desaparece de
+    la tabla, la afirmación "el precio no lo tenemos" deja de ser comprobable a
+    simple vista y pasa a ser algo que hay que creerse.
+    """
     md = _emitir(tmp_path, _mapa(), _insight()).markdown_content
-    assert "Presentación" in md, "la columna vacía se ocultó"
+    assert "Precio" in md, "la columna vacía se ocultó"
     assert "| - |" not in md and "| — |" not in md, "hueco rellenado con guion"
     assert "| N/A |" not in md and "|  |" not in md
     print("PASS: ni columna oculta ni guion de relleno")
 
 
 def test_marca_ausente_tambien_es_sin_dato(tmp_path):
+    """Una fila sin nada: las cinco columnas de dato salen declaradas."""
     mapa = MapaComercial(insumo="arándano", nivel_alcanzado=1,
                          productos=[_producto(0, marca=None, paises_iso=[])])
     md = _emitir(tmp_path, mapa, _insight()).markdown_content
     fila = next(l for l in md.splitlines() if "Mermelada" in l)
-    assert fila.count(SIN_DATO) == 4, fila  # país, marca, presentación, precio
-    print("PASS: marca y país ausentes también salen como 'sin dato'")
+    # país, marca, precio, aditivos, ingredientes
+    assert fila.count(SIN_DATO) == 5, fila
+    print("PASS: las cinco columnas vacías salen como 'sin dato'")
+
+
+def test_los_ingredientes_van_en_texto_plano_y_completos(tmp_path):
+    """En el PDF la columna se lee; recortarla la volvería decorativa."""
+    texto = ("organic rolled oats, organic blueberry filling, organic tapioca "
+             "syrup, organic cane sugar, water, pectin, citric acid, sea salt")
+    mapa = MapaComercial(
+        insumo="arándano", nivel_alcanzado=1,
+        productos=[_producto(0, ingredientes=texto, n_ingredientes=8,
+                             aditivos=["Pectina (E440)", "Ácido cítrico (E330)"])])
+    md = _emitir(tmp_path, mapa, _insight()).markdown_content
+    fila = next(l for l in md.splitlines() if "Mermelada" in l)
+    assert texto in fila, "los ingredientes salen recortados"
+    assert "Pectina (E440)" in fila
+    print("PASS: ingredientes completos y aditivos con número E en la tabla")
+
+
+def test_el_informe_matiza_que_vacio_no_es_sin_alergenos(tmp_path):
+    """La frase que impide leer una celda vacía como 'no tiene alérgenos'."""
+    md = _emitir(tmp_path, _mapa(), _insight()).markdown_content
+    assert "no que el producto no los tenga" in md
+    print("PASS: el informe matiza el vacío de alérgenos")
 
 
 def test_la_afirmacion_del_hueco_esta_escrita(tmp_path):
@@ -122,10 +158,16 @@ def test_la_url_de_procedencia_viaja_en_la_tabla(tmp_path):
 
 
 def test_tabla_larga_se_recorta_diciendolo(tmp_path):
-    """Recortar en silencio sería mentir sobre cuántos productos hay."""
+    """Recortar en silencio sería mentir sobre cuántos productos hay.
+
+    El PDF enseña 12 porque con los ingredientes completos cada fila ocupa casi
+    media página. Lo que se recorta no se pierde: el objeto `mapa` conserva los
+    200 y la SPA los pagina, y el informe dice las dos cosas.
+    """
     informe = _emitir(tmp_path, _mapa(n=60), _insight())
     md = informe.markdown_content
-    assert "Se muestran 25 de 60 productos" in md
+    assert "Se muestran 12 de 60 productos" in md
+    assert "en la aplicación" in md, "no se dice dónde está el resto"
     assert len(informe.mapa.productos) == 60, "el informe conserva los 60"
     print("PASS: recorte declarado, mapa completo conservado")
 
@@ -188,7 +230,7 @@ def test_las_marcas_delimitan_el_mapa_para_la_spa(tmp_path):
 
     dentro, fuera = md[ini:fin], md[:ini] + md[fin:]
     assert "| Producto |" in dentro, "la tabla quedó fuera de las marcas"
-    assert "Se muestran 25 de 60" in dentro, "el aviso de recorte quedó fuera"
+    assert "Se muestran 12 de 60" in dentro, "el aviso de recorte quedó fuera"
     assert "| Producto |" not in fuera, "quedó una tabla suelta fuera"
     # Lo que la SPA se queda tiene que seguir siendo un informe.
     assert "Insight de Mercado" in fuera

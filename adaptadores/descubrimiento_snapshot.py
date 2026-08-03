@@ -31,6 +31,8 @@ import lancedb
 from pydantic import ValidationError
 
 from dominio.producto_en_mercado import ProductoEnMercado
+from etl.analizar_ingredientes import (aditivos, alergenos_declarados, contar,
+                                       separar)
 from etl.finalizar_manifest import INSUMOS
 from etl.limpiar_texto import limpiar, producto_publicable, valor_o_none
 from etl.normalizar_paises import normalizar
@@ -211,6 +213,11 @@ class DescubrimientoSnapshot:
                 self._descartar("sin_nombre")
                 continue
 
+            # El texto de la etiqueta: 100 % del snapshot lo trae, y es lo que
+            # de verdad le sirve a quien formula. Lo que se deriva de él se lee,
+            # no se deduce (ver etl/analizar_ingredientes.py).
+            texto_ingredientes = valor_o_none(fila.get("ingredientes"))
+
             try:
                 productos.append(ProductoEnMercado(
                     insumo=insumo,
@@ -220,6 +227,11 @@ class DescubrimientoSnapshot:
                     # escritas como si fueran dato (T1.1 midió 17 en `marca`).
                     marca=valor_o_none(fila.get("marca")),
                     paises_iso=normalizar(limpiar(fila.get("pais"))),
+                    ingredientes=texto_ingredientes,
+                    lista_ingredientes=separar(texto_ingredientes),
+                    n_ingredientes=contar(texto_ingredientes),
+                    aditivos=aditivos(texto_ingredientes),
+                    alergenos=alergenos_declarados(texto_ingredientes),
                     # presentacion, precio_rango y canal se quedan en None: el
                     # snapshot no los trae y el modelo lo declara.
                     fuente=fuente,

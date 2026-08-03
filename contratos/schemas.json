@@ -222,6 +222,56 @@
         "title": "Paises Iso",
         "type": "array"
       },
+      "ingredientes": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Texto de la etiqueta tal cual. 100 % del snapshot lo trae",
+        "title": "Ingredientes"
+      },
+      "lista_ingredientes": {
+        "description": "El mismo texto partido por comas fuera de paréntesis, para enseñarlo como lista sin romper los subcompuestos",
+        "items": {
+          "type": "string"
+        },
+        "title": "Lista Ingredientes",
+        "type": "array"
+      },
+      "n_ingredientes": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "len(lista_ingredientes). Un solo número para una sola lista",
+        "title": "N Ingredientes"
+      },
+      "aditivos": {
+        "description": "Los que aparecen escritos, con número E: 'Pectina (E440)'",
+        "items": {
+          "type": "string"
+        },
+        "title": "Aditivos",
+        "type": "array"
+      },
+      "alergenos": {
+        "description": "Solo los que la etiqueta DECLARA. [] = sin declaración, nunca 'no tiene'",
+        "items": {
+          "type": "string"
+        },
+        "title": "Alergenos",
+        "type": "array"
+      },
       "presentacion": {
         "anyOf": [
           {
@@ -332,6 +382,56 @@
               "type": "string"
             },
             "title": "Paises Iso",
+            "type": "array"
+          },
+          "ingredientes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Texto de la etiqueta tal cual. 100 % del snapshot lo trae",
+            "title": "Ingredientes"
+          },
+          "lista_ingredientes": {
+            "description": "El mismo texto partido por comas fuera de paréntesis, para enseñarlo como lista sin romper los subcompuestos",
+            "items": {
+              "type": "string"
+            },
+            "title": "Lista Ingredientes",
+            "type": "array"
+          },
+          "n_ingredientes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "len(lista_ingredientes). Un solo número para una sola lista",
+            "title": "N Ingredientes"
+          },
+          "aditivos": {
+            "description": "Los que aparecen escritos, con número E: 'Pectina (E440)'",
+            "items": {
+              "type": "string"
+            },
+            "title": "Aditivos",
+            "type": "array"
+          },
+          "alergenos": {
+            "description": "Solo los que la etiqueta DECLARA. [] = sin declaración, nunca 'no tiene'",
+            "items": {
+              "type": "string"
+            },
+            "title": "Alergenos",
             "type": "array"
           },
           "presentacion": {
@@ -890,6 +990,56 @@
               "type": "string"
             },
             "title": "Paises Iso",
+            "type": "array"
+          },
+          "ingredientes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Texto de la etiqueta tal cual. 100 % del snapshot lo trae",
+            "title": "Ingredientes"
+          },
+          "lista_ingredientes": {
+            "description": "El mismo texto partido por comas fuera de paréntesis, para enseñarlo como lista sin romper los subcompuestos",
+            "items": {
+              "type": "string"
+            },
+            "title": "Lista Ingredientes",
+            "type": "array"
+          },
+          "n_ingredientes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "len(lista_ingredientes). Un solo número para una sola lista",
+            "title": "N Ingredientes"
+          },
+          "aditivos": {
+            "description": "Los que aparecen escritos, con número E: 'Pectina (E440)'",
+            "items": {
+              "type": "string"
+            },
+            "title": "Aditivos",
+            "type": "array"
+          },
+          "alergenos": {
+            "description": "Solo los que la etiqueta DECLARA. [] = sin declaración, nunca 'no tiene'",
+            "items": {
+              "type": "string"
+            },
+            "title": "Alergenos",
             "type": "array"
           },
           "presentacion": {
