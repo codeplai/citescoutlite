@@ -1,9 +1,11 @@
 import json
 import os
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+import httpx
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,7 +20,8 @@ from adaptadores.redactor_glm import RedactorGLM
 from adaptadores.verificador_openfda import VerificadorOpenFDA
 from adaptadores.verificador_rag import VerificadorRAG
 from casos_de_uso.dependencias import Dependencias
-from casos_de_uso.evaluar_insumo import evaluar_insumo
+from casos_de_uso.evaluar_insumo import atender_consulta
+from casos_de_uso.politica_suscripcion import entitlement_de
 
 load_dotenv()
 
@@ -27,6 +30,7 @@ load_dotenv()
 #
 # La rama 'sqlite' se conserva funcionando a proposito: es el plan B de la demo
 # (D5) y el modo en que corren los tests que no deben depender de la red.
+# Tambien decide como se autentica: Supabase Auth o el JWT propio de S1.
 # ---------------------------------------------------------------------------
 APP_DB = os.getenv("APP_DB", "sqlite").strip().lower()
 USA_SUPABASE = APP_DB == "supabase"
@@ -34,23 +38,6 @@ USA_SUPABASE = APP_DB == "supabase"
 if APP_DB not in ("supabase", "sqlite"):
     raise RuntimeError(
         f"APP_DB={APP_DB!r} no es un valor valido. Usar 'supabase' o 'sqlite'.")
-
-
-async def get_current_user(authorization: Optional[str] = Header(None)):
-    """Extrae y verifica el JWT del header Authorization."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Token no proporcionado")
-
-    token = autenticacion.extraer_bearer_token(authorization)
-    if not token:
-        raise HTTPException(status_code=401, detail="Formato de token inválido")
-
-    payload = autenticacion.verificar_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Token inválido o expirado")
-
-    return payload
-
 
 app = FastAPI(title="AgroScout IA Lite MVP")
 
@@ -86,20 +73,32 @@ redactor = RedactorGLM(api_key=zai_api_key, base_url=zai_base_url)
 catalogo = BusquedaLanceDB()
 
 if USA_SUPABASE:
+    from adaptadores.auth_supabase import (TokenInvalido, VerificadorSupabase,
+                                           extraer_bearer)
     from adaptadores.auditoria_postgres import AuditoriaPostgres
     from adaptadores.cache_postgres import CachePostgres
+    from adaptadores.entorno import clave_publica, url_supabase
     from adaptadores.repositorio_informes_supabase import RepositorioInformesSupabase
+
+    from adaptadores.suscripciones_postgres import SuscripcionesPostgres
 
     cache_llm = CachePostgres()
     auditoria = AuditoriaPostgres()
     informes = RepositorioInformesSupabase()
+    suscripciones = SuscripcionesPostgres()
+    # SUPABASE_JWT_SECRET solo se usa si el proyecto firmara con HS256; el
+    # nuestro firma con ES256 y se verifica por JWKS (T1.2).
+    verificador_jwt = VerificadorSupabase(os.getenv("SUPABASE_JWT_SECRET"))
 else:
     from adaptadores.auditoria_sqlite import AuditoriaSQLite
     from adaptadores.cache_sqlite import CacheSQLite
+    from adaptadores.suscripciones_sqlite import SuscripcionesSQLite
 
     cache_llm = CacheSQLite()
     auditoria = AuditoriaSQLite()
     informes = InformeWeasyPrint()
+    suscripciones = SuscripcionesSQLite()
+    verificador_jwt = None
 
 fda = VerificadorOpenFDA(offline=offline_mode)
 rag = VerificadorRAG(offline=offline_mode)
@@ -113,42 +112,56 @@ dependencias = Dependencias(
     auditoria=auditoria,
     verificador_fda=fda,
     verificador_rag=rag,
+    suscripciones=suscripciones,
     snapshot_version=snapshot_version,
     offline_mode=offline_mode
 )
 
+
 # ---------------------------------------------------------------------------
-# Puente provisional hasta T4.1.
-#
-# ejecuciones.usuario_id apunta a auth.users, pero el login de hoy sigue siendo
-# el JWT propio de S1, cuyo user_id es un entero de la tabla sqlite 'usuarios'.
-# Hasta que T4 sustituya la verificacion por la de Supabase, los runs de la rama
-# supabase se cuelgan de la cuenta tecnica que creo la migracion de T2.2.
-#
-# En cuanto T4.1 este, esto se borra y el uuid sale del 'sub' del JWT.
+# Autenticacion
 # ---------------------------------------------------------------------------
-EMAIL_USUARIO_PROVISIONAL = os.getenv("USUARIO_PROVISIONAL_EMAIL", "admin@cite.gob.pe")
-_uuid_provisional: str | None = None
+
+async def get_current_user(authorization: Optional[str] = Header(None)):
+    """Verifica el JWT del header Authorization.
+
+    Con APP_DB=supabase el token lo emite Supabase Auth y se verifica contra su
+    JWKS. Con APP_DB=sqlite sigue el JWT propio de S1, que es el plan B.
+
+    Todos los fallos —ausente, mal formado, firma invalida, expirado, emisor o
+    audiencia que no cuadran— responden 401 sin detalle: precisar el motivo solo
+    ayudaria a quien esta probando tokens.
+    """
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token no proporcionado")
+
+    if not USA_SUPABASE:
+        token = autenticacion.extraer_bearer_token(authorization)
+        if not token:
+            raise HTTPException(status_code=401, detail="Formato de token inválido")
+        payload = autenticacion.verificar_token(token)
+        if not payload:
+            raise HTTPException(status_code=401, detail="Token inválido o expirado")
+        return payload
+
+    token = extraer_bearer(authorization)
+    if not token:
+        raise HTTPException(status_code=401, detail="Formato de token inválido")
+    try:
+        return verificador_jwt.verificar(token)
+    except TokenInvalido:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
 
 
 def usuario_actual_id(current_user: dict) -> str | None:
-    if not USA_SUPABASE:
-        return str(current_user.get("user_id")) if current_user.get("user_id") else None
+    """Identidad con la que se filtran ejecuciones e informes.
 
-    global _uuid_provisional
-    if _uuid_provisional is None:
-        from adaptadores.db import pool
-        with pool().connection() as conexion:
-            fila = conexion.execute(
-                "select id from auth.users where email = %s",
-                (EMAIL_USUARIO_PROVISIONAL,)).fetchone()
-        if not fila:
-            raise HTTPException(
-                status_code=500,
-                detail=f"No existe {EMAIL_USUARIO_PROVISIONAL}: correr "
-                       "etl/migrar_sqlite_a_supabase.py o T4.3")
-        _uuid_provisional = str(fila[0])
-    return _uuid_provisional
+    Con Supabase es el `sub` del JWT, que es el uuid de auth.users al que
+    apuntan las claves ajenas del esquema.
+    """
+    if USA_SUPABASE:
+        return current_user.get("sub")
+    return str(current_user["user_id"]) if current_user.get("user_id") else None
 
 
 class ConsultaRequest(BaseModel):
@@ -162,28 +175,63 @@ class LoginRequest(BaseModel):
 
 @app.post("/token")
 async def login(req: LoginRequest):
-    # T4.2 lo sustituye por un proxy del password grant de Supabase, con la
-    # misma firma de request y response para no tocar el frontend.
-    with sqlite3.connect(ruta_db_sqlite()) as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT id, password_hash, org_id FROM usuarios WHERE email = ?", (req.email,))
-        row = cur.fetchone()
-        if not row:
-            raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    """Proxy del password grant de Supabase.
 
-        user_id, password_hash, org_id = row
-        if not autenticacion.verificar_password(req.password, password_hash):
-            raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    Conserva la firma de request y response de S1 (`access_token` y `user`), asi
+    que Login.vue no cambia y la SPA no necesita ninguna clave de Supabase: el
+    login pasa entero por el backend.
+    """
+    if not USA_SUPABASE:
+        with sqlite3.connect(ruta_db_sqlite()) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT id, password_hash, org_id FROM usuarios WHERE email = ?", (req.email,))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-        token = autenticacion.generar_token(user_id, req.email, org_id)
-        return {"access_token": token, "token_type": "bearer", "user": req.email}
+            user_id, password_hash, org_id = row
+            if not autenticacion.verificar_password(req.password, password_hash):
+                raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+            token = autenticacion.generar_token(user_id, req.email, org_id)
+            return {"access_token": token, "token_type": "bearer", "user": req.email}
+
+    respuesta = httpx.post(
+        f"{url_supabase()}/auth/v1/token",
+        params={"grant_type": "password"},
+        headers={"apikey": clave_publica(), "Content-Type": "application/json"},
+        json={"email": req.email, "password": req.password},
+        timeout=30,
+    )
+
+    if respuesta.status_code >= 400:
+        # Supabase distingue 'credenciales invalidas' de 'email sin confirmar';
+        # hacia fuera son lo mismo, para no filtrar que cuentas existen.
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+    datos = respuesta.json()
+    return {
+        "access_token": datos["access_token"],
+        "token_type": "bearer",
+        "user": req.email,
+        # Se devuelve aunque la SPA todavia no lo use: el token de Supabase vive
+        # ~1 h, suficiente para la demo, pero no cerramos la puerta a renovarlo.
+        "refresh_token": datos.get("refresh_token"),
+        "expires_in": datos.get("expires_in"),
+    }
 
 
 @app.post("/consultas")
 async def consultar_insumo(req: ConsultaRequest, current_user: dict = Depends(get_current_user)):
+    """El plan del usuario decide que composicion se ejecuta (T6.2).
+
+    Un usuario gratuito recibe **200 con informe parcial** y
+    `motivo_parcial='paywall'`; no un 402 ni un error. Lo mismo cuando salta un
+    presupuesto: degradar a "sin dato", nunca a error.
+    """
     try:
-        informe = await evaluar_insumo(req.texto, dependencias,
-                                       usuario_actual_id(current_user))
+        informe = await atender_consulta(req.texto, dependencias,
+                                         usuario_actual_id(current_user))
         return informe.model_dump()
     except HTTPException:
         raise
@@ -218,16 +266,21 @@ async def descargar_informe(id: str, current_user: dict = Depends(get_current_us
 
 @app.get("/ejecucion/{id}/tokens")
 async def obtener_tokens(id: str, current_user: dict = Depends(get_current_user)):
-    # T6.4 lo reemplaza por GET /uso, que ademas filtra por usuario: hoy
-    # cualquiera con un id ajeno ve el consumo de otro.
+    # T6.4 lo reemplaza por GET /uso, con el desglose por etapa y el tope del plan.
+    usuario_id = usuario_actual_id(current_user)
+
     if USA_SUPABASE:
         from adaptadores.db import pool
         with pool().connection() as conexion:
+            # El join con ejecuciones no es decorativo: sin el, cualquiera con
+            # un id ajeno veia el consumo de otro.
             fila = conexion.execute("""
-                select coalesce(sum(tokens), 0), coalesce(sum(tokens_entrada), 0),
-                       coalesce(sum(tokens_salida), 0), coalesce(sum(costo_usd), 0)
-                  from public.etapas_ejecucion where ejecucion_id = %s
-            """, (id,)).fetchone()
+                select coalesce(sum(x.tokens), 0), coalesce(sum(x.tokens_entrada), 0),
+                       coalesce(sum(x.tokens_salida), 0), coalesce(sum(x.costo_usd), 0)
+                  from public.etapas_ejecucion x
+                  join public.ejecuciones e on e.id = x.ejecucion_id
+                 where x.ejecucion_id = %s and e.usuario_id = %s
+            """, (id, usuario_id)).fetchone()
     else:
         with sqlite3.connect(ruta_db_sqlite()) as conn:
             cur = conn.cursor()
@@ -245,6 +298,100 @@ async def obtener_tokens(id: str, current_user: dict = Depends(get_current_user)
         "tokens_salida": int(salida),
         "costo_usd": round(float(costo), 6)
     }
+
+
+@app.get("/uso")
+async def uso_mensual(current_user: dict = Depends(get_current_user)):
+    """T6.4 - Cost-meter del usuario. Reemplaza a /ejecucion/{id}/tokens.
+
+    Todo sale filtrado por `usuario_id`; no hay parametro que permita mirar el
+    consumo de otro. El endpoint viejo no filtraba: cualquiera con un id ajeno
+    veia su gasto.
+    """
+    usuario_id = usuario_actual_id(current_user)
+    contexto = suscripciones.contexto_de(usuario_id)
+    entitlement = entitlement_de(contexto)
+
+    ultimo = None
+    if USA_SUPABASE:
+        from adaptadores.db import pool
+        with pool().connection() as conexion:
+            fila = conexion.execute("""
+                select coalesce(sum(runs), 0), coalesce(sum(costo_usd), 0)
+                  from public.uso_mensual
+                 where usuario_id = %s and mes = date_trunc('month', now())
+            """, (usuario_id,)).fetchone()
+            runs, costo_mes = int(fila[0]), float(fila[1])
+
+            cabecera = conexion.execute("""
+                select id, estado, motivo_parcial from public.ejecuciones
+                 where usuario_id = %s order by creado_en desc limit 1
+            """, (usuario_id,)).fetchone()
+
+            if cabecera:
+                etapas = conexion.execute("""
+                    select etapa, modelo, costo_usd, tokens, cache_hit
+                      from public.etapas_ejecucion
+                     where ejecucion_id = %s order by etapa
+                """, (cabecera[0],)).fetchall()
+                ultimo = {
+                    "id": str(cabecera[0]),
+                    "estado": cabecera[1],
+                    "motivo_parcial": cabecera[2],
+                    "costo_usd": round(sum(float(e[2]) for e in etapas), 6),
+                    "etapas": [{"etapa": e[0], "modelo": e[1],
+                                "costo_usd": float(e[2]), "tokens": e[3],
+                                "cache_hit": e[4]} for e in etapas],
+                }
+    else:
+        with sqlite3.connect(ruta_db_sqlite()) as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT COUNT(DISTINCT e.id), COALESCE(SUM(x.costo_usd), 0)
+                  FROM ejecuciones e LEFT JOIN etapas_ejecucion x ON x.ejecucion_id = e.id
+                 WHERE e.usuario_id = ?
+                   AND strftime('%Y-%m', e.creado_en) = strftime('%Y-%m', 'now')
+            """, (usuario_id,))
+            runs, costo_mes = cur.fetchone()
+            runs, costo_mes = int(runs or 0), float(costo_mes or 0)
+
+            cur.execute("""SELECT id, estado, motivo_parcial FROM ejecuciones
+                            WHERE usuario_id = ? ORDER BY creado_en DESC LIMIT 1""",
+                        (usuario_id,))
+            cabecera = cur.fetchone()
+            if cabecera:
+                cur.execute("""SELECT etapa, modelo, costo_usd, tokens, cache_hit
+                                 FROM etapas_ejecucion WHERE ejecucion_id = ? ORDER BY etapa""",
+                            (cabecera[0],))
+                etapas = cur.fetchall()
+                ultimo = {
+                    "id": cabecera[0], "estado": cabecera[1],
+                    "motivo_parcial": cabecera[2],
+                    "costo_usd": round(sum(float(e[2] or 0) for e in etapas), 6),
+                    "etapas": [{"etapa": e[0], "modelo": e[1],
+                                "costo_usd": float(e[2] or 0), "tokens": e[3],
+                                "cache_hit": bool(e[4])} for e in etapas],
+                }
+
+    return {
+        "mes": datetime.now(timezone.utc).strftime("%Y-%m"),
+        "plan": entitlement.plan,
+        "costo_mes_usd": round(costo_mes, 6),
+        "tope_usd": entitlement.tope_mes_usd,
+        "runs": runs,
+        # El tope global es del sistema, no del usuario, pero se expone porque
+        # el kill-switch le afecta: si salta, sus runs degradan sin que su
+        # propia cuota tenga nada que ver.
+        "kill_switch_activo": contexto.gasto_global_mes_usd >= _tope_global(),
+        "ultimo_run": ultimo,
+    }
+
+
+def _tope_global() -> float:
+    try:
+        return float(os.getenv("PRESUPUESTO_GLOBAL_MES_USD", 10.0))
+    except (TypeError, ValueError):
+        return 10.0
 
 
 def start():

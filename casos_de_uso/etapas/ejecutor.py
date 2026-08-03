@@ -92,6 +92,11 @@ async def etapa(d: Dependencias, ejecucion: Ejecucion, num_etapa: str, func: Cal
     # un cache hit no demuestra que la clave sea la correcta (P02).
     d.cache.guardar(clave, salida_dict, etapa=num_etapa, modelo=modelo,
                     snapshot_version=ejecucion.snapshot_version)
+    # El contador del run se actualiza aqui, no en la composicion: asi ninguna
+    # etapa futura puede gastar sin quedar contada por olvidarse de sumarla.
+    if d.presupuesto is not None:
+        d.presupuesto.anotar(costo_usd)
+
     d.auditoria.registrar_etapa(ejecucion, num_etapa, entrada_dict, salida_dict, duracion_ms, costo_usd=costo_usd, tokens=tokens_usados, tokens_entrada=tokens_entrada, tokens_salida=tokens_salida, modelo=modelo, cache_hit=False)
     return resultado
 

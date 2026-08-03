@@ -75,6 +75,18 @@
         "default": "",
         "title": "Url",
         "type": "string"
+      },
+      "similitud": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Similitud"
       }
     },
     "required": [
@@ -128,6 +140,18 @@
             "default": "",
             "title": "Url",
             "type": "string"
+          },
+          "similitud": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Similitud"
           }
         },
         "required": [
@@ -160,7 +184,118 @@
     "title": "ResultadoBusqueda",
     "type": "object"
   },
+  "ProductoEnMercado": {
+    "description": "Un producto real, con su procedencia, tal como lo ve el mapa comercial.",
+    "properties": {
+      "insumo": {
+        "description": "Insumo piloto que originó la consulta",
+        "title": "Insumo",
+        "type": "string"
+      },
+      "producto_id": {
+        "description": "Id con prefijo de fuente: 'OFF:00000036'",
+        "title": "Producto Id",
+        "type": "string"
+      },
+      "nombre": {
+        "title": "Nombre",
+        "type": "string"
+      },
+      "marca": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "18 % del snapshot no lo trae; null, nunca cadena vacía",
+        "title": "Marca"
+      },
+      "paises_iso": {
+        "description": "ISO-3166 alpha-2 normalizado (T2.1); [] si no se pudo mapear",
+        "items": {
+          "type": "string"
+        },
+        "title": "Paises Iso",
+        "type": "array"
+      },
+      "presentacion": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Siempre None en el MVP: el ETL de S2 descartó `quantity`",
+        "title": "Presentacion"
+      },
+      "precio_rango": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Siempre None en el MVP: Open Prices cubre el 3 % (T1.2)",
+        "title": "Precio Rango"
+      },
+      "canal": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Siempre None en el MVP: el ETL de S2 descartó `stores`",
+        "title": "Canal"
+      },
+      "fuente": {
+        "description": "Una sola fuente por fila",
+        "enum": [
+          "OFF",
+          "USDA"
+        ],
+        "title": "Fuente",
+        "type": "string"
+      },
+      "url": {
+        "format": "uri",
+        "maxLength": 2083,
+        "minLength": 1,
+        "title": "Url",
+        "type": "string"
+      },
+      "fecha_dato": {
+        "format": "date",
+        "title": "Fecha Dato",
+        "type": "string"
+      }
+    },
+    "required": [
+      "insumo",
+      "producto_id",
+      "nombre",
+      "fuente",
+      "url",
+      "fecha_dato"
+    ],
+    "title": "ProductoEnMercado",
+    "type": "object"
+  },
   "InsightDeMercado": {
+    "description": "Etapa 3. Es lo que recibe el plan gratuito.\n\nHasta S2 este objeto llevaba tambien `hipotesis_formulacion` y\n`verificacion_regulatoria`, que salian de la misma llamada al modelo. Con\nesa forma el paywall no se podia implementar honestamente: el token de la\nformulacion se pagaba siempre y \"ocultarla\" habria sido recortar un string\nya generado. Ahora son las etapas 4 y 5, cada una con su cache, su\nauditoria y su costo.",
     "properties": {
       "cobertura": {
         "description": "Nivel de cobertura de datos en bases abiertas",
@@ -175,16 +310,6 @@
       "resumen": {
         "description": "Resumen orientativo sobre el uso actual en la industria",
         "title": "Resumen",
-        "type": "string"
-      },
-      "hipotesis_formulacion": {
-        "description": "Ingeniería inversa de ingredientes y posible formulación",
-        "title": "Hipotesis Formulacion",
-        "type": "string"
-      },
-      "verificacion_regulatoria": {
-        "description": "Restricciones o consideraciones regulatorias sanitarias",
-        "title": "Verificacion Regulatoria",
         "type": "string"
       },
       "formatos_comunes": {
@@ -202,20 +327,336 @@
         },
         "title": "Citas",
         "type": "array"
+      },
+      "nota_regulatoria": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Parrafo regulatorio orientativo, sin fuentes verificadas",
+        "title": "Nota Regulatoria"
       }
     },
     "required": [
       "cobertura",
       "resumen",
-      "hipotesis_formulacion",
-      "verificacion_regulatoria",
       "formatos_comunes",
       "citas"
     ],
     "title": "InsightDeMercado",
     "type": "object"
   },
+  "HipotesisFormulacion": {
+    "description": "Etapa 4. Premium.\n\nIngenieria inversa de la formulacion a partir de los productos encontrados\nen el snapshot. Hasta S2 era el campo `hipotesis_formulacion` dentro del\ninsight, sin etapa propia: sin auditoria, sin costo y sin posibilidad de\nponerle un paywall delante.",
+    "properties": {
+      "hipotesis": {
+        "description": "Ingenieria inversa de la formulacion probable",
+        "title": "Hipotesis",
+        "type": "string"
+      },
+      "ingredientes_probables": {
+        "description": "Ingredientes deducidos de los productos comparables",
+        "items": {
+          "type": "string"
+        },
+        "title": "Ingredientes Probables",
+        "type": "array"
+      },
+      "procesos_sugeridos": {
+        "description": "Procesos industriales plausibles (secado, extraccion, molienda...)",
+        "items": {
+          "type": "string"
+        },
+        "title": "Procesos Sugeridos",
+        "type": "array"
+      },
+      "citas": {
+        "description": "IDs de productos que sostienen la hipotesis",
+        "items": {
+          "type": "string"
+        },
+        "title": "Citas",
+        "type": "array"
+      }
+    },
+    "required": [
+      "hipotesis",
+      "ingredientes_probables",
+      "procesos_sugeridos",
+      "citas"
+    ],
+    "title": "HipotesisFormulacion",
+    "type": "object"
+  },
+  "DossierRegulatorio": {
+    "$defs": {
+      "CitaRegulatoria": {
+        "description": "Una cita que se puede ir a comprobar.\n\nEs la diferencia entre el parrafo gratuito y el dossier premium: aqui la\nfuente y la URL no son adorno, son lo que se compra.",
+        "properties": {
+          "texto": {
+            "description": "Fragmento de la norma que aplica",
+            "title": "Texto",
+            "type": "string"
+          },
+          "fuente": {
+            "description": "Norma y organismo (ej. 21 CFR 145.110, FDA)",
+            "title": "Fuente",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Enlace navegable a la fuente oficial, si el corpus lo trae",
+            "title": "Url"
+          },
+          "fecha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Fecha o version de la norma, si consta",
+            "title": "Fecha"
+          }
+        },
+        "required": [
+          "texto",
+          "fuente"
+        ],
+        "title": "CitaRegulatoria",
+        "type": "object"
+      }
+    },
+    "description": "Etapa 5. Premium.\n\n`sin_dato` no es un detalle: el principio del ADR es degradar a \"sin dato\",\nnunca a error. Si el corpus no tiene normas aplicables al insumo, o si el\npresupuesto corta la etapa (T6.3), el dossier vuelve marcado y el run cierra\nen 'parcial' con HTTP 200.",
+    "properties": {
+      "restricciones": {
+        "description": "Restricciones o requisitos que aplican al insumo",
+        "items": {
+          "type": "string"
+        },
+        "title": "Restricciones",
+        "type": "array"
+      },
+      "citas": {
+        "description": "Citas verificables que sostienen cada restriccion",
+        "items": {
+          "$ref": "#/$defs/CitaRegulatoria"
+        },
+        "title": "Citas",
+        "type": "array"
+      },
+      "sin_dato": {
+        "default": false,
+        "description": "True si no hubo corpus aplicable o la etapa se degrado",
+        "title": "Sin Dato",
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "restricciones",
+      "citas"
+    ],
+    "title": "DossierRegulatorio",
+    "type": "object"
+  },
   "InformeScout": {
+    "$defs": {
+      "CitaRegulatoria": {
+        "description": "Una cita que se puede ir a comprobar.\n\nEs la diferencia entre el parrafo gratuito y el dossier premium: aqui la\nfuente y la URL no son adorno, son lo que se compra.",
+        "properties": {
+          "texto": {
+            "description": "Fragmento de la norma que aplica",
+            "title": "Texto",
+            "type": "string"
+          },
+          "fuente": {
+            "description": "Norma y organismo (ej. 21 CFR 145.110, FDA)",
+            "title": "Fuente",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Enlace navegable a la fuente oficial, si el corpus lo trae",
+            "title": "Url"
+          },
+          "fecha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Fecha o version de la norma, si consta",
+            "title": "Fecha"
+          }
+        },
+        "required": [
+          "texto",
+          "fuente"
+        ],
+        "title": "CitaRegulatoria",
+        "type": "object"
+      },
+      "DossierRegulatorio": {
+        "description": "Etapa 5. Premium.\n\n`sin_dato` no es un detalle: el principio del ADR es degradar a \"sin dato\",\nnunca a error. Si el corpus no tiene normas aplicables al insumo, o si el\npresupuesto corta la etapa (T6.3), el dossier vuelve marcado y el run cierra\nen 'parcial' con HTTP 200.",
+        "properties": {
+          "restricciones": {
+            "description": "Restricciones o requisitos que aplican al insumo",
+            "items": {
+              "type": "string"
+            },
+            "title": "Restricciones",
+            "type": "array"
+          },
+          "citas": {
+            "description": "Citas verificables que sostienen cada restriccion",
+            "items": {
+              "$ref": "#/$defs/CitaRegulatoria"
+            },
+            "title": "Citas",
+            "type": "array"
+          },
+          "sin_dato": {
+            "default": false,
+            "description": "True si no hubo corpus aplicable o la etapa se degrado",
+            "title": "Sin Dato",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "restricciones",
+          "citas"
+        ],
+        "title": "DossierRegulatorio",
+        "type": "object"
+      },
+      "HipotesisFormulacion": {
+        "description": "Etapa 4. Premium.\n\nIngenieria inversa de la formulacion a partir de los productos encontrados\nen el snapshot. Hasta S2 era el campo `hipotesis_formulacion` dentro del\ninsight, sin etapa propia: sin auditoria, sin costo y sin posibilidad de\nponerle un paywall delante.",
+        "properties": {
+          "hipotesis": {
+            "description": "Ingenieria inversa de la formulacion probable",
+            "title": "Hipotesis",
+            "type": "string"
+          },
+          "ingredientes_probables": {
+            "description": "Ingredientes deducidos de los productos comparables",
+            "items": {
+              "type": "string"
+            },
+            "title": "Ingredientes Probables",
+            "type": "array"
+          },
+          "procesos_sugeridos": {
+            "description": "Procesos industriales plausibles (secado, extraccion, molienda...)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Procesos Sugeridos",
+            "type": "array"
+          },
+          "citas": {
+            "description": "IDs de productos que sostienen la hipotesis",
+            "items": {
+              "type": "string"
+            },
+            "title": "Citas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "hipotesis",
+          "ingredientes_probables",
+          "procesos_sugeridos",
+          "citas"
+        ],
+        "title": "HipotesisFormulacion",
+        "type": "object"
+      },
+      "InsightDeMercado": {
+        "description": "Etapa 3. Es lo que recibe el plan gratuito.\n\nHasta S2 este objeto llevaba tambien `hipotesis_formulacion` y\n`verificacion_regulatoria`, que salian de la misma llamada al modelo. Con\nesa forma el paywall no se podia implementar honestamente: el token de la\nformulacion se pagaba siempre y \"ocultarla\" habria sido recortar un string\nya generado. Ahora son las etapas 4 y 5, cada una con su cache, su\nauditoria y su costo.",
+        "properties": {
+          "cobertura": {
+            "description": "Nivel de cobertura de datos en bases abiertas",
+            "enum": [
+              "baja",
+              "media",
+              "alta"
+            ],
+            "title": "Cobertura",
+            "type": "string"
+          },
+          "resumen": {
+            "description": "Resumen orientativo sobre el uso actual en la industria",
+            "title": "Resumen",
+            "type": "string"
+          },
+          "formatos_comunes": {
+            "description": "Formatos comerciales (ej. Polvo, extracto, mermelada)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Formatos Comunes",
+            "type": "array"
+          },
+          "citas": {
+            "description": "IDs de productos usados como referencia",
+            "items": {
+              "type": "string"
+            },
+            "title": "Citas",
+            "type": "array"
+          },
+          "nota_regulatoria": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Parrafo regulatorio orientativo, sin fuentes verificadas",
+            "title": "Nota Regulatoria"
+          }
+        },
+        "required": [
+          "cobertura",
+          "resumen",
+          "formatos_comunes",
+          "citas"
+        ],
+        "title": "InsightDeMercado",
+        "type": "object"
+      }
+    },
     "properties": {
       "parcial": {
         "title": "Parcial",
@@ -260,6 +701,51 @@
         ],
         "default": null,
         "title": "Markdown Content"
+      },
+      "url_firmada": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Url Firmada"
+      },
+      "insight": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/InsightDeMercado"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "hipotesis": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/HipotesisFormulacion"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "dossier": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/DossierRegulatorio"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
       }
     },
     "required": [

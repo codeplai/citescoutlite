@@ -1,0 +1,86 @@
+{
+  "filas": 29054,
+  "doble_encoding_reparado": {
+    "ingredientes": 1
+  },
+  "u_fffd_irreparable": {
+    "ingredientes": 9,
+    "nombre": 1
+  },
+  "campos_del_gate": [
+    "nombre",
+    "marca",
+    "pais"
+  ],
+  "celdas_u_fffd_en_el_gate": 1,
+  "filas_excluidas": [
+    "OFF:7896002308762"
+  ],
+  "filas_afectadas": [
+    {
+      "id": "OFF:0430405372912",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "pan integral castano"
+    },
+    {
+      "id": "OFF:0613008753382",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "Arizona"
+    },
+    {
+      "id": "OFF:7790070035349",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "veggies"
+    },
+    {
+      "id": "OFF:7790801010188",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "amodil palta anti-quiebre mas resistencia para pelo debil y quebradizo"
+    },
+    {
+      "id": "OFF:7803468001755",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "pan duo"
+    },
+    {
+      "id": "OFF:7803468149129",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "pan Pierre blanco"
+    },
+    {
+      "id": "OFF:7803520002423",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "barrita de cereal barrita energetica"
+    },
+    {
+      "id": "OFF:7896002308762",
+      "campos": [
+        "nombre",
+        "ingredientes"
+      ],
+      "nombre": "P�o integral"
+    },
+    {
+      "id": "OFF:8801056175252",
+      "campos": [
+        "ingredientes"
+      ],
+      "nombre": "Aloe vera mango"
+    }
+  ],
+  "decision": "el doble-encoding se repara porque el viaje de vuelta es exacto; U+FFFD no se repara porque el byte se perdió y reconstruirlo sería inventar. Las filas afectadas se excluyen del mapa comercial y se declaran"
+}

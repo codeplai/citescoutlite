@@ -16,8 +16,11 @@ def generar_contratos():
     try:
         from dominio.insumo import InsumoInterpretado
         from dominio.insight_mercado import InsightDeMercado
+        from dominio.hipotesis_formulacion import HipotesisFormulacion
+        from dominio.dossier_regulatorio import DossierRegulatorio
         from dominio.resultado_busqueda import ResultadoBusqueda
         from dominio.producto_existente import ProductoExistente
+        from dominio.producto_en_mercado import ProductoEnMercado
         from dominio.informe_scout import InformeScout
         from puertos.auditoria import Ejecucion
 
@@ -25,7 +28,15 @@ def generar_contratos():
             "InsumoInterpretado": InsumoInterpretado.model_json_schema(),
             "ProductoExistente": ProductoExistente.model_json_schema(),
             "ResultadoBusqueda": ResultadoBusqueda.model_json_schema(),
+            # Etapa 2b (S4). Una fila del mapa comercial, con una sola fuente.
+            # `presentacion`, `precio_rango` y `canal` estan en el esquema y son
+            # siempre null en el MVP: el hueco se declara, no se esconde.
+            "ProductoEnMercado": ProductoEnMercado.model_json_schema(),
+            # Etapas 3, 4 y 5. Hasta S2 eran un solo objeto: los dos campos
+            # premium salian de la misma llamada que el resumen gratuito.
             "InsightDeMercado": InsightDeMercado.model_json_schema(),
+            "HipotesisFormulacion": HipotesisFormulacion.model_json_schema(),
+            "DossierRegulatorio": DossierRegulatorio.model_json_schema(),
             "InformeScout": InformeScout.model_json_schema(),
         }
 

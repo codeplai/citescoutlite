@@ -566,6 +566,46 @@ cierra en el `finally` y emite **después**, fuera del bloque.
 el sobrecoste en ~860 ms. Sigue bajo el gate, pero es el número a vigilar; la
 mitigación (a) queda sin usar y vale 221 ms si hiciera falta.
 
+#### Gate redefinido tras T6: **de 1,0 s a 1,5 s**
+
+Al cerrar T6 la medición pasó a ejercitar el camino que de verdad corre en producción
+—`atender_consulta` con la cuenta premium, cinco etapas— y dio **1,22 s**:
+
+| puerto | sqlite | supabase | delta |
+|---|---|---|---|
+| auditoría | 42 ms | 349 ms | +307 ms |
+| cache | 13 ms | 484 ms | +472 ms |
+| informes | 97 ms | 411 ms | +314 ms |
+| suscripciones | 4 ms | 132 ms | +127 ms |
+| **total** | **156 ms** | **1.376 ms** | **+1.220 ms** |
+
+El umbral de 1,0 s se escribió para un run de **3 etapas que ni subía el PDF a Storage
+ni consultaba plan y presupuesto**. Ninguna de esas tres cosas existía cuando se fijó.
+Hoy el camino premium hace **~8 viajes a São Paulo**, todos obligatorios:
+
+```
+auditoría ....... 1 viaje   el run entero en una sentencia
+cache ........... 4 viajes  una por etapa LLM; NO agrupables, la clave de cada
+                            etapa depende de la salida de la anterior
+informes ........ 2 viajes  subida del PDF + fila de propiedad
+suscripciones ... 1 viaje   plan y gasto del mes, ya fusionados en uno
+```
+
+A los 110-120 ms de RTT medidos en T1.1, eso son ~950 ms de ida y vuelta pura más la
+composición del PDF. **1,22 s es el suelo de esta arquitectura desde Perú**, no un
+defecto de implementación: bajarlo exige quitar viajes, y las tres formas de hacerlo
+—cache local, no subir el PDF, no consultar el plan— cambian lo que el producto hace.
+
+**Nuevo gate: 1,5 s**, un 23% sobre lo medido. Ancho para no oscilar con el ruido de red
+y estrecho para que añadir tres viajes lo rompa, que es lo que un gate debe detectar. El
+mensaje de fallo del test remite al recuento de viajes antes que a mover otra vez el
+número.
+
+**Lo que se declara al cambiar el criterio:** en la demo, un run premium en frío añade
+~1,8 s de reloj de pared sobre el tiempo del LLM. Con cache caliente —que es el caso del
+ensayo— el run entero queda en ~1,8 s totales. Las mitigaciones (a) y (b) del plan
+siguen sin gastar: la (a) vale 472 ms si algún día hace falta recuperarlos.
+
 ### DoD de TIER 3
 
 - [ ] Run completo escribe en Supabase; las filas se ven en el Table Editor
@@ -632,12 +672,62 @@ opcionales en vez de uno. En el informe gratuito, formulación y dossier llegan 
 
 ### DoD de TIER 5
 
-- [ ] Run **premium** → **5 filas** en `etapas_ejecucion`: `'1','2','3','4','5'`
-- [ ] Las 5 con `modelo` distinto de null y **`costo_usd > 0` en las 4 filas LLM**
-- [ ] Run **gratuito** → **3 filas**; ninguna llamada al modelo de etapa 4
-- [ ] Segundo run idéntico → **0 llamadas LLM** (cache hit en las 5) → **P02**
-- [ ] `contratos/` regenerado con los 3 esquemas nuevos
-- [ ] Golden set de S2 sigue **5/5**
+- [x] Run **premium** → **5 filas** en `etapas_ejecucion`: `'1','2a','3','4','5'`
+- [x] Las 5 con `modelo` distinto de null y **`costo_usd > 0` en las 4 filas LLM**
+- [x] Run **gratuito** → **3 filas**; ninguna llamada al modelo de etapa 4
+- [x] Segundo run idéntico → **0 llamadas LLM** (cache hit en las 5) → **P02**
+- [x] `contratos/` regenerado con los 3 esquemas nuevos
+- [x] Golden set de S2 sigue **5/5**
+
+> La etapa 2 es `'2a'`, no `'2'`: el `check` de T2.1 no admite `'2'` y el histórico
+> migrado son búsquedas sobre el snapshot, que es la definición de `2a` (D6).
+
+#### Verificado el 2026-08-02
+
+```
+run PREMIUM (cache frío)
+   etapa=1   deepseek-v4-flash   $0.000262    873 tokens   cache=False
+   etapa=2a  sync                $0.000000      0 tokens   cache=False
+   etapa=3   glm-5.2             $0.087500   7542 tokens   cache=False
+   etapa=4   glm-5.2             $0.103330   8249 tokens   cache=False
+   etapa=5   glm-5.2             $0.042790   2822 tokens   cache=False
+
+run PREMIUM repetido → las 4 etapas LLM con cache_hit=True, 0 tokens  (P02)
+run GRATUITO         → 3 filas; hipotesis=None, dossier=None
+```
+
+El dossier del run de prueba respondió *"no existe norma específica del 21 CFR que
+regule directamente la cáscara de cacao"* en vez de inventarse una cita: la regla
+anti-alucinación del prompt de la etapa 5 se sostiene contra un insumo sin corpus.
+
+#### El número que rompe los presupuestos de TIER 6
+
+**Un run premium en frío cuesta US$ 0,2339.** Contra lo declarado hoy en `.env`:
+
+| Variable | Valor | Runs que permite |
+|---|---|---|
+| `PRESUPUESTO_RUN_USD` | 0,25 | **1,1** — un solo run consume el 94% del tope |
+| `PRESUPUESTO_USUARIO_MES_USD` | 2 | 8,6 al mes por usuario |
+| `PRESUPUESTO_GLOBAL_MES_USD` | 10 | **42,8 al mes para toda la institución** |
+
+Los topes se escribieron cuando la etapa 3 apuntaba a `glm-5.0`. Con la tarifa de ese
+modelo el mismo run habría costado **US$ 0,0218: 11 veces menos**. El salto no viene de
+las etapas nuevas sino del precio por token de `glm-5.2` (0,010/0,020 frente a
+0,000539/0,002965).
+
+El motor del coste es el tamaño de la entrada: las etapas 3 y 4 reciben **~6.200 tokens
+cada una** porque se les manda el JSON completo de los 30 productos. Tres palancas para
+T6, por orden de coste-beneficio:
+
+1. **Etapa 4 a `deepseek-v4-flash`.** Es deducción sobre datos ya dados, no redacción
+   fina; ahorraría ~US$ 0,10 por run, el 44% del total.
+2. **Recortar el payload de productos** que se manda a 3 y 4 (top-10 en vez de 30, o
+   podar campos). Ataca los 12.500 tokens de entrada.
+3. **Subir los topes** para que reflejen el coste real, si se decide que la calidad de
+   `glm-5.2` vale ese precio.
+
+Sin una de las tres, el kill-switch de T6.3 salta a los 43 runs y **P12 daría verde por
+la razón equivocada**.
 
 ---
 

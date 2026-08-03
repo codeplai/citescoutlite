@@ -13,6 +13,7 @@ las columnas que hay y solo anade las que faltan.
 """
 
 import sqlite3
+from contextlib import closing
 
 # tabla -> (columna, tipo). Solo se anaden columnas; nunca se borra ni se
 # reescribe nada, para no tocar las 54/94/47 filas del historico.
@@ -29,6 +30,10 @@ COLUMNAS_REQUERIDAS: dict[str, tuple[tuple[str, str], ...]] = {
     "usuarios": (
         # api/main.py la lee en el login de la rama sqlite.
         ("org_id", "TEXT"),
+        # El plan B tiene que distinguir gratuito de premium igual que la rama
+        # remota, o el bloque del guion que ensena el paywall no se puede
+        # ensayar sin red.
+        ("plan", "TEXT DEFAULT 'gratuito'"),
     ),
     "cache_llm": (
         ("etapa", "TEXT"),
@@ -42,7 +47,10 @@ def asegurar_esquema(db_path: str) -> list[str]:
     """Anade las columnas que falten. Devuelve las que anadio, para poder
     reportarlas en los tests en vez de arreglar en silencio."""
     anadidas: list[str] = []
-    with sqlite3.connect(db_path) as conexion:
+    # closing() ademas del `with`: el context manager de sqlite3 confirma la
+    # transaccion pero no cierra la conexion, y este helper lo llama cada
+    # adaptador al construirse.
+    with closing(sqlite3.connect(db_path)) as conexion, conexion:
         existentes = {
             fila[0] for fila in conexion.execute(
                 "select name from sqlite_master where type = 'table'")

@@ -20,6 +20,8 @@ import httpx
 from adaptadores.db import pool
 from adaptadores.entorno import bucket_informes, cabeceras_servicio, url_supabase
 from adaptadores.informe_weasyprint import InformeWeasyPrint
+from dominio.dossier_regulatorio import DossierRegulatorio
+from dominio.hipotesis_formulacion import HipotesisFormulacion
 from dominio.informe_scout import InformeScout
 from dominio.insight_mercado import InsightDeMercado
 from puertos.auditoria import Ejecucion
@@ -49,9 +51,12 @@ class RepositorioInformesSupabase(RepositorioInformes):
         # No hay PDF que subir: el run no llego a producir informe.
         return self._local.pide_reformulacion(ejecucion)
 
-    def emitir(self, ejecucion: Ejecucion, insight: InsightDeMercado,
-               parcial: bool) -> InformeScout:
-        informe = self._local.emitir(ejecucion, insight, parcial)
+    def emitir(self, ejecucion: Ejecucion, insight: InsightDeMercado | None,
+               parcial: bool,
+               hipotesis: HipotesisFormulacion | None = None,
+               dossier: DossierRegulatorio | None = None) -> InformeScout:
+        informe = self._local.emitir(ejecucion, insight, parcial,
+                                     hipotesis=hipotesis, dossier=dossier)
 
         ruta_storage = f"{ejecucion.id}.pdf"
         self._subir(Path(informe.ruta_pdf), ruta_storage)

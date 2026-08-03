@@ -16,6 +16,12 @@ class Dependencias:
     auditoria: Auditoria
     verificador_fda: VerificadorRegulatorio = None
     verificador_rag: VerificadorRegulatorio = None
+    suscripciones: Any = None
+    # Contador del run en curso (T6.3). Es lo unico mutable de este objeto, y
+    # por eso cada run trabaja sobre una copia hecha con dataclasses.replace:
+    # Dependencias se construye una sola vez al arrancar y se comparte entre
+    # peticiones concurrentes.
+    presupuesto: Any = None
     snapshot_version: str = "2026-07"
     tarifas_modelos: Dict[str, Dict[str, float]] = None
     offline_mode: bool = False

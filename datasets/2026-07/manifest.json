@@ -157,5 +157,334 @@
       "python -m evals.runner_s2",
       "python -m pytest test/ -v"
     ]
+  },
+  "cobertura_comercial": {
+    "medido_en": "2026-08-03T04:06:48.272012+00:00",
+    "fuente": "datasets/2026-07/productos_merged.json",
+    "filas": 29054,
+    "por_fuente": {
+      "OFF": 28236,
+      "USDA": 818
+    },
+    "campos": {
+      "nombre": {
+        "con_dato": 29054,
+        "cobertura_pct": 100.0,
+        "disfrazados": 1,
+        "cobertura_neta_pct": 100.0,
+        "presente_en_snapshot": true
+      },
+      "url": {
+        "con_dato": 29054,
+        "cobertura_pct": 100.0,
+        "disfrazados": 0,
+        "cobertura_neta_pct": 100.0,
+        "presente_en_snapshot": true
+      },
+      "fecha_dato": {
+        "con_dato": 29054,
+        "cobertura_pct": 100.0,
+        "disfrazados": 0,
+        "cobertura_neta_pct": 100.0,
+        "presente_en_snapshot": true
+      },
+      "marca": {
+        "con_dato": 23811,
+        "cobertura_pct": 82.0,
+        "disfrazados": 17,
+        "cobertura_neta_pct": 81.9,
+        "presente_en_snapshot": true
+      },
+      "categoria": {
+        "con_dato": 24020,
+        "cobertura_pct": 82.7,
+        "disfrazados": 15,
+        "cobertura_neta_pct": 82.6,
+        "presente_en_snapshot": true
+      },
+      "pais": {
+        "con_dato": 28927,
+        "cobertura_pct": 99.6,
+        "disfrazados": 0,
+        "cobertura_neta_pct": 99.6,
+        "presente_en_snapshot": true
+      },
+      "presentacion": {
+        "con_dato": 0,
+        "cobertura_pct": 0.0,
+        "disfrazados": 0,
+        "cobertura_neta_pct": 0.0,
+        "presente_en_snapshot": false,
+        "motivo": "descartado en la descarga (etl/cargar_off_bulk.py:135-146); el export original (~9 GB) ya no está en disco. Lo llena el nivel 3 de DescubrimientoComercial"
+      },
+      "precio": {
+        "con_dato": 0,
+        "cobertura_pct": 0.0,
+        "disfrazados": 0,
+        "cobertura_neta_pct": 0.0,
+        "presente_en_snapshot": false,
+        "motivo": "descartado en la descarga (etl/cargar_off_bulk.py:135-146); el export original (~9 GB) ya no está en disco. Lo llena el nivel 3 de DescubrimientoComercial"
+      },
+      "canal": {
+        "con_dato": 0,
+        "cobertura_pct": 0.0,
+        "disfrazados": 0,
+        "cobertura_neta_pct": 0.0,
+        "presente_en_snapshot": false,
+        "motivo": "descartado en la descarga (etl/cargar_off_bulk.py:135-146); el export original (~9 GB) ya no está en disco. Lo llena el nivel 3 de DescubrimientoComercial"
+      }
+    },
+    "pais": {
+      "variantes_distintas": 1577,
+      "filas_sin_pais": 127,
+      "top_15": [
+        [
+          "United States",
+          9986
+        ],
+        [
+          "France",
+          1771
+        ],
+        [
+          "en:United States",
+          1633
+        ],
+        [
+          "en:us",
+          1005
+        ],
+        [
+          "United States, World",
+          852
+        ],
+        [
+          "en:united-states",
+          785
+        ],
+        [
+          "en:United Kingdom",
+          627
+        ],
+        [
+          "España",
+          502
+        ],
+        [
+          "Deutschland",
+          497
+        ],
+        [
+          "Germany",
+          461
+        ],
+        [
+          "en:gb",
+          370
+        ],
+        [
+          "United Kingdom",
+          352
+        ],
+        [
+          "en:Germany",
+          347
+        ],
+        [
+          "en:us, World",
+          309
+        ],
+        [
+          "Spain",
+          260
+        ]
+      ],
+      "nota": "normalización a ISO-3166 en T2.1, aplicada al leer; el snapshot no se reescribe"
+    },
+    "mojibake": {
+      "por_campo": {
+        "nombre": 1,
+        "marca": 0,
+        "pais": 0
+      },
+      "filas_afectadas": 1,
+      "nota": "baseline previo a T2.2, cuyo gate exige 0"
+    }
+  },
+  "sonda_open_prices": {
+    "medido_en": "2026-08-03T03:33:32.171266+00:00",
+    "endpoint": "https://prices.openfoodfacts.org/api/v1/prices",
+    "control_positivo": {
+      "ok": true,
+      "codigo_control": "1541513213246",
+      "precios_hallados": 3,
+      "total_precios_en_base": 285484,
+      "motivo": null
+    },
+    "codigos_consultados": 100,
+    "respuestas_ok": 100,
+    "errores": 0,
+    "detalle_errores": {},
+    "presupuesto_agotado": false,
+    "con_al_menos_un_precio": 3,
+    "pct_con_precio": 3.0,
+    "antiguedad_dias": {
+      "mediana": 130,
+      "min": 12,
+      "max": 514,
+      "n_precios": 7
+    },
+    "paises": {
+      "FR": 4,
+      "US": 1,
+      "DE": 1
+    },
+    "precios_sin_pais": 1,
+    "monedas": {
+      "EUR": 6,
+      "USD": 1
+    },
+    "por_insumo": {
+      "arándano": {
+        "consultados": 20,
+        "con_precio": 2,
+        "pct": 10.0
+      },
+      "palta": {
+        "consultados": 20,
+        "con_precio": 1,
+        "pct": 5.0
+      },
+      "espárrago": {
+        "consultados": 20,
+        "con_precio": 0,
+        "pct": 0.0
+      },
+      "mango": {
+        "consultados": 20,
+        "con_precio": 0,
+        "pct": 0.0
+      },
+      "quinua": {
+        "consultados": 20,
+        "con_precio": 0,
+        "pct": 0.0
+      }
+    },
+    "alcance": "solo códigos OFF; las 818 filas USDA no tienen código de barras (son FDC ids) y quedan fuera de la muestra",
+    "decision": "T1.2 mide, no integra. La integración de precio queda fuera del MVP (PLAN-TIERS-S4-MVP.md §0)",
+    "semilla": 20260802,
+    "muestra": {
+      "arándano": [
+        "0884912002174",
+        "8908014665029",
+        "0810589031575",
+        "8414516098680",
+        "0041800201570",
+        "3560071012687",
+        "0060383003678",
+        "9310053103018",
+        "0038900031695",
+        "8719326581859",
+        "0850047871312",
+        "0038000160868",
+        "0790429218758",
+        "0079893800202",
+        "0076301593022",
+        "0030034092429",
+        "0041498138530",
+        "0810044880670",
+        "8720157467281",
+        "0048107187958"
+      ],
+      "palta": [
+        "0851167002174",
+        "0078907100017",
+        "0616112031513",
+        "0853986008115",
+        "0071279309217",
+        "0708163121999",
+        "0080868260006",
+        "7503031236088",
+        "0646670516658",
+        "4088600100173",
+        "0850028332481",
+        "0815074022441",
+        "00399500",
+        "3175690201376",
+        "0767119000221",
+        "0011110783806",
+        "0078314400007",
+        "4063367146992",
+        "0072080410093",
+        "8718452871285"
+      ],
+      "espárrago": [
+        "0850019837834",
+        "0085239008850",
+        "0075450077124",
+        "8431876008135",
+        "8431876240726",
+        "0007203676098",
+        "8410416931331",
+        "0041220193011",
+        "5999563621744",
+        "0097137203084",
+        "8425626998227",
+        "0071757055803",
+        "0688267054129",
+        "8480000610072",
+        "0810167392036",
+        "8410416014805",
+        "0052200072073",
+        "8431876107425",
+        "4560122001072",
+        "0070670005520"
+      ],
+      "mango": [
+        "0048500021514",
+        "7072480000354",
+        "4305615689821",
+        "8718907687881",
+        "0701648010337",
+        "0003089164175",
+        "4058172627781",
+        "4088600103679",
+        "4068134115379",
+        "0819573015546",
+        "0765230012413",
+        "4061463706676",
+        "0011210006508",
+        "4061464203457",
+        "4061461444631",
+        "01078718",
+        "0853558003968",
+        "0877693001450",
+        "8410128278106",
+        "8938502113350"
+      ],
+      "quinua": [
+        "4030800033799",
+        "5391521690494",
+        "8001091001831",
+        "0623682113266",
+        "4305615664194",
+        "7771259330301",
+        "0631656703177",
+        "8057168100044",
+        "0021000072293",
+        "0188244000137",
+        "8480017235213",
+        "0046567506586",
+        "0038000136429",
+        "7500478007271",
+        "0071319002436",
+        "0818512016095",
+        "7613312159644",
+        "0842234000810",
+        "8908018651295",
+        "7613312254073"
+      ]
+    }
   }
 }
