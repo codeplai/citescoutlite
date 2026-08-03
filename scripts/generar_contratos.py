@@ -21,6 +21,7 @@ def generar_contratos():
         from dominio.resultado_busqueda import ResultadoBusqueda
         from dominio.producto_existente import ProductoExistente
         from dominio.producto_en_mercado import ProductoEnMercado
+        from dominio.mapa_comercial import MapaComercial
         from dominio.informe_scout import InformeScout
         from puertos.auditoria import Ejecucion
 
@@ -32,6 +33,10 @@ def generar_contratos():
             # `presentacion`, `precio_rango` y `canal` estan en el esquema y son
             # siempre null en el MVP: el hueco se declara, no se esconde.
             "ProductoEnMercado": ProductoEnMercado.model_json_schema(),
+            # La salida completa de la etapa 2b, tal como se escribe en
+            # etapas_ejecucion.salida_json: es la evidencia de procedencia que
+            # sustituye a la tabla catalogo_comercial cortada en §0.
+            "MapaComercial": MapaComercial.model_json_schema(),
             # Etapas 3, 4 y 5. Hasta S2 eran un solo objeto: los dos campos
             # premium salian de la misma llamada que el resumen gratuito.
             "InsightDeMercado": InsightDeMercado.model_json_schema(),

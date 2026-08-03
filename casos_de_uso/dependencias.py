@@ -5,6 +5,7 @@ from puertos.catalogo_productos import CatalogoProductos
 from puertos.cache_llm import CacheLLM
 from puertos.repositorio_informes import RepositorioInformes
 from puertos.auditoria import Auditoria
+from puertos.descubrimiento_comercial import DescubrimientoComercial
 from puertos.verificador_regulatorio import VerificadorRegulatorio
 
 @dataclass
@@ -17,6 +18,11 @@ class Dependencias:
     verificador_fda: VerificadorRegulatorio = None
     verificador_rag: VerificadorRegulatorio = None
     suscripciones: Any = None
+    # Etapa 2b (S4). Sin el, la etapa corre igual y devuelve un mapa vacio que
+    # declara los tres niveles como no disponibles: degrada a "sin dato", nunca
+    # error. Es lo que permite que los tests deterministas de S2 sigan armando
+    # Dependencias sin tocar LanceDB.
+    descubrimiento: DescubrimientoComercial = None
     # Contador del run en curso (T6.3). Es lo unico mutable de este objeto, y
     # por eso cada run trabaja sobre una copia hecha con dataclasses.replace:
     # Dependencias se construye una sola vez al arrancar y se comparte entre

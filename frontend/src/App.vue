@@ -22,29 +22,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Login from './components/Login.vue'
 import Search from './components/Search.vue'
 import Result from './components/Result.vue'
 import TokenUsage from './components/TokenUsage.vue'
+import { CLAVE_TOKEN, CLAVE_USUARIO } from './api.js'
 
 const isAuthenticated = ref(false)
 const userEmail = ref('')
 const currentResult = ref(null)
 
+const cerrarSesion = () => {
+  isAuthenticated.value = false
+  currentResult.value = null
+}
+
 onMounted(() => {
-  const token = localStorage.getItem('agroscout_token')
+  const token = localStorage.getItem(CLAVE_TOKEN)
   if (token) {
     isAuthenticated.value = true
-    userEmail.value = localStorage.getItem('agroscout_user') || 'Usuario'
+    userEmail.value = localStorage.getItem(CLAVE_USUARIO) || 'Usuario'
   }
+  // El token de Supabase vive ~1 h. Cuando caduca, el cliente API lo detecta en
+  // el primer 401 y avisa: la sesión se cierra sola en vez de dejar la interfaz
+  // fallando sin explicación a mitad de la demo.
+  window.addEventListener('agroscout:sesion-caducada', cerrarSesion)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('agroscout:sesion-caducada', cerrarSesion)
 })
 
 const logout = () => {
-  localStorage.removeItem('agroscout_token')
-  localStorage.removeItem('agroscout_user')
-  isAuthenticated.value = false
-  currentResult.value = null
+  localStorage.removeItem(CLAVE_TOKEN)
+  localStorage.removeItem(CLAVE_USUARIO)
+  cerrarSesion()
 }
 
 const handleResult = (data) => {

@@ -36,6 +36,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { api, NoAutorizado } from '../api.js'
 
 const query = ref('')
 const isLoading = ref(false)
@@ -78,17 +79,9 @@ const submitSearch = async () => {
   startLoadingAnimation()
   
   try {
-    const response = await fetch('http://localhost:8001/consultas', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ texto: query.value })
-    })
-    
-    if (!response.ok) throw new Error('Error en la API')
-    
-    const data = await response.json()
+    // api.consultar adjunta el Authorization; antes se llamaba sin cabecera y
+    // este endpoint exige token desde S1, así que siempre daba 401.
+    const data = await api.consultar(query.value)
     clearLoadingAnimation()
     
     const elapsedSeconds = ((performance.now() - startTime) / 1000).toFixed(1)
@@ -101,7 +94,10 @@ const submitSearch = async () => {
     
   } catch (error) {
     console.error(error)
-    alert('Ocurrió un error al consultar el insumo.')
+    if (!(error instanceof NoAutorizado)) {
+      // Un 401 ya cierra la sesión y lo gestiona App.vue; avisar dos veces sería ruido.
+      alert('Ocurrió un error al consultar el insumo.')
+    }
     clearLoadingAnimation()
     isLoading.value = false
   }

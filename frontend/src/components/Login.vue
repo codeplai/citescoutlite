@@ -42,6 +42,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { api, CLAVE_TOKEN, CLAVE_USUARIO } from '../api.js'
 
 const email = ref('')
 const password = ref('')
@@ -56,22 +57,19 @@ const handleLogin = async () => {
   errorMsg.value = ''
   
   try {
-    const res = await fetch('http://localhost:8001/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email: email.value, password: password.value })
-    })
-    
+    // El backend hace de proxy del password grant de Supabase y conserva la
+    // misma forma de request y response que en S1, así que este componente no
+    // necesita ninguna clave de Supabase.
+    const res = await api.login(email.value, password.value)
+
     if (!res.ok) {
       if (res.status === 401) throw new Error('Credenciales inválidas')
       throw new Error('Error al conectar con el servidor')
     }
-    
+
     const data = await res.json()
-    localStorage.setItem('agroscout_token', data.access_token)
-    localStorage.setItem('agroscout_user', data.user)
+    localStorage.setItem(CLAVE_TOKEN, data.access_token)
+    localStorage.setItem(CLAVE_USUARIO, data.user)
     emit('login-success')
     
   } catch (error) {

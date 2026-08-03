@@ -24,6 +24,7 @@ from dominio.dossier_regulatorio import DossierRegulatorio
 from dominio.hipotesis_formulacion import HipotesisFormulacion
 from dominio.informe_scout import InformeScout
 from dominio.insight_mercado import InsightDeMercado
+from dominio.mapa_comercial import MapaComercial
 from puertos.auditoria import Ejecucion
 from puertos.repositorio_informes import RepositorioInformes
 
@@ -54,9 +55,11 @@ class RepositorioInformesSupabase(RepositorioInformes):
     def emitir(self, ejecucion: Ejecucion, insight: InsightDeMercado | None,
                parcial: bool,
                hipotesis: HipotesisFormulacion | None = None,
-               dossier: DossierRegulatorio | None = None) -> InformeScout:
+               dossier: DossierRegulatorio | None = None,
+               mapa: MapaComercial | None = None) -> InformeScout:
         informe = self._local.emitir(ejecucion, insight, parcial,
-                                     hipotesis=hipotesis, dossier=dossier)
+                                     hipotesis=hipotesis, dossier=dossier,
+                                     mapa=mapa)
 
         ruta_storage = f"{ejecucion.id}.pdf"
         self._subir(Path(informe.ruta_pdf), ruta_storage)

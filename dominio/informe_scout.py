@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from dominio.dossier_regulatorio import DossierRegulatorio
 from dominio.hipotesis_formulacion import HipotesisFormulacion
 from dominio.insight_mercado import InsightDeMercado
+from dominio.mapa_comercial import MapaComercial
 
 
 class InformeScout(BaseModel):
@@ -24,3 +25,14 @@ class InformeScout(BaseModel):
     insight: InsightDeMercado | None = None
     hipotesis: HipotesisFormulacion | None = None
     dossier: DossierRegulatorio | None = None
+
+    # Etapa 2b (S4). Va en el informe gratuito: el mapa comercial no es un
+    # extra de pago. Viaja hasta la SPA para que Result.vue pinte la tabla sin
+    # tener que volver a consultar la auditoria (T4.3b).
+    mapa: MapaComercial | None = None
+
+    # 'paywall' | 'pocos_productos' | 'presupuesto' | None. Viaja hasta la SPA
+    # porque `parcial` a secas no basta: P06 exige que el informe diga **cual**
+    # de los tres motivos aplica, y la interfaz tiene que enseñar cosas
+    # distintas para cada uno.
+    motivo_parcial: str | None = None

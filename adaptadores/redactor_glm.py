@@ -1,3 +1,5 @@
+import json
+
 import instructor
 from litellm import acompletion
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -59,7 +61,8 @@ class RedactorGLM(RedactorLLM):
             texto)
 
     @retry(**_REINTENTOS)
-    async def redactar_insight(self, productos: ResultadoBusqueda) -> InsightDeMercado:
+    async def redactar_insight(self, productos: ResultadoBusqueda,
+                               mapa: dict | None = None) -> InsightDeMercado:
         sistema = (
             "Eres un analista de desarrollo de productos del CITEagroindustrial. "
             "Basado en los resultados de búsqueda proporcionados, genera un Insight de "
@@ -70,6 +73,8 @@ class RedactorGLM(RedactorLLM):
             "industria hoy.\n"
             "3. Extrae los 'formatos_comunes' (polvo, extracto, mermelada, etc.).\n"
             "4. Rellena 'citas' con los IDs de los productos que sustentan lo anterior.\n"
+            "   Usa SOLO ids que aparezcan en los datos que se te dan, tal cual. "
+            "Un id que no esté ahí es un invento y se rechaza (P05).\n"
             "5. Escribe una 'nota_regulatoria' BREVE (2-3 frases) y ORIENTATIVA sobre "
             "qué tipo de requisitos suelen aplicar a esta categoría de alimento.\n\n"
             "REGLA CRÍTICA sobre 'nota_regulatoria': NO cites normas concretas, ni "
@@ -81,9 +86,20 @@ class RedactorGLM(RedactorLLM):
             "IMPORTANTE: responde un JSON válido con EXACTAMENTE estas claves: "
             "cobertura, resumen, formatos_comunes, citas, nota_regulatoria."
         )
-        return await self._pedir(
-            "3", InsightDeMercado, sistema,
-            f"PRODUCTOS ENCONTRADOS:\n{productos.model_dump_json()}")
+        usuario = f"PRODUCTOS ENCONTRADOS:\n{productos.model_dump_json()}"
+        if mapa:
+            # El mapa de la etapa 2b (S4). Los paises y marcas son reales y
+            # medidos, asi que son material de cita; los tres campos de
+            # `sin_dato` van a proposito para que el modelo no los rellene.
+            usuario += (
+                "\n\nMAPA COMERCIAL (etapa 2b, datos reales del snapshot):\n"
+                f"{json.dumps(mapa, ensure_ascii=False)}\n\n"
+                "Sobre el mapa: 'paises' y 'marcas' son recuentos reales, "
+                "puedes afirmarlos. Los campos de 'sin_dato' NO se conocen: "
+                "no inventes presentaciones, precios ni canales de venta. "
+                "'niveles_no_disponibles' son fuentes que no se consultaron."
+            )
+        return await self._pedir("3", InsightDeMercado, sistema, usuario)
 
     @retry(**_REINTENTOS)
     async def formular_hipotesis(self, productos: ResultadoBusqueda) -> HipotesisFormulacion:

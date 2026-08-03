@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 from adaptadores.autenticacion import Autenticacion
 from adaptadores.busqueda_lancedb import BusquedaLanceDB
+from adaptadores.descubrimiento_snapshot import DescubrimientoSnapshot
 from adaptadores.entorno import ruta_db_sqlite
 from adaptadores.informe_weasyprint import InformeWeasyPrint
 from adaptadores.redactor_glm import RedactorGLM
@@ -54,14 +55,32 @@ zai_base_url = os.getenv("HUAWEI_MAAS_BASE_URL", "https://api-ap-southeast-1.mod
 offline_mode = os.getenv("AGROSCOUT_OFFLINE", "0") == "1"
 
 
+DIRECTORIO_SNAPSHOT = Path("datasets/2026-07")
+
+
 def cargar_snapshot_version() -> str:
-    """Carga versión del snapshot desde manifest.json."""
-    manifest_path = Path("datasets/2026-07/manifest.json")
-    if manifest_path.exists():
+    """Version del snapshot de datos.
+
+    Es el nombre del directorio del dataset, no `version_taxonomia` del
+    manifest. Se leia ese campo y devolvia '0.1', mientras que las 54
+    ejecuciones del historico, las 47 entradas de cache y el valor por defecto
+    de Dependencias dicen '2026-07'. Como el snapshot entra en la clave de
+    cache, la API corria con una version que **no coincidia con ninguna entrada
+    cacheada**: cada consulta pagaba el LLM entero aunque la respuesta ya
+    estuviera guardada.
+
+    `version_taxonomia` es otra cosa —la version del esquema del manifest— y se
+    expone aparte para quien la necesite.
+    """
+    return DIRECTORIO_SNAPSHOT.name
+
+
+def cargar_version_taxonomia() -> str:
+    manifest = DIRECTORIO_SNAPSHOT / "manifest.json"
+    if manifest.exists():
         try:
-            with open(manifest_path) as f:
-                manifest = json.load(f)
-            return manifest.get("version_taxonomia", "0.1")
+            with open(manifest, encoding="utf-8") as f:
+                return json.load(f).get("version_taxonomia", "0.1")
         except Exception:
             pass
     return "0.1"
@@ -71,6 +90,9 @@ snapshot_version = cargar_snapshot_version()
 
 redactor = RedactorGLM(api_key=zai_api_key, base_url=zai_base_url)
 catalogo = BusquedaLanceDB()
+# Etapa 2b (S4). Nivel 1 de la cascada del ADR-001: el snapshot local. Sin red
+# y sin LLM, asi que tambien funciona con AGROSCOUT_OFFLINE=1.
+descubrimiento = DescubrimientoSnapshot()
 
 if USA_SUPABASE:
     from adaptadores.auth_supabase import (TokenInvalido, VerificadorSupabase,
@@ -113,6 +135,7 @@ dependencias = Dependencias(
     verificador_fda=fda,
     verificador_rag=rag,
     suscripciones=suscripciones,
+    descubrimiento=descubrimiento,
     snapshot_version=snapshot_version,
     offline_mode=offline_mode
 )
@@ -232,7 +255,11 @@ async def consultar_insumo(req: ConsultaRequest, current_user: dict = Depends(ge
     try:
         informe = await atender_consulta(req.texto, dependencias,
                                          usuario_actual_id(current_user))
-        return informe.model_dump()
+        # mode="json" y no model_dump() a secas: desde S4 el informe lleva el
+        # mapa, con HttpUrl y date dentro. Sin esto la serializacion recae en
+        # el jsonable_encoder de FastAPI, que funciona pero recorre el arbol
+        # entero otra vez para arreglar tipos que pydantic ya sabe convertir.
+        return informe.model_dump(mode="json")
     except HTTPException:
         raise
     except Exception as e:

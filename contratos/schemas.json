@@ -294,6 +294,161 @@
     "title": "ProductoEnMercado",
     "type": "object"
   },
+  "MapaComercial": {
+    "$defs": {
+      "ProductoEnMercado": {
+        "description": "Un producto real, con su procedencia, tal como lo ve el mapa comercial.",
+        "properties": {
+          "insumo": {
+            "description": "Insumo piloto que originó la consulta",
+            "title": "Insumo",
+            "type": "string"
+          },
+          "producto_id": {
+            "description": "Id con prefijo de fuente: 'OFF:00000036'",
+            "title": "Producto Id",
+            "type": "string"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "marca": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "18 % del snapshot no lo trae; null, nunca cadena vacía",
+            "title": "Marca"
+          },
+          "paises_iso": {
+            "description": "ISO-3166 alpha-2 normalizado (T2.1); [] si no se pudo mapear",
+            "items": {
+              "type": "string"
+            },
+            "title": "Paises Iso",
+            "type": "array"
+          },
+          "presentacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Siempre None en el MVP: el ETL de S2 descartó `quantity`",
+            "title": "Presentacion"
+          },
+          "precio_rango": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Siempre None en el MVP: Open Prices cubre el 3 % (T1.2)",
+            "title": "Precio Rango"
+          },
+          "canal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Siempre None en el MVP: el ETL de S2 descartó `stores`",
+            "title": "Canal"
+          },
+          "fuente": {
+            "description": "Una sola fuente por fila",
+            "enum": [
+              "OFF",
+              "USDA"
+            ],
+            "title": "Fuente",
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          },
+          "fecha_dato": {
+            "format": "date",
+            "title": "Fecha Dato",
+            "type": "string"
+          }
+        },
+        "required": [
+          "insumo",
+          "producto_id",
+          "nombre",
+          "fuente",
+          "url",
+          "fecha_dato"
+        ],
+        "title": "ProductoEnMercado",
+        "type": "object"
+      }
+    },
+    "description": "Los productos reales del mercado para un insumo, con su procedencia.",
+    "properties": {
+      "insumo": {
+        "title": "Insumo",
+        "type": "string"
+      },
+      "productos": {
+        "items": {
+          "$ref": "#/$defs/ProductoEnMercado"
+        },
+        "title": "Productos",
+        "type": "array"
+      },
+      "nivel_alcanzado": {
+        "default": 0,
+        "description": "Nivel más alto de DescubrimientoComercial que sí respondió; 0 si no había adaptador",
+        "title": "Nivel Alcanzado",
+        "type": "integer"
+      },
+      "niveles_no_disponibles": {
+        "description": "Niveles pedidos sin adaptador. En el MVP, [2, 3]",
+        "items": {
+          "type": "integer"
+        },
+        "title": "Niveles No Disponibles",
+        "type": "array"
+      },
+      "descartadas": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "description": "Filas no publicadas, por motivo (mojibake, url inválida...)",
+        "title": "Descartadas",
+        "type": "object"
+      }
+    },
+    "required": [
+      "insumo"
+    ],
+    "title": "MapaComercial",
+    "type": "object"
+  },
   "InsightDeMercado": {
     "description": "Etapa 3. Es lo que recibe el plan gratuito.\n\nHasta S2 este objeto llevaba tambien `hipotesis_formulacion` y\n`verificacion_regulatoria`, que salian de la misma llamada al modelo. Con\nesa forma el paywall no se podia implementar honestamente: el token de la\nformulacion se pagaba siempre y \"ocultarla\" habria sido recortar un string\nya generado. Ahora son las etapas 4 y 5, cada una con su cache, su\nauditoria y su costo.",
     "properties": {
@@ -655,6 +810,159 @@
         ],
         "title": "InsightDeMercado",
         "type": "object"
+      },
+      "MapaComercial": {
+        "description": "Los productos reales del mercado para un insumo, con su procedencia.",
+        "properties": {
+          "insumo": {
+            "title": "Insumo",
+            "type": "string"
+          },
+          "productos": {
+            "items": {
+              "$ref": "#/$defs/ProductoEnMercado"
+            },
+            "title": "Productos",
+            "type": "array"
+          },
+          "nivel_alcanzado": {
+            "default": 0,
+            "description": "Nivel más alto de DescubrimientoComercial que sí respondió; 0 si no había adaptador",
+            "title": "Nivel Alcanzado",
+            "type": "integer"
+          },
+          "niveles_no_disponibles": {
+            "description": "Niveles pedidos sin adaptador. En el MVP, [2, 3]",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Niveles No Disponibles",
+            "type": "array"
+          },
+          "descartadas": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Filas no publicadas, por motivo (mojibake, url inválida...)",
+            "title": "Descartadas",
+            "type": "object"
+          }
+        },
+        "required": [
+          "insumo"
+        ],
+        "title": "MapaComercial",
+        "type": "object"
+      },
+      "ProductoEnMercado": {
+        "description": "Un producto real, con su procedencia, tal como lo ve el mapa comercial.",
+        "properties": {
+          "insumo": {
+            "description": "Insumo piloto que originó la consulta",
+            "title": "Insumo",
+            "type": "string"
+          },
+          "producto_id": {
+            "description": "Id con prefijo de fuente: 'OFF:00000036'",
+            "title": "Producto Id",
+            "type": "string"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "marca": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "18 % del snapshot no lo trae; null, nunca cadena vacía",
+            "title": "Marca"
+          },
+          "paises_iso": {
+            "description": "ISO-3166 alpha-2 normalizado (T2.1); [] si no se pudo mapear",
+            "items": {
+              "type": "string"
+            },
+            "title": "Paises Iso",
+            "type": "array"
+          },
+          "presentacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Siempre None en el MVP: el ETL de S2 descartó `quantity`",
+            "title": "Presentacion"
+          },
+          "precio_rango": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Siempre None en el MVP: Open Prices cubre el 3 % (T1.2)",
+            "title": "Precio Rango"
+          },
+          "canal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Siempre None en el MVP: el ETL de S2 descartó `stores`",
+            "title": "Canal"
+          },
+          "fuente": {
+            "description": "Una sola fuente por fila",
+            "enum": [
+              "OFF",
+              "USDA"
+            ],
+            "title": "Fuente",
+            "type": "string"
+          },
+          "url": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          },
+          "fecha_dato": {
+            "format": "date",
+            "title": "Fecha Dato",
+            "type": "string"
+          }
+        },
+        "required": [
+          "insumo",
+          "producto_id",
+          "nombre",
+          "fuente",
+          "url",
+          "fecha_dato"
+        ],
+        "title": "ProductoEnMercado",
+        "type": "object"
       }
     },
     "properties": {
@@ -746,6 +1054,29 @@
           }
         ],
         "default": null
+      },
+      "mapa": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/MapaComercial"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "motivo_parcial": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Motivo Parcial"
       }
     },
     "required": [

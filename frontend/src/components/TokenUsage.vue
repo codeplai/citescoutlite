@@ -1,23 +1,39 @@
 <template>
-  <div class="token-container animate-fade-in" v-if="tokens !== null">
-    <div class="glass-panel token-card">
-      <div class="token-info">
-        <span class="icon">🪙</span>
-        <div class="details">
-          <h4>Consumo de Tokens (LLM)</h4>
-          <p class="total-tokens"><strong>{{ tokens }}</strong> tokens totales utilizados en esta consulta</p>
-          <div class="token-split">
-            <span class="split-badge in">📥 Entrada (Prompt): <strong>{{ tokensEntrada }}</strong></span>
-            <span class="split-badge out">📤 Salida (Completion): <strong>{{ tokensSalida }}</strong></span>
-          </div>
+  <div class="uso-container animate-fade-in" v-if="uso">
+    <div class="glass-panel uso-card">
+      <div class="cabecera">
+        <div>
+          <h4>Consumo del mes · plan {{ uso.plan }}</h4>
+          <p class="cifras">
+            <strong>${{ uso.costo_mes_usd.toFixed(4) }}</strong> de ${{ uso.tope_usd.toFixed(2) }}
+            · {{ uso.runs }} {{ uso.runs === 1 ? 'consulta' : 'consultas' }}
+          </p>
         </div>
+        <span v-if="uso.kill_switch_activo" class="kill-switch">
+          ⏸️ Gasto global detenido
+        </span>
+      </div>
+
+      <!-- El gasto está acotado por diseño: la barra lo enseña, no lo cuenta. -->
+      <div class="barra" role="progressbar" :aria-valuenow="porcentaje" aria-valuemin="0" aria-valuemax="100">
+        <div class="relleno" :class="nivel" :style="{ width: porcentaje + '%' }"></div>
+      </div>
+
+      <div v-if="etapas.length" class="desglose">
+        <span class="titulo-desglose">Última consulta:</span>
+        <span v-for="etapa in etapas" :key="etapa.etapa" class="etapa" :class="{ cacheada: etapa.cache_hit }">
+          <strong>{{ etapa.etapa }}</strong>
+          <span class="modelo">{{ modeloCorto(etapa.modelo) }}</span>
+          <span class="costo">{{ etapa.cache_hit ? 'cache' : '$' + etapa.costo_usd.toFixed(4) }}</span>
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { api, NoAutorizado } from '../api.js'
 
 const props = defineProps({
   ejecucionId: {
@@ -26,86 +42,125 @@ const props = defineProps({
   }
 })
 
-const tokens = ref(null)
-const tokensEntrada = ref(0)
-const tokensSalida = ref(0)
+const uso = ref(null)
 
-watch(() => props.ejecucionId, async (newId) => {
-  if (!newId) {
-    tokens.value = null
-    return
-  }
-  
+const etapas = computed(() => uso.value?.ultimo_run?.etapas || [])
+
+const porcentaje = computed(() => {
+  if (!uso.value?.tope_usd) return 0
+  return Math.min(100, (uso.value.costo_mes_usd / uso.value.tope_usd) * 100)
+})
+
+const nivel = computed(() => {
+  if (porcentaje.value >= 90) return 'agotado'
+  if (porcentaje.value >= 60) return 'alto'
+  return 'normal'
+})
+
+// 'openai/glm-5.2' -> 'glm-5.2'. El prefijo es del enrutado de litellm y no
+// significa nada para quien lee el informe.
+const modeloCorto = (modelo) => (modelo || '—').split('/').pop()
+
+watch(() => props.ejecucionId, async () => {
   try {
-    const res = await fetch(`http://localhost:8001/ejecucion/${newId}/tokens`)
-    if (res.ok) {
-      const data = await res.json()
-      tokens.value = data.total_tokens
-      tokensEntrada.value = data.tokens_entrada
-      tokensSalida.value = data.tokens_salida
-    }
-  } catch (e) {
-    console.error("Error fetching tokens", e)
+    uso.value = await api.uso()
+  } catch (error) {
+    if (!(error instanceof NoAutorizado)) console.error(error)
+    uso.value = null
   }
 }, { immediate: true })
 </script>
 
 <style scoped>
-.token-container {
+.uso-container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 20px 20px 20px;
 }
 
-.token-card {
+.uso-card {
   padding: 16px 24px;
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.2);
 }
 
-.token-info {
+.cabecera {
   display: flex;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
 }
 
-.icon {
-  font-size: 2rem;
-}
-
-.details h4 {
+.cabecera h4 {
   margin: 0 0 4px 0;
-  color: #34D399;
   font-size: 0.95rem;
+  text-transform: capitalize;
 }
 
-.details p {
+.cifras {
   margin: 0;
-  color: var(--text-muted);
   font-size: 0.85rem;
-  margin-bottom: 8px;
+  color: var(--text-muted);
 }
 
-.token-split {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.split-badge {
+.kill-switch {
   font-size: 0.8rem;
   padding: 4px 10px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(0,0,0,0.05);
-  color: var(--text-main);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+  white-space: nowrap;
 }
 
-.split-badge.in {
-  border-color: rgba(59, 130, 246, 0.3); /* Blue for input */
+.barra {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(100, 116, 139, 0.18);
+  overflow: hidden;
+  margin: 12px 0;
 }
 
-.split-badge.out {
-  border-color: rgba(16, 185, 129, 0.3); /* Green for output */
+.relleno {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.relleno.normal { background: #10B981; }
+.relleno.alto { background: #F59E0B; }
+.relleno.agotado { background: #EF4444; }
+
+.desglose {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.titulo-desglose {
+  color: var(--text-muted);
+}
+
+.etapa {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.etapa.cacheada {
+  opacity: 0.65;
+  border-style: dashed;
+}
+
+.etapa .modelo {
+  color: var(--text-muted);
+}
+
+.etapa .costo {
+  font-variant-numeric: tabular-nums;
 }
 </style>

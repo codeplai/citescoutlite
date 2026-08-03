@@ -4,8 +4,12 @@ Composicion de los casos de uso.
 Dos composiciones, no una con banderas: el paywall se resuelve componiendo casos
 de uso, no filtrando campos de un objeto ya generado (ADR-001 §2.4).
 
-    generar_mapa_comercial -> etapas 1, 2a, 3        (plan gratuito)
-    generar_dossier        -> etapas 1, 2a, 3, 4, 5  (plan premium)
+    generar_mapa_comercial -> etapas 1, 2a, 2b, 3        (plan gratuito)
+    generar_dossier        -> etapas 1, 2a, 2b, 3, 4, 5  (plan premium)
+
+La 2b (S4) va entre la busqueda y el insight, y esta en las dos composiciones:
+el mapa comercial es lo que ve el plan gratuito, no un extra de pago. No llama
+al LLM, asi que no consume presupuesto y no se comprueba el tope antes de ella.
 
 `atender_consulta` es la frontera: lee el entitlement, arma el presupuesto del
 run y elige. Vive aqui y no en api/main.py para que la regla de negocio no
@@ -20,6 +24,7 @@ from casos_de_uso.etapas.ejecutor import etapa, etapa_sync
 from casos_de_uso.etapas.formular_hipotesis import formular_hipotesis
 from casos_de_uso.etapas.generar_insight import generar_insight, generar_insight_parcial
 from casos_de_uso.etapas.interpretar_insumo import interpretar_insumo
+from casos_de_uso.etapas.mapear_comercio import mapear_comercio
 from casos_de_uso.etapas.verificar_regulacion import verificar_regulacion
 from casos_de_uso.politica_suscripcion import entitlement_de
 from casos_de_uso.presupuesto import Presupuesto
@@ -89,6 +94,12 @@ async def _ejecutar(texto: str, d: Dependencias, usuario_id: str | None,
             else:
                 resultado = etapa_sync(d, ejecucion, "2a", buscar_productos, interpretado)
 
+                # Etapa 2b: el mapa comercial. Va antes de comprobar el
+                # presupuesto a proposito: no llama al LLM, no hay nada que
+                # gastar, y un run que se queda sin saldo puede seguir
+                # ensenando de que paises y marcas hay producto.
+                mapa = etapa_sync(d, ejecucion, "2b", mapear_comercio, interpretado)
+
                 # Guard tecnico. No es el paywall, y P06 comprueba justamente
                 # que no se confundan.
                 if resultado.n_directos <= 2:
@@ -97,11 +108,17 @@ async def _ejecutar(texto: str, d: Dependencias, usuario_id: str | None,
                 if _sin_presupuesto(d):
                     estado = "parcial"
                     motivos.add("presupuesto")
-                    emitir = lambda: d.informes.emitir(ejecucion, None, True)  # noqa: E731
+                    # Sin insight, pero con mapa: 2b ya corrio y no gasto nada.
+                    emitir = lambda: d.informes.emitir(  # noqa: E731
+                        ejecucion, None, True, mapa=mapa)
                 else:
                     redactor = (generar_insight_parcial
                                 if "pocos_productos" in motivos else generar_insight)
-                    insight = await etapa(d, ejecucion, "3", redactor, resultado)
+                    # El insight recibe tambien el mapa: los paises y marcas
+                    # reales son material de cita (T4.2). Va como kwarg, asi
+                    # que entra en la clave de cache.
+                    insight = await etapa(d, ejecucion, "3", redactor, resultado,
+                                          mapa=mapa.resumen_para_llm())
 
                     hipotesis = dossier = None
                     if con_premium:
@@ -114,7 +131,7 @@ async def _ejecutar(texto: str, d: Dependencias, usuario_id: str | None,
                     parcial = bool(motivos)
                     emitir = lambda: d.informes.emitir(  # noqa: E731
                         ejecucion, insight, parcial,
-                        hipotesis=hipotesis, dossier=dossier)
+                        hipotesis=hipotesis, dossier=dossier, mapa=mapa)
     finally:
         # Siempre, incluso si el run reventó: la auditoria de Postgres acumula
         # el run entero en memoria y este es el punto donde se escribe.
@@ -123,7 +140,12 @@ async def _ejecutar(texto: str, d: Dependencias, usuario_id: str | None,
 
     # Fuera del try a proposito: informes.ejecucion_id tiene FK a ejecuciones,
     # asi que el informe solo se puede emitir con el run ya escrito.
-    return emitir()
+    #
+    # El motivo se adjunta aqui y no dentro de emitir(): el repositorio compone
+    # el documento, pero quien sabe por que el run quedo parcial es la
+    # composicion. Es el mismo valor que se escribe en ejecuciones.motivo_parcial.
+    return emitir().model_copy(
+        update={"motivo_parcial": _motivo_dominante(motivos)})
 
 
 async def generar_mapa_comercial(texto: str, d: Dependencias,

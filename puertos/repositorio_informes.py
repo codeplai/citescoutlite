@@ -4,6 +4,7 @@ from dominio.dossier_regulatorio import DossierRegulatorio
 from dominio.hipotesis_formulacion import HipotesisFormulacion
 from dominio.informe_scout import InformeScout
 from dominio.insight_mercado import InsightDeMercado
+from dominio.mapa_comercial import MapaComercial
 from puertos.auditoria import Ejecucion
 
 
@@ -14,7 +15,8 @@ class RepositorioInformes(Protocol):
     def emitir(self, ejecucion: Ejecucion, insight: InsightDeMercado | None,
                parcial: bool,
                hipotesis: HipotesisFormulacion | None = None,
-               dossier: DossierRegulatorio | None = None) -> InformeScout:
+               dossier: DossierRegulatorio | None = None,
+               mapa: MapaComercial | None = None) -> InformeScout:
         """Compone el informe con lo que haya.
 
         `hipotesis` y `dossier` llegan a None en el plan gratuito: no es que
@@ -24,5 +26,9 @@ class RepositorioInformes(Protocol):
         `insight` puede ser None si el presupuesto se agoto antes de la etapa 3
         (T6.3). Tambien entonces se emite informe: degradar a "sin dato", nunca
         a error.
+
+        `mapa` es la salida de la etapa 2b (S4) y va en los dos planes. Se pinta
+        aunque `insight` sea None: 2b no gasta presupuesto, asi que un run que
+        se quedo sin saldo conserva su mapa.
         """
         ...

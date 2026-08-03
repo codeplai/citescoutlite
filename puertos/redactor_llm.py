@@ -12,12 +12,19 @@ class RedactorLLM(Protocol):
         """Etapa 1."""
         ...
 
-    async def redactar_insight(self, productos: ResultadoBusqueda) -> InsightDeMercado:
+    async def redactar_insight(self, productos: ResultadoBusqueda,
+                               mapa: dict | None = None) -> InsightDeMercado:
         """Etapa 3. Gratuita.
 
         Ya no recibe contexto regulatorio: el parrafo que produce es
         orientativo. El contexto con fuentes lo arma la etapa 5, dentro de si
         misma, y solo para el plan premium.
+
+        `mapa` es el resumen acotado de la etapa 2b (S4): paises, marcas y una
+        muestra de productos con sus ids. Va como dict y no como modelo porque
+        entra en la clave de cache del ejecutor, que serializa los kwargs con
+        json.dumps (ejecutor.py:41). Opcional: sin el, la etapa redacta como en
+        S3 y ningun llamador antiguo se rompe.
         """
         ...
 

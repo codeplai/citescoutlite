@@ -4,6 +4,7 @@ from dominio.dossier_regulatorio import DossierRegulatorio
 from dominio.hipotesis_formulacion import HipotesisFormulacion
 from dominio.informe_scout import InformeScout
 from dominio.insight_mercado import InsightDeMercado
+from dominio.mapa_comercial import MapaComercial
 from puertos.auditoria import Ejecucion
 
 import markdown
@@ -13,10 +14,99 @@ class InformeWeasyPrint(RepositorioInformes):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
 
+    #: Filas de la tabla del mapa. El mapa trae hasta 200 productos; 200 filas
+    #: son siete páginas de PDF que nadie lee. Se enseñan las primeras y se dice
+    #: cuántas hay, que es distinto de recortar en silencio.
+    FILAS_TABLA = 25
+
     @staticmethod
     def _bloque_paywall(que_falta: str) -> str:
         return (f"_Esta sección requiere el plan premium: {que_falta} no se "
                 f"generó para este informe._\n\n")
+
+    @staticmethod
+    def _celda(valor) -> str:
+        """Celda de la tabla del mapa. Lo que no hay se escribe **sin dato**.
+
+        Ni se oculta la columna ni se rellena con un guion: un guion se lee como
+        "no aplica" y estos campos sí aplican, simplemente no se conocen. Es el
+        gesto visual del bloque 2 del guion.
+        """
+        if valor is None or valor == "" or valor == []:
+            return "_sin dato_"
+        if isinstance(valor, list):
+            valor = ", ".join(str(v) for v in valor)
+        # El pipe partiria la fila de la tabla en markdown.
+        return str(valor).replace("|", "\\|")
+
+    def _seccion_mapa(self, mapa) -> str:
+        """Tabla del mapa comercial: país · marca · presentación · precio · fecha."""
+        if mapa is None:
+            return ""
+
+        contenido = "## 🗺️ Mapa comercial\n\n"
+
+        if not mapa.productos:
+            contenido += ("_Sin datos: no se encontró ningún producto para este "
+                          "insumo en el snapshot._\n\n")
+            contenido += self._nota_niveles(mapa)
+            return contenido
+
+        paises, marcas = mapa.paises(), mapa.marcas()
+        contenido += (
+            f"**{len(mapa.productos)} productos** en **{len(paises)} países** y "
+            f"**{len(marcas)} marcas**, del snapshot `2026-07`.\n\n")
+
+        contenido += "| Producto | País | Marca | Presentación | Precio | Fecha |\n"
+        contenido += "|---|---|---|---|---|---|\n"
+        for p in mapa.productos[:self.FILAS_TABLA]:
+            # El nombre enlaza a la ficha de origen: la URL entera ocuparia
+            # media fila y asi sigue siendo comprobable con un clic.
+            # El recorte lleva puntos suspensivos: un nombre cortado que se lee
+            # como completo es un dato mal presentado, aunque sea de refilon.
+            nombre = self._celda(p.nombre)
+            if len(nombre) > 38:
+                nombre = nombre[:37].rstrip() + "…"
+            producto = f"[{nombre}]({p.url})"
+            contenido += (
+                f"| {producto} "
+                f"| {self._celda(p.paises_iso)} "
+                f"| {self._celda(p.marca)} "
+                f"| {self._celda(p.presentacion)} "
+                f"| {self._celda(p.precio_rango)} "
+                f"| {self._celda(p.fecha_dato)} |\n")
+        contenido += "\n"
+
+        if len(mapa.productos) > self.FILAS_TABLA:
+            contenido += (f"_Se muestran {self.FILAS_TABLA} de "
+                          f"{len(mapa.productos)} productos._\n\n")
+
+        sin_marca = mapa.sin_marca()
+        if sin_marca:
+            contenido += (f"_{sin_marca} de los {len(mapa.productos)} productos no "
+                          f"traen marca en la fuente._\n\n")
+
+        # Lo que la tabla enseña vacio, dicho con todas las letras. Es la
+        # afirmacion que sostiene el bloque 2 del guion, y es verificable.
+        contenido += (
+            "> **Presentación, precio y canal salen vacíos en todas las filas.** "
+            "No es un fallo de este informe: esos tres campos no existen en el "
+            "snapshot de datos abiertos. Rellenarlos es el trabajo del nivel 3 "
+            "de descubrimiento comercial, que no está disponible en esta "
+            "versión.\n\n")
+
+        contenido += self._nota_niveles(mapa)
+        return contenido
+
+    @staticmethod
+    def _nota_niveles(mapa) -> str:
+        """La linea que declara lo que no se consulto."""
+        if not mapa.niveles_no_disponibles:
+            return ""
+        nombres = {1: "snapshot local", 2: "API licenciada", 3: "agente web"}
+        faltan = ", ".join(f"nivel {n} ({nombres.get(n, '?')})"
+                           for n in mapa.niveles_no_disponibles)
+        return f"_Fuentes no consultadas: {faltan}._\n\n"
 
     def pide_reformulacion(self, ejecucion: Ejecucion) -> InformeScout:
         return InformeScout(
@@ -30,7 +120,8 @@ class InformeWeasyPrint(RepositorioInformes):
     def emitir(self, ejecucion: Ejecucion, insight: InsightDeMercado | None,
                parcial: bool,
                hipotesis: HipotesisFormulacion | None = None,
-               dossier: DossierRegulatorio | None = None) -> InformeScout:
+               dossier: DossierRegulatorio | None = None,
+               mapa: MapaComercial | None = None) -> InformeScout:
         md_path = self.output_dir / f"{ejecucion.id}.md"
         pdf_path = self.output_dir / f"{ejecucion.id}.pdf"
         
@@ -54,8 +145,11 @@ class InformeWeasyPrint(RepositorioInformes):
             contenido += ("_Sin datos: el presupuesto asignado se agotó antes de "
                           "generar el análisis de mercado. No se ejecutó ninguna "
                           "llamada al modelo._\n\n")
+            # El mapa sí sobrevive: la etapa 2b no gasta presupuesto, así que un
+            # run sin saldo conserva de qué países y marcas hay producto.
+            contenido += self._seccion_mapa(mapa)
             return self._componer(ejecucion, contenido, md_path, pdf_path, parcial,
-                                  None, hipotesis, dossier)
+                                  None, hipotesis, dossier, mapa)
 
         # Badge-style for coverage
         color = "green" if insight.cobertura.lower() == "alta" else "orange" if insight.cobertura.lower() == "media" else "red"
@@ -69,6 +163,10 @@ class InformeWeasyPrint(RepositorioInformes):
                 contenido += f"- {f}\n"
             contenido += "\n"
                 
+        # Etapa 2b. Va aquí, cerrando lo que ve el plan gratuito, y antes de las
+        # dos secciones premium.
+        contenido += self._seccion_mapa(mapa)
+
         # Etapa 4 - premium. Si no viene, no es que fallara: es que no se
         # ejecutó. El bloque de paywall ocupa su sitio en vez de dejar el hueco.
         contenido += f"### 🧪 Hipótesis de Formulación e Ingeniería Inversa\n"
@@ -121,10 +219,10 @@ class InformeWeasyPrint(RepositorioInformes):
                 contenido += f"- `{c}`\n"
 
         return self._componer(ejecucion, contenido, md_path, pdf_path, parcial,
-                              insight, hipotesis, dossier)
+                              insight, hipotesis, dossier, mapa)
 
     def _componer(self, ejecucion, contenido, md_path, pdf_path, parcial,
-                  insight, hipotesis, dossier) -> InformeScout:
+                  insight, hipotesis, dossier, mapa=None) -> InformeScout:
         """Markdown -> HTML -> PDF. Comun a los dos caminos de emitir()."""
         # Guardar markdown original para referencia
         with open(md_path, "w", encoding="utf-8") as f:
@@ -241,5 +339,6 @@ class InformeWeasyPrint(RepositorioInformes):
             markdown_content=contenido,
             insight=insight,
             hipotesis=hipotesis,
-            dossier=dossier
+            dossier=dossier,
+            mapa=mapa
         )
