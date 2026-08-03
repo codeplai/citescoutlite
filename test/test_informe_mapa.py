@@ -23,6 +23,11 @@ from dominio.producto_en_mercado import ProductoEnMercado
 
 SIN_DATO = "_sin dato_"
 
+# Contrato con Result.vue: la SPA corta por aquí para pintar su propia tabla
+# paginada en vez de las 25 filas que caben en el PDF.
+INICIO = InformeWeasyPrint.MARCA_MAPA_INICIO
+FIN = InformeWeasyPrint.MARCA_MAPA_FIN
+
 
 class _Ejecucion:
     def __init__(self):
@@ -168,6 +173,49 @@ def test_mapa_vacio_lo_dice_en_vez_de_una_tabla_vacia(tmp_path):
     assert "no se encontró ningún producto" in md
     assert "| Producto |" not in md
     print("PASS: mapa vacío se declara, no se pinta una tabla sin filas")
+
+
+def test_las_marcas_delimitan_el_mapa_para_la_spa(tmp_path):
+    """`Result.vue` corta por estas marcas para no duplicar la tabla.
+
+    La SPA pinta su propia tabla paginada con los 200 productos; si estas marcas
+    desaparecen o se descolocan, el usuario ve dos tablas del mismo mapa, una
+    completa y otra recortada a 25 filas.
+    """
+    md = _emitir(tmp_path, _mapa(n=60), _insight()).markdown_content
+    ini, fin = md.index(INICIO), md.index(FIN)
+    assert ini < fin, "las marcas están invertidas"
+
+    dentro, fuera = md[ini:fin], md[:ini] + md[fin:]
+    assert "| Producto |" in dentro, "la tabla quedó fuera de las marcas"
+    assert "Se muestran 25 de 60" in dentro, "el aviso de recorte quedó fuera"
+    assert "| Producto |" not in fuera, "quedó una tabla suelta fuera"
+    # Lo que la SPA se queda tiene que seguir siendo un informe.
+    assert "Insight de Mercado" in fuera
+    print("PASS: la sección del mapa está delimitada y es recortable")
+
+
+def test_las_marcas_no_se_imprimen_en_el_pdf(tmp_path):
+    """Son comentarios HTML: el lector del PDF no debe verlas."""
+    import markdown as md_lib
+
+    md = _emitir(tmp_path, _mapa(), _insight()).markdown_content
+    html = md_lib.markdown(md, extensions=["tables", "sane_lists"])
+    assert INICIO in html, "el comentario debe sobrevivir al markdown"
+    # Un comentario HTML no pinta texto: lo que no puede pasar es que el lector
+    # lea la palabra "MAPA" suelta en mitad del informe.
+    import re
+    visible = re.sub(r"<!--.*?-->", "", html, flags=re.S)
+    assert "MAPA" not in visible
+    print("PASS: las marcas no son texto visible")
+
+
+def test_mapa_vacio_tambien_queda_delimitado(tmp_path):
+    """Si no, la SPA cortaría mal el informe de un insumo sin productos."""
+    mapa = MapaComercial(insumo="zzz", nivel_alcanzado=1, niveles_no_disponibles=[2, 3])
+    md = _emitir(tmp_path, mapa, _insight()).markdown_content
+    assert md.index(INICIO) < md.index(FIN)
+    print("PASS: mapa vacío también delimitado")
 
 
 def test_el_pdf_se_genera_de_verdad(tmp_path):

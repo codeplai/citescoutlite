@@ -42,9 +42,21 @@ if APP_DB not in ("supabase", "sqlite"):
 
 app = FastAPI(title="AgroScout IA Lite MVP")
 
+# Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
+# desarrollo en la propia maquina.
+#
+# CORS_ORIGINS anade los demas, separados por coma. Existe porque la maquina de
+# la demo se usa tambien en remoto: abierta desde otro equipo, el origen del
+# navegador es la IP de la maquina y no 'localhost', asi que sin esto todas las
+# llamadas mueren en el preflight. Va por entorno y no en esta lista para que
+# una direccion de red concreta no acabe en el repositorio.
+_ORIGENES = ["http://localhost:3000", "http://localhost:8001",
+             "http://127.0.0.1:3000", "http://127.0.0.1:8001"]
+_ORIGENES += [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8001", "http://127.0.0.1:3000", "http://127.0.0.1:8001"],
+    allow_origins=_ORIGENES,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],

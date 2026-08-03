@@ -54,6 +54,50 @@
         comercial, que no está disponible en esta versión.
       </p>
 
+      <!--
+        La tabla se pinta aquí y no desde el markdown: el markdown lleva 25
+        filas porque es lo que cabe en un PDF, pero la SPA recibe los 200
+        productos y puede recorrerlos. La sección del markdown se quita en
+        `markdownSinMapa` para no enseñar las dos.
+      -->
+      <div class="mapa-tabla-scroll">
+        <table class="mapa-tabla">
+          <thead>
+            <tr>
+              <th>Producto</th><th>País</th><th>Marca</th>
+              <th>Presentación</th><th>Precio</th><th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="fila in filas" :key="fila.id">
+              <td class="col-producto">
+                <a :href="fila.url" target="_blank" rel="noopener">{{ fila.nombre }}</a>
+              </td>
+              <!--
+                Celda vacía = "sin dato", nunca un guion ni un hueco en blanco.
+                Un guion se lee como "no aplica", y estos campos sí aplican:
+                simplemente no se conocen.
+              -->
+              <td v-for="(celda, i) in fila.celdas" :key="i">
+                <span v-if="celda">{{ celda }}</span>
+                <span v-else class="sin-dato">sin dato</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="paginacion">
+        <button class="pag-btn" :disabled="pagina === 1" @click="pagina = 1">« Primera</button>
+        <button class="pag-btn" :disabled="pagina === 1" @click="pagina--">‹ Anterior</button>
+        <span class="pag-estado">
+          Página <strong>{{ pagina }}</strong> de {{ totalPaginas }}
+          · productos {{ desde }}–{{ hasta }} de {{ mapa.productos.length }}
+        </span>
+        <button class="pag-btn" :disabled="pagina === totalPaginas" @click="pagina++">Siguiente ›</button>
+        <button class="pag-btn" :disabled="pagina === totalPaginas" @click="pagina = totalPaginas">Última »</button>
+      </div>
+
       <p v-if="nivelesFaltan" class="mapa-niveles">
         Fuentes no consultadas: {{ nivelesFaltan }}
       </p>
@@ -78,7 +122,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { api, NoAutorizado } from '../api.js'
@@ -153,9 +197,69 @@ const nivelesFaltan = computed(() =>
     .join(', ')
 )
 
+/* --- Paginación de la tabla del mapa ------------------------------------- */
+
+// 25 es lo mismo que muestra el PDF: quien compare las dos salidas ve la misma
+// primera página en vez de dos recortes distintos del mismo mapa.
+const POR_PAGINA = 25
+
+const pagina = ref(1)
+
+// Una consulta nueva reutiliza el componente. Sin esto, buscar un insumo con
+// menos productos dejaría la vista en una página que ya no existe.
+watch(() => props.result.ejecucion_id, () => { pagina.value = 1 })
+
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil((mapa.value?.productos.length ?? 0) / POR_PAGINA))
+)
+
+const desde = computed(() => (pagina.value - 1) * POR_PAGINA + 1)
+const hasta = computed(() =>
+  Math.min(pagina.value * POR_PAGINA, mapa.value?.productos.length ?? 0)
+)
+
+const filas = computed(() =>
+  (mapa.value?.productos ?? [])
+    .slice(desde.value - 1, hasta.value)
+    .map(p => ({
+      id: p.producto_id,
+      nombre: p.nombre,
+      url: p.url,
+      // El orden es el de las columnas de la cabecera. `null` = sin dato; se
+      // normaliza aquí para que la plantilla no tenga que distinguir entre
+      // null, cadena vacía y lista vacía.
+      celdas: [
+        p.paises_iso?.length ? p.paises_iso.join(', ') : null,
+        p.marca || null,
+        p.presentacion || null,
+        p.precio_rango || null,
+        p.fecha_dato || null
+      ]
+    }))
+)
+
+/**
+ * El informe sin la sección del mapa.
+ *
+ * El markdown la lleva porque el PDF la necesita escrita, pero aquí la pinta el
+ * bloque de arriba con los 200 productos paginados. Sin quitarla se verían las
+ * dos: la tabla completa y las 25 filas recortadas del PDF.
+ *
+ * Se corta por las marcas que escribe InformeWeasyPrint (`<!--MAPA-->`), no por
+ * el texto del encabezado: cambiar el título del apartado no debe dejar una
+ * tabla duplicada en pantalla.
+ */
+const markdownSinMapa = computed(() => {
+  const md = props.result.markdown_content || ''
+  const inicio = md.indexOf('<!--MAPA-->')
+  const fin = md.indexOf('<!--/MAPA-->')
+  if (inicio === -1 || fin === -1 || fin < inicio) return md
+  return md.slice(0, inicio) + md.slice(fin + '<!--/MAPA-->'.length)
+})
+
 const sanitizedHtml = computed(() => {
   if (!props.result.markdown_content) return '<p>No hay contenido disponible.</p>'
-  const rawHtml = marked(props.result.markdown_content)
+  const rawHtml = marked(markdownSinMapa.value)
   return DOMPurify.sanitize(rawHtml)
 })
 
@@ -354,6 +458,104 @@ const descargar = async () => {
   margin: 10px 0 0 0;
   font-size: 0.82rem;
   font-style: italic;
+  color: var(--text-muted);
+}
+
+/* --- Tabla paginada del mapa --------------------------------------------- */
+
+.mapa-tabla-scroll {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.mapa-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.mapa-tabla th {
+  text-align: left;
+  padding: 8px 10px;
+  background: rgba(100, 116, 139, 0.12);
+  border-bottom: 2px solid var(--card-border);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.mapa-tabla td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--card-border);
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.mapa-tabla tbody tr:hover {
+  background: rgba(100, 116, 139, 0.06);
+}
+
+/* El nombre es lo único que puede ser largo; se le deja crecer y se corta. */
+.col-producto {
+  white-space: normal;
+  min-width: 240px;
+  max-width: 380px;
+}
+
+.mapa-tabla a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.mapa-tabla a:hover {
+  text-decoration: underline;
+}
+
+/*
+  Atenuada y a la vez visible: el objetivo no es esconder el hueco —sería lo
+  contrario de lo que el mapa quiere enseñar— sino que se lea como un hueco
+  declarado y no como un dato más de la fila.
+*/
+.sin-dato {
+  display: inline-block;
+  font-size: 0.78rem;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(100, 116, 139, 0.14);
+  color: var(--text-muted);
+}
+
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+
+.pag-btn {
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: rgba(100, 116, 139, 0.08);
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.pag-btn:hover:not(:disabled) {
+  background: rgba(100, 116, 139, 0.18);
+}
+
+.pag-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pag-estado {
+  margin-left: auto;
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
 

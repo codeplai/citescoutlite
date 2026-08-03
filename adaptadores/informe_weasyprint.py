@@ -39,18 +39,29 @@ class InformeWeasyPrint(RepositorioInformes):
         # El pipe partiria la fila de la tabla en markdown.
         return str(valor).replace("|", "\\|")
 
+    #: Marcas que delimitan la sección del mapa dentro del markdown.
+    #:
+    #: El PDF necesita la tabla escrita; la SPA no, porque recibe el mapa como
+    #: objeto y pinta una tabla paginada con los 200 productos. Sin estas marcas
+    #: la SPA enseñaría las dos: la suya y las 25 filas del markdown.
+    #:
+    #: Son comentarios HTML a propósito: ni python-markdown ni xhtml2pdf los
+    #: imprimen, así que el PDF no se entera de que están.
+    MARCA_MAPA_INICIO = "<!--MAPA-->"
+    MARCA_MAPA_FIN = "<!--/MAPA-->"
+
     def _seccion_mapa(self, mapa) -> str:
         """Tabla del mapa comercial: país · marca · presentación · precio · fecha."""
         if mapa is None:
             return ""
 
-        contenido = "## 🗺️ Mapa comercial\n\n"
+        contenido = f"{self.MARCA_MAPA_INICIO}\n\n## 🗺️ Mapa comercial\n\n"
 
         if not mapa.productos:
             contenido += ("_Sin datos: no se encontró ningún producto para este "
                           "insumo en el snapshot._\n\n")
             contenido += self._nota_niveles(mapa)
-            return contenido
+            return contenido + f"{self.MARCA_MAPA_FIN}\n\n"
 
         paises, marcas = mapa.paises(), mapa.marcas()
         contenido += (
@@ -96,7 +107,7 @@ class InformeWeasyPrint(RepositorioInformes):
             "versión.\n\n")
 
         contenido += self._nota_niveles(mapa)
-        return contenido
+        return contenido + f"{self.MARCA_MAPA_FIN}\n\n"
 
     @staticmethod
     def _nota_niveles(mapa) -> str:
