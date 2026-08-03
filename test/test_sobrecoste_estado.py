@@ -22,7 +22,9 @@ No corre en la suite por defecto: necesita red y credenciales.
 import asyncio
 import os
 import statistics
+import tempfile
 import time
+from pathlib import Path
 
 import pytest
 from dotenv import load_dotenv
@@ -149,10 +151,16 @@ async def _comparar_ramas():
             (os.getenv("USUARIO_PROVISIONAL_EMAIL", "admin@cite.gob.pe"),)
         ).fetchone()[0])
 
-    local = await _medir(
-        catalogo,
-        lambda: (AuditoriaSQLite(), CacheSQLite(), InformeWeasyPrint()),
-        usuario_id, REPETICIONES)
+    # Archivo aparte: agroscout.db esta versionado y la medicion escribe una
+    # ejecucion por vuelta. Sin esto, cada pasada deja un binario de 1 MB
+    # modificado en git.
+    with tempfile.TemporaryDirectory() as temporal:
+        db_temporal = str(Path(temporal) / "sobrecoste.db")
+        local = await _medir(
+            catalogo,
+            lambda: (AuditoriaSQLite(db_temporal), CacheSQLite(db_temporal),
+                     InformeWeasyPrint()),
+            usuario_id, REPETICIONES)
 
     remoto = await _medir(
         catalogo,

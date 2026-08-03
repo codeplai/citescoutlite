@@ -522,6 +522,50 @@ tests que no deben depender de la red.
 (b) las escrituras de `etapas_ejecucion` se acumulan y se vuelcan en un solo
 `executemany` al cerrar el run.
 
+#### Medido el 2026-08-02 — **642 ms**, gate superado
+
+El run completo no sirve para medirlo tal cual: lo dominan la carga del modelo de
+embeddings y LanceDB, ~20 s idénticos en las dos ramas, donde un segundo de
+diferencia se pierde en el ruido. Así que `test/test_sobrecoste_estado.py` envuelve los
+tres puertos en un cronómetro y suma el tiempo pasado dentro de sus métodos:
+
+| puerto | sqlite | supabase | delta |
+|---|---|---|---|
+| auditoría | 33 ms | 136 ms | +103 ms |
+| cache | 7 ms | 228 ms | +221 ms |
+| informes | 120 ms | 437 ms | +318 ms |
+| **total** | **159 ms** | **801 ms** | **+642 ms** |
+
+Llegar aquí costó tres correcciones, todas de viajes de ida y vuelta, no de código
+lento. La primera medición dio **1,96 s**.
+
+1. **`autocommit=True` en el pool.** Sin él, cada `with pool().connection()` abre
+   transacción implícita y el `COMMIT` del cierre es un viaje más.
+2. **Cliente `httpx` persistente en Storage.** `httpx.post` suelto abre conexión nueva
+   y paga handshake TLS completo, dos veces por run. El puerto de informes bajó de
+   1.310 ms a 318 ms. Los PDF pesan 13 KB: nunca fue ancho de banda.
+3. **El run entero en una sentencia.** Aquí estaba el hallazgo menos obvio:
+   `conexion.transaction()` fuerza un sync que **rompe el pipeline**, de modo que
+   `BEGIN` y `COMMIT` se cobran cada uno su viaje. Medido con RTT de 112 ms:
+
+   ```
+   pipeline > transaction > insert + executemany ...... 450 ms  (4 viajes)
+   pipeline > insert + executemany, sin transaction ... 113 ms  (1 viaje, NO atómico)
+   una sentencia: CTE que inserta la cabecera +
+                  unnest que expande las etapas ....... 114 ms  (1 viaje, atómico)
+   ```
+
+   Se eligió la tercera: una sentencia única es atómica por definición, así que no hace
+   falta transacción explícita para que cabecera y etapas entren juntas.
+
+**Consecuencia de orden.** Con la cabecera escribiéndose al cerrar, `informes` —que
+tiene FK a `ejecuciones`— ya no se puede emitir dentro del `try`. `evaluar_insumo`
+cierra en el `finally` y emite **después**, fuera del bloque.
+
+**Margen para T5.** Dos etapas más son dos lecturas de cache más, ~220 ms, lo que deja
+el sobrecoste en ~860 ms. Sigue bajo el gate, pero es el número a vigilar; la
+mitigación (a) queda sin usar y vale 221 ms si hiciera falta.
+
 ### DoD de TIER 3
 
 - [ ] Run completo escribe en Supabase; las filas se ven en el Table Editor

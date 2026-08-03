@@ -59,3 +59,13 @@ def cabeceras_servicio() -> dict[str, str]:
 
 def bucket_informes() -> str:
     return os.environ.get("SUPABASE_BUCKET_INFORMES", "informes").strip()
+
+
+def ruta_db_sqlite() -> str:
+    """Archivo SQLite de la rama local.
+
+    Configurable porque agroscout.db esta versionado: sin esto, cada pasada de
+    la suite anade filas al binario del repositorio y lo deja modificado en
+    git. Los tests apuntan a un archivo temporal.
+    """
+    return os.environ.get("AGROSCOUT_DB_PATH", "agroscout.db").strip()

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from adaptadores.autenticacion import Autenticacion
 from adaptadores.busqueda_lancedb import BusquedaLanceDB
+from adaptadores.entorno import ruta_db_sqlite
 from adaptadores.informe_weasyprint import InformeWeasyPrint
 from adaptadores.redactor_glm import RedactorGLM
 from adaptadores.verificador_openfda import VerificadorOpenFDA
@@ -163,7 +164,7 @@ class LoginRequest(BaseModel):
 async def login(req: LoginRequest):
     # T4.2 lo sustituye por un proxy del password grant de Supabase, con la
     # misma firma de request y response para no tocar el frontend.
-    with sqlite3.connect("agroscout.db") as conn:
+    with sqlite3.connect(ruta_db_sqlite()) as conn:
         cur = conn.cursor()
         cur.execute("SELECT id, password_hash, org_id FROM usuarios WHERE email = ?", (req.email,))
         row = cur.fetchone()
@@ -228,7 +229,7 @@ async def obtener_tokens(id: str, current_user: dict = Depends(get_current_user)
                   from public.etapas_ejecucion where ejecucion_id = %s
             """, (id,)).fetchone()
     else:
-        with sqlite3.connect("agroscout.db") as conn:
+        with sqlite3.connect(ruta_db_sqlite()) as conn:
             cur = conn.cursor()
             cur.execute("SELECT SUM(tokens), SUM(tokens_entrada), SUM(tokens_salida), SUM(costo_usd) FROM etapas_ejecucion WHERE ejecucion_id = ?", (id,))
             fila = cur.fetchone()

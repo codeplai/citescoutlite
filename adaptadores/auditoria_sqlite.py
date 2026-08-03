@@ -1,8 +1,10 @@
 import json
 import sqlite3
 import uuid
+from contextlib import closing, contextmanager
 
 from adaptadores.ejecucion import EjecucionConcreta
+from adaptadores.entorno import ruta_db_sqlite
 from adaptadores.migracion_sqlite import asegurar_esquema
 from puertos.auditoria import Auditoria, Ejecucion
 
@@ -15,12 +17,24 @@ class AuditoriaSQLite(Auditoria):
     archivo local no hay RTT que amortizar.
     """
 
-    def __init__(self, db_path: str = "agroscout.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str | None = None):
+        self.db_path = db_path or ruta_db_sqlite()
         self._init_db()
 
+    @contextmanager
+    def _conexion(self):
+        """Confirma y cierra.
+
+        `with sqlite3.connect(...)` confirma la transaccion pero **no** cierra
+        la conexion, asi que usado tal cual deja un descriptor abierto sobre el
+        archivo en cada llamada. closing() cierra; el `with conexion` anidado
+        mantiene el commit.
+        """
+        with closing(sqlite3.connect(self.db_path)) as conexion, conexion:
+            yield conexion
+
     def _init_db(self):
-        with sqlite3.connect(self.db_path) as conn:
+        with self._conexion() as conn:
             conn.execute("PRAGMA journal_mode=WAL;")
             conn.execute("""
             CREATE TABLE IF NOT EXISTS ejecuciones (
@@ -45,7 +59,8 @@ class AuditoriaSQLite(Auditoria):
                 tokens INTEGER DEFAULT 0,
                 tokens_entrada INTEGER DEFAULT 0,
                 tokens_salida INTEGER DEFAULT 0,
-                snapshot_version TEXT
+                snapshot_version TEXT,
+                cache_hit INTEGER DEFAULT 0
             );
             """)
         # Los CREATE de arriba no tocan un archivo que ya existe: la puesta al
@@ -55,7 +70,7 @@ class AuditoriaSQLite(Auditoria):
     def iniciar(self, texto: str, snapshot_version: str,
                 usuario_id: str | None = None) -> Ejecucion:
         id_ej = str(uuid.uuid4())
-        with sqlite3.connect(self.db_path) as conn:
+        with self._conexion() as conn:
             conn.execute("""
             INSERT INTO ejecuciones (id, usuario_id, insumo_texto, snapshot_version, estado)
             VALUES (?, ?, ?, ?, 'ok')
@@ -67,7 +82,7 @@ class AuditoriaSQLite(Auditoria):
                         tokens: int = 0, tokens_entrada: int = 0,
                         tokens_salida: int = 0, modelo: str | None = None,
                         cache_hit: bool = False) -> None:
-        with sqlite3.connect(self.db_path) as conn:
+        with self._conexion() as conn:
             conn.execute("""
             INSERT INTO etapas_ejecucion (ejecucion_id, etapa, modelo, entrada_json, salida_json, duracion_ms, costo_usd, tokens, tokens_entrada, tokens_salida, snapshot_version, cache_hit)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -79,7 +94,7 @@ class AuditoriaSQLite(Auditoria):
 
     def cerrar(self, ejecucion: Ejecucion, estado: str,
                motivo_parcial: str | None = None) -> None:
-        with sqlite3.connect(self.db_path) as conn:
+        with self._conexion() as conn:
             conn.execute("""
             UPDATE ejecuciones SET estado = ?, motivo_parcial = ? WHERE id = ?
             """, (estado, motivo_parcial, ejecucion.id))
