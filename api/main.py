@@ -24,6 +24,7 @@ from adaptadores.verificador_rag import VerificadorRAG
 from casos_de_uso.dependencias import Dependencias
 from casos_de_uso.evaluar_insumo import atender_consulta
 from casos_de_uso.politica_suscripcion import entitlement_de
+from api.health import router as health_router
 
 load_dotenv()
 
@@ -42,6 +43,9 @@ if APP_DB not in ("supabase", "sqlite"):
         f"APP_DB={APP_DB!r} no es un valor valido. Usar 'supabase' o 'sqlite'.")
 
 app = FastAPI(title="AgroScout IA Lite MVP")
+
+# Incluir health check router
+app.include_router(health_router)
 
 # Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
 # desarrollo en la propia maquina.

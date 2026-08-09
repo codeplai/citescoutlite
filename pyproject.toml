@@ -28,6 +28,12 @@ dependencies = [
     "sentence-transformers>=2.2.2",
     "pdfplumber>=0.11.0",
     "psycopg[binary,pool]>=3.2",
+    "supabase>=2.0.0",
+    "procrastinate>=2.0.0",
+    "pydantic-ai>=0.2.0",
+    "trafilatura>=1.6.0",
+    "beautifulsoup4>=4.12.0",
+    "redis>=5.0.0",
 ]
 
 [project.scripts]

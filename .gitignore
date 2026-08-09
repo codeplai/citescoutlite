@@ -13,12 +13,15 @@ __pycache__/
 # Variables de entorno
 .env
 .env.local
+.env.*.local
 
 # Bases de datos y almacenamiento local
-#vectores/
-#agroscout.db
-#agroscout.db-wal
-#agroscout.db-shm
+data/*.duckdb
+data/*.db
+logs/
+*.db
+*.db-wal
+*.db-shm
 
 # Informes generados (Markdown y PDF)
 informes/*
