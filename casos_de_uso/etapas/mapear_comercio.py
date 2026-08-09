@@ -27,15 +27,26 @@ from dominio.insumo import InsumoInterpretado
 from dominio.mapa_comercial import MapaComercial
 from puertos.descubrimiento_comercial import NivelDescubrimiento
 
-# El MVP solo tiene adaptador de nivel 1, pero se pide la cascada entera: así el
-# mapa declara [2, 3] y el día que exista el agente de F4 esta línea no cambia.
+# S2 INTEG.1: Cascada N1→N2→N3 con agente investigador comercial.
+# Nivel pedido = AGENTE_WEB para ejecutar cascada completa si hay gaps.
 NIVEL_PEDIDO = NivelDescubrimiento.AGENTE_WEB
 
 
 def mapear_comercio(d: Dependencias,
                     interpretado: InsumoInterpretado) -> MapaComercial:
-    """Productos reales en el mercado para el insumo ya normalizado."""
+    """
+    Productos reales en el mercado para el insumo ya normalizado.
+
+    S2 INTEG.3: Ejecuta cascada N1→N2→N3 si el adaptador lo soporta:
+      - N1: Snapshot LanceDB (siempre)
+      - N2: Bright Data (si adaptador lo implementa)
+      - N3: Agente investigador web (si hay gaps)
+
+    N3 guarda datos en staging_agente (cuarentena) sin promoción automática.
+    Auditoría registra niveles_ejecutados y cobertura en salida_json.
+    """
     insumo = interpretado.insumo_normalizado
+    pais = interpretado.pais or "Perú"  # País del contexto de búsqueda
 
     # Precio de materia prima: lectura local, sin red y sin coste. Va aunque no
     # haya adaptador de descubrimiento, porque son fuentes independientes.
@@ -49,9 +60,19 @@ def mapear_comercio(d: Dependencias,
             precios_materia_prima=precios,
         )
 
-    productos = d.descubrimiento.descubrir(insumo, NIVEL_PEDIDO)
+    # Ejecutar cascada
+    cascada_metadata = None
+    if hasattr(d.descubrimiento, 'descubrir_sync'):
+        # DescubrimientoCascada: retorna (productos, metadata)
+        productos, cascada_metadata = d.descubrimiento.descubrir_sync(
+            insumo, pais, NIVEL_PEDIDO
+        )
+    else:
+        # Fallback: adaptador antiguo (DescubrimientoSnapshot)
+        productos = d.descubrimiento.descubrir(insumo, NIVEL_PEDIDO)
 
-    return MapaComercial(
+    # Construir mapa comercial con metadata de cascada si disponible
+    mapa = MapaComercial(
         insumo=insumo,
         productos=productos,
         nivel_alcanzado=int(NivelDescubrimiento.SNAPSHOT),
@@ -59,3 +80,14 @@ def mapear_comercio(d: Dependencias,
         descartadas=dict(getattr(d.descubrimiento, "descartadas", {}) or {}),
         precios_materia_prima=precios,
     )
+
+    # Agregar metadata de cascada si está disponible
+    if cascada_metadata:
+        mapa.niveles_ejecutados = cascada_metadata.niveles_ejecutados
+        mapa.has_gaps = cascada_metadata.has_gaps
+        mapa.productos_n3_staging = cascada_metadata.productos_n3_staging
+        # Actualizar nivel_alcanzado al máximo ejecutado
+        if cascada_metadata.niveles_ejecutados:
+            mapa.nivel_alcanzado = max(cascada_metadata.niveles_ejecutados)
+
+    return mapa

@@ -15,6 +15,7 @@ Lleva tres cosas que la lista de productos por sí sola no dice:
 """
 
 from collections import Counter
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -40,6 +41,20 @@ class MapaComercial(BaseModel):
     descartadas: dict[str, int] = Field(
         default_factory=dict,
         description="Filas no publicadas, por motivo (mojibake, url inválida...)",
+    )
+
+    # S2 INTEG.3: Metadata de cascada (niveles ejecutados, gaps, staging info)
+    niveles_ejecutados: list[int] = Field(
+        default_factory=list,
+        description="[1], [1,2], o [1,2,3] según lo que se ejecutó",
+    )
+    has_gaps: bool = Field(
+        default=False,
+        description="True si hay cobertura insuficiente (< 3 productos, < 2 países/marcas)",
+    )
+    productos_n3_staging: int = Field(
+        default=0,
+        description="Productos encontrados por agente (N3) en staging_agente (sin promocionar)",
     )
 
     #: Precio del insumo como MATERIA PRIMA en el mercado mayorista.
