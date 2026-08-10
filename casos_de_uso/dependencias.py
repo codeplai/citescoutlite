@@ -7,6 +7,7 @@ from puertos.repositorio_informes import RepositorioInformes
 from puertos.auditoria import Auditoria
 from puertos.descubrimiento_comercial import DescubrimientoComercial
 from puertos.verificador_regulatorio import VerificadorRegulatorio
+from puertos.repositorio_regulaciones import RepositorioRegulaciones
 
 @dataclass
 class Dependencias:
@@ -26,6 +27,10 @@ class Dependencias:
     # Precio de MATERIA PRIMA (MIDAGRI). Sin el, la etapa 2b devuelve el mapa
     # igual y la lista de precios vacia: nada de esto es bloqueante.
     precios: Any = None
+    # Corpus regulatorio (S4). Sin el, etapa 5 degrada a sin_dato.
+    # Permite búsquedas de regulaciones: eCFR, EFSA, Codex, INACAL, DIGESA.
+    # Con él, citas en dossier regulatorio son verificables (URLs vivas).
+    repositorio_regulaciones: RepositorioRegulaciones = None
     # Contador del run en curso (T6.3). Es lo unico mutable de este objeto, y
     # por eso cada run trabaja sobre una copia hecha con dataclasses.replace:
     # Dependencias se construye una sola vez al arrancar y se comparte entre
