@@ -124,6 +124,10 @@ async def main():
         async with app.open():
             await setup_database()
 
+            # Setup event callbacks for S3.2 (job progress tracking)
+            from config.procrastinate_config import setup_event_callbacks
+            setup_event_callbacks()
+
             logger.info(f"\n👂 Worker listening for jobs...")
             logger.info(f"   Press Ctrl+C to stop gracefully")
             logger.info("=" * 70 + "\n")

@@ -82,41 +82,65 @@ async def job_agente_run(run_id: str, insumo: str, país: str, nivel_maximo_cost
 )
 async def job_mim_etl(snapshot_version: str):
     """
-    Job 3.1.2: Nightly MIM ETL pipeline.
+    Job 3.1.2 + 3.5: Nightly MIM ETL pipeline.
 
     Runs 00:00 UTC daily:
     1. Download OFF subset (if updates available)
     2. Download USDA (if new brands)
     3. Update shelf_facts_quarterly with today's raw_offers
-    4. Calculate tendencias for pilot ingredients
+    4. Calculate deterministic tendencias for pilot ingredients
     5. Save results to tendencias_insumo
 
     Args:
         snapshot_version: Version identifier (e.g., '2026-08')
 
     Returns:
-        {"status": "completed", "version": snapshot_version, "rows_processed": int}
+        {"status": "completed", "version": snapshot_version, "tendencias": int}
     """
-    logger.info(f"🌙 [job_mim_etl] Starting nightly run: version={snapshot_version}")
+    logger.info(f"🌙 [job_mim_etl] Starting nightly MIM ETL run: version={snapshot_version}")
 
     try:
-        # TODO S3: Integrate MIM ETL pipeline
-        # - Descarga OFF/USDA
-        # - Actualiza shelf_facts_quarterly
-        # - Calcula tendencias
-        await asyncio.sleep(3)
+        # Step 1-3: OFF/USDA downloads (TODO in S4)
+        # Placeholder: assume shelf_facts_quarterly already updated with today's data
+
+        # Step 4: Calculate tendencias from shelf_facts_quarterly
+        logger.info("📈 Calculating tendencias...")
+
+        from adaptadores.motor_tendencias_duckdb import MotorTendenciasDuckDB
+        from adaptadores.repositorio_tendencias import RepositorioTendencias
+        import os
+
+        motor = MotorTendenciasDuckDB("shelf_facts.duckdb")
+        tendencias = motor.calcular_todas_tendencias(ano_base=2026)
+        motor.cerrar()
+
+        if tendencias:
+            logger.info(f"✅ Calculated {len(tendencias)} trends")
+
+            # Step 5: Save to PostgreSQL
+            db_url = os.getenv("DATABASE_URL")
+            if db_url:
+                repo = RepositorioTendencias(db_url)
+                saved = repo.guardar_tendencias_batch(tendencias)
+                logger.info(f"💾 Saved {saved} trends to tendencias_insumo")
+            else:
+                logger.warning("⚠️  DATABASE_URL not set, skipping trend save")
+        else:
+            logger.warning("⚠️  No trends calculated")
 
         resultado = {
             "status": "completed",
             "version": snapshot_version,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "rows_processed": 0,  # TODO: update after implementation
+            "tendencias_count": len(tendencias) if tendencias else 0,
         }
         logger.info(f"✅ [job_mim_etl] Completed: {snapshot_version}")
         return resultado
 
     except Exception as e:
         logger.error(f"❌ [job_mim_etl] Failed: {snapshot_version} - {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 
