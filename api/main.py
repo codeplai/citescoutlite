@@ -27,6 +27,7 @@ from casos_de_uso.politica_suscripcion import entitlement_de
 from api.health import router as health_router
 from api.websocket_jobs import router as websocket_router
 from api.webhooks import router as webhooks_router
+from api.discovery import router as discovery_router
 
 load_dotenv()
 
@@ -50,6 +51,7 @@ app = FastAPI(title="AgroScout IA Lite MVP")
 app.include_router(health_router)
 app.include_router(websocket_router)
 app.include_router(webhooks_router)
+app.include_router(discovery_router)
 
 # Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
 # desarrollo en la propia maquina.

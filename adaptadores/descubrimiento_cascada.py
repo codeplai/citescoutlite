@@ -34,6 +34,8 @@ from .descubrimiento_snapshot import (
 )
 from .bright_data_api import BrightDataClient
 from .bright_data_requests import BrightDataRequestStatus
+from .sweep_attempts import SweepAttemptsRepository
+from .cobertura_calculator import CoberturaCalculator
 from casos_de_uso.agente import AgenteInvestigadorComercial, AgenteResultado
 
 logger = logging.getLogger(__name__)
@@ -65,6 +67,8 @@ class DescubrimientoCascada:
         self.snapshot = DescubrimientoSnapshot(db_path)
         self.agente = None  # Lazy init
         self.bd_client = None  # Lazy init Bright Data
+        self.sweep_repo = None  # Lazy init
+        self.coverage_calc = None  # Lazy init
         self.metadata = None
 
     async def _get_agente(self) -> AgenteInvestigadorComercial:
@@ -78,6 +82,18 @@ class DescubrimientoCascada:
         if self.bd_client is None:
             self.bd_client = BrightDataClient()
         return self.bd_client
+
+    def _get_sweep_repo(self) -> SweepAttemptsRepository:
+        """Lazy initialization de sweep repository."""
+        if self.sweep_repo is None:
+            self.sweep_repo = SweepAttemptsRepository()
+        return self.sweep_repo
+
+    def _get_coverage_calc(self) -> CoberturaCalculator:
+        """Lazy initialization de coverage calculator."""
+        if self.coverage_calc is None:
+            self.coverage_calc = CoberturaCalculator()
+        return self.coverage_calc
 
     def _has_gaps(self, productos: list[ProductoEnMercado], insumo: str) -> bool:
         """
@@ -216,6 +232,22 @@ class DescubrimientoCascada:
             logger.error(f"N2: Unexpected error: {e}")
             return []
 
+    async def _save_coverage_metadata(self, sweep_id: str, insumo: str) -> None:
+        """
+        S5.6: Calcular y guardar cobertura metadata del sweep.
+        Llamado al final de descubrir().
+        """
+        try:
+            calc = self._get_coverage_calc()
+            metadata = calc.calculate_and_save(sweep_id, insumo)
+            if metadata:
+                logger.info(
+                    f"Coverage saved: {insumo} {metadata.coverage_pct}% "
+                    f"({metadata.verified}/{metadata.in_scope}), publishable={metadata.publishable}"
+                )
+        except Exception as e:
+            logger.error(f"Error saving coverage metadata: {e}")
+
     def descubrir_n1(self, insumo: str) -> list[ProductoEnMercado]:
         """
         N1: Snapshot LanceDB (ya implementado).
@@ -285,6 +317,12 @@ class DescubrimientoCascada:
             if has_gaps
             else None,
         )
+
+        # S5.6: Guardar cobertura metadata
+        try:
+            await self._save_coverage_metadata(run_id, insumo)
+        except Exception as e:
+            logger.error(f"Failed to save coverage metadata: {e}")
 
         return resultados, self.metadata
 
