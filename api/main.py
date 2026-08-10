@@ -25,6 +25,7 @@ from casos_de_uso.dependencias import Dependencias
 from casos_de_uso.evaluar_insumo import atender_consulta
 from casos_de_uso.politica_suscripcion import entitlement_de
 from api.health import router as health_router
+from api.websocket_jobs import router as websocket_router
 
 load_dotenv()
 
@@ -44,8 +45,9 @@ if APP_DB not in ("supabase", "sqlite"):
 
 app = FastAPI(title="AgroScout IA Lite MVP")
 
-# Incluir health check router
+# Incluir routers
 app.include_router(health_router)
+app.include_router(websocket_router)
 
 # Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
 # desarrollo en la propia maquina.
