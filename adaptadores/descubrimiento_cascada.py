@@ -11,12 +11,16 @@ Si `nivel_maximo=2`: N1 + N2.
 Si `nivel_maximo=3`: N1 + N2 + N3 (si hay gaps).
 
 N3 va a staging_agente (cuarentena) sin promoción automática.
+
+S5.2: N2 ahora usa Bright Data API con webhook async.
 """
 
 import asyncio
 import datetime
+import logging
 from typing import Optional
 from dataclasses import dataclass
+from uuid import uuid4
 
 from dominio.producto_en_mercado import ProductoEnMercado
 from puertos.descubrimiento_comercial import (
@@ -28,7 +32,11 @@ from .descubrimiento_snapshot import (
     _get_tabla,
     _reset_cache,
 )
+from .bright_data_api import BrightDataClient
+from .bright_data_requests import BrightDataRequestStatus
 from casos_de_uso.agente import AgenteInvestigadorComercial, AgenteResultado
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -49,10 +57,14 @@ class DescubrimientoCascada:
     Adaptador que implementa la cascada completa N1→N2→N3.
     """
 
+    # Tiendas N2 soportadas por Bright Data
+    TIENDAS_N2 = ["amazon", "costco", "instacart", "kroger", "meituan"]
+
     def __init__(self, db_path: str = "data/shelf_facts.duckdb"):
         self.db_path = db_path
         self.snapshot = DescubrimientoSnapshot(db_path)
         self.agente = None  # Lazy init
+        self.bd_client = None  # Lazy init Bright Data
         self.metadata = None
 
     async def _get_agente(self) -> AgenteInvestigadorComercial:
@@ -60,6 +72,12 @@ class DescubrimientoCascada:
         if self.agente is None:
             self.agente = AgenteInvestigadorComercial()
         return self.agente
+
+    def _get_bd_client(self) -> BrightDataClient:
+        """Lazy initialization de cliente Bright Data."""
+        if self.bd_client is None:
+            self.bd_client = BrightDataClient()
+        return self.bd_client
 
     def _has_gaps(self, productos: list[ProductoEnMercado], insumo: str) -> bool:
         """
@@ -123,15 +141,80 @@ class DescubrimientoCascada:
         except Exception as e:
             raise RuntimeError(f"Agente N3 error: {e}")
 
-    def descubrir_n2(self, insumo: str, pais: str) -> list[ProductoEnMercado]:
+    async def descubrir_n2(self, insumo: str, pais: str, run_id: str, timeout_sec: int = 30) -> list[ProductoEnMercado]:
         """
         N2: Bright Data (API licenciada).
-        Por ahora: stub que retorna lista vacía.
-        En producción: llamar a Bright Data API con datos reales de tiendas.xlsx
+
+        Enqueue scraping para tiendas anti-bot, espera webhook async.
+        Si timeout: retorna parcial con status='deferred'.
+
+        Args:
+            insumo: Producto a buscar
+            pais: País (para contexto)
+            run_id: ID del discovery run (agrupa todos los requests)
+            timeout_sec: Timeout esperando webhooks (default 30s)
+
+        Returns:
+            Lista de ProductoEnMercado encontrados por Bright Data
         """
-        # TODO(s2.5): Integrar Bright Data API
-        # Por ahora, retornar vacío (N2 no disponible aún)
-        return []
+        resultados = []
+        run_id = run_id or str(uuid4())
+
+        try:
+            bd_client = self._get_bd_client()
+
+            # Enqueue requests a Bright Data para cada tienda N2
+            logger.info(f"N2: Enqueuing Bright Data requests para {len(self.TIENDAS_N2)} tiendas: {insumo}")
+
+            for tienda_id in self.TIENDAS_N2:
+                url = bd_client.TIENDAS_N2.get(tienda_id, "")
+                if not url:
+                    logger.warning(f"N2: Tienda {tienda_id} sin URL configurada")
+                    continue
+
+                try:
+                    bd_req = bd_client.enqueue_scrape(
+                        url=url,
+                        query=insumo,
+                        tienda_id=tienda_id,
+                        run_id=run_id,
+                    )
+                    logger.info(f"N2: Enqueued {tienda_id}: snapshot_id={bd_req.snapshot_id}")
+                except Exception as e:
+                    logger.error(f"N2: Error enqueuing {tienda_id}: {e}")
+
+            # Esperar webhooks hasta timeout_sec
+            logger.info(f"N2: Waiting up to {timeout_sec}s for webhooks...")
+            start_time = datetime.datetime.utcnow()
+
+            while True:
+                # Chequear requests completados
+                completed_reqs = bd_client.db_repo.get_completed_by_run_id(run_id)
+
+                if completed_reqs:
+                    logger.info(f"N2: Received {len(completed_reqs)} webhook(s)")
+                    # TODO: Parsear data JSON a ProductoEnMercado
+                    # Por ahora: retornar lista vacía (en S5.5 implementar merge)
+                    break
+
+                # Timeout check
+                elapsed = (datetime.datetime.utcnow() - start_time).total_seconds()
+                if elapsed > timeout_sec:
+                    logger.warning(f"N2: Timeout {timeout_sec}s exceeded; marking as deferred")
+                    pending = bd_client.get_pending_by_run(run_id)
+                    for req in pending:
+                        req.status = BrightDataRequestStatus.DEFERRED
+                        bd_client.db_repo.save(req)
+                    break
+
+                # Wait a bit before retrying
+                await asyncio.sleep(1)
+
+            return resultados
+
+        except Exception as e:
+            logger.error(f"N2: Unexpected error: {e}")
+            return []
 
     def descubrir_n1(self, insumo: str) -> list[ProductoEnMercado]:
         """
@@ -144,6 +227,7 @@ class DescubrimientoCascada:
         insumo: str,
         pais: str = "Perú",
         nivel_maximo: NivelDescubrimiento = NivelDescubrimiento.SNAPSHOT,
+        run_id: str = None,
     ) -> tuple[list[ProductoEnMercado], DescubrimientoCascadaMetadata]:
         """
         Descubre productos en cascada N1→N2→N3.
@@ -154,6 +238,7 @@ class DescubrimientoCascada:
         niveles_ejecutados = []
         staging_items = []
         agente_resultado = None
+        run_id = run_id or str(uuid4())
 
         # N1: Siempre
         try:
@@ -161,17 +246,17 @@ class DescubrimientoCascada:
             resultados.extend(n1_data)
             niveles_ejecutados.append(1)
         except Exception as e:
-            print(f"⚠️  N1 error: {e}")
+            logger.error(f"N1 error: {e}")
 
         # N2: Si nivel >= 2
         if nivel_maximo >= NivelDescubrimiento.API_LICENCIADA:
             try:
-                n2_data = self.descubrir_n2(insumo, pais)
+                n2_data = await self.descubrir_n2(insumo, pais, run_id=run_id)
                 resultados.extend(n2_data)
                 if n2_data:
                     niveles_ejecutados.append(2)
             except Exception as e:
-                print(f"⚠️  N2 error: {e}")
+                logger.error(f"N2 error: {e}")
 
         # N3: Si nivel >= 3 y hay gaps
         has_gaps = self._has_gaps(resultados, insumo)
