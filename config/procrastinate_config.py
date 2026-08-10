@@ -23,11 +23,8 @@ if not DATABASE_URL:
 
 # Create Procrastinate app with retry strategy
 # Exponential backoff: 1s → 2s → 4s → 8s (max 3 attempts = 4 tries total)
-app = procrastinate.App(
-    connector=procrastinate.PsycopgConnector(conninfo=DATABASE_URL),
-    # Default job retry parameters
-    timeout=300,  # 5 minutes timeout per job
-)
+# Note: timeout is per-task via @app.task decorator, not global
+app = procrastinate.App(connector=procrastinate.PsycopgConnector(conninfo=DATABASE_URL))
 
 
 # ============================================================
@@ -82,29 +79,43 @@ async def job_agente_run(run_id: str, insumo: str, país: str, nivel_maximo_cost
 )
 async def job_mim_etl(snapshot_version: str):
     """
-    Job 3.1.2 + 3.5: Nightly MIM ETL pipeline.
+    Job 3.1.2 + 3.5 + 3.6: Nightly MIM ETL pipeline with SLA monitoring.
 
-    Runs 00:00 UTC daily:
-    1. Download OFF subset (if updates available)
-    2. Download USDA (if new brands)
-    3. Update shelf_facts_quarterly with today's raw_offers
-    4. Calculate deterministic tendencias for pilot ingredients
-    5. Save results to tendencias_insumo
+    Runs 00:00 UTC daily (configurable in S3.10):
+    1. Download OFF subset (if updates available) - TODO S4
+    2. Download USDA (if new brands) - TODO S4
+    3. Update shelf_facts_quarterly with today's raw_offers - TODO S4
+    4. Calculate deterministic tendencias for pilot ingredients ✅
+    5. Save results to tendencias_insumo ✅
+    6. Register completion event for monitoring
+
+    SLA: Must complete in < 30 minutes
+    Target: 15-20 minutes (shelf_facts update is heaviest operation)
 
     Args:
         snapshot_version: Version identifier (e.g., '2026-08')
 
     Returns:
-        {"status": "completed", "version": snapshot_version, "tendencias": int}
+        {
+            "status": "completed",
+            "version": snapshot_version,
+            "tendencias_count": int,
+            "timestamp": ISO8601,
+            "duration_seconds": float
+        }
     """
+    import time
+    start_time = time.time()
+
     logger.info(f"🌙 [job_mim_etl] Starting nightly MIM ETL run: version={snapshot_version}")
 
     try:
         # Step 1-3: OFF/USDA downloads (TODO in S4)
         # Placeholder: assume shelf_facts_quarterly already updated with today's data
+        logger.info("📥 Step 1-3: OFF/USDA downloads... [SKIPPED - TODO S4]")
 
         # Step 4: Calculate tendencias from shelf_facts_quarterly
-        logger.info("📈 Calculating tendencias...")
+        logger.info("📈 Step 4: Calculating tendencias...")
 
         from adaptadores.motor_tendencias_duckdb import MotorTendenciasDuckDB
         from adaptadores.repositorio_tendencias import RepositorioTendencias
@@ -114,31 +125,62 @@ async def job_mim_etl(snapshot_version: str):
         tendencias = motor.calcular_todas_tendencias(ano_base=2026)
         motor.cerrar()
 
-        if tendencias:
-            logger.info(f"✅ Calculated {len(tendencias)} trends")
-
-            # Step 5: Save to PostgreSQL
-            db_url = os.getenv("DATABASE_URL")
-            if db_url:
-                repo = RepositorioTendencias(db_url)
-                saved = repo.guardar_tendencias_batch(tendencias)
-                logger.info(f"💾 Saved {saved} trends to tendencias_insumo")
-            else:
-                logger.warning("⚠️  DATABASE_URL not set, skipping trend save")
-        else:
+        if not tendencias:
             logger.warning("⚠️  No trends calculated")
+            tendencias = []
+
+        logger.info(f"✅ Calculated {len(tendencias)} trends:")
+        for t in tendencias:
+            logger.info(
+                f"   - {t['insumo']:12} {t['year_quarter']}: "
+                f"precio {t['precio_trend']:+.1f}%, vol {t['volatilidad']:.3f}, "
+                f"marcas ±{t['marcas_nuevas']}/{t['marcas_salidas']}"
+            )
+
+        # Step 5: Save to PostgreSQL
+        db_url = os.getenv("DATABASE_URL")
+        saved_count = 0
+
+        if db_url:
+            logger.info("💾 Step 5: Saving trends to PostgreSQL...")
+            repo = RepositorioTendencias(db_url)
+            saved_count = repo.guardar_tendencias_batch(tendencias)
+            logger.info(f"✅ Saved {saved_count}/{len(tendencias)} trends to tendencias_insumo")
+        else:
+            logger.warning("⚠️  DATABASE_URL not set, skipping trend save")
+
+        # Step 6: Duration check (SLA monitoring)
+        duration = time.time() - start_time
+        sla_seconds = 30 * 60  # 30 minutes
+        sla_exceeded = duration > sla_seconds
+
+        if sla_exceeded:
+            logger.warning(
+                f"⚠️  SLA EXCEEDED: {duration:.1f}s > {sla_seconds}s limit"
+            )
+        else:
+            logger.info(f"✅ SLA OK: {duration:.1f}s < {sla_seconds}s limit")
 
         resultado = {
             "status": "completed",
             "version": snapshot_version,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "tendencias_count": len(tendencias) if tendencias else 0,
+            "tendencias_count": len(tendencias),
+            "saved_count": saved_count,
+            "duration_seconds": round(duration, 2),
+            "sla_exceeded": sla_exceeded,
         }
-        logger.info(f"✅ [job_mim_etl] Completed: {snapshot_version}")
+
+        logger.info(
+            f"✅ [job_mim_etl] Completed: {snapshot_version} "
+            f"({len(tendencias)} trends, {duration:.1f}s)"
+        )
+
         return resultado
 
     except Exception as e:
-        logger.error(f"❌ [job_mim_etl] Failed: {snapshot_version} - {e}")
+        duration = time.time() - start_time
+        logger.error(f"❌ [job_mim_etl] Failed: {snapshot_version} - {e} (duration: {duration:.1f}s)")
         import traceback
         traceback.print_exc()
         raise
