@@ -232,112 +232,114 @@ class RepositorioRegulacionesPostgres(RepositorioRegulaciones):
         - 'PE': INACAL → DIGESA → Codex
         - 'EU': EFSA → Codex
         - 'US': eCFR → Codex
+
+        Retorna lista de citas verificables con URLs.
         """
         try:
             conn = psycopg2.connect(self.database_url)
             cur = conn.cursor()
 
-            # Normalizar búsqueda
             ingrediente_lower = ingrediente.lower()
-
             citas = []
 
             if pais == 'PE':
-                # INACAL
+                # Prioridad 1: INACAL
                 cur.execute("""
                     SELECT nts_id, codigo_nts, nombre_nts, texto
                     FROM inacal_nts
-                    WHERE nombre_nts ILIKE %s
+                    WHERE nombre_nts ILIKE %s OR codigo_nts ILIKE %s
                     LIMIT 5
-                """, (f"%{ingrediente_lower}%",))
+                """, (f"%{ingrediente_lower}%", f"%{ingrediente_lower}%"))
 
                 for row in cur.fetchall():
                     citas.append({
                         'tipo_regulacion': 'INACAL',
                         'regulation_id': row[0],
-                        'seccion_exacta': row[1],  # codigo_nts
-                        'texto_cita': row[3][:200] if row[3] else "",  # primeros 200 chars
-                        'url_oficial': f"https://www.inacal.gob.pe/nts/{row[1]}",
+                        'seccion_exacta': row[1],
+                        'texto_cita': row[3][:300] if row[3] else "",
+                        'url_oficial': f"https://www.inacal.gob.pe/nts/{row[1].lower()}",
                         'version_norma': row[2]
                     })
 
-                # DIGESA
-                cur.execute("""
-                    SELECT directiva_id, ingrediente, accion, limite
-                    FROM digesa_directivas
-                    WHERE ingrediente ILIKE %s
-                    LIMIT 5
-                """, (f"%{ingrediente_lower}%",))
+                # Prioridad 2: DIGESA
+                if not citas:
+                    cur.execute("""
+                        SELECT directiva_id, ingrediente, accion, limite, justificacion
+                        FROM digesa_directivas
+                        WHERE ingrediente ILIKE %s
+                        LIMIT 5
+                    """, (f"%{ingrediente_lower}%",))
 
-                for row in cur.fetchall():
-                    citas.append({
-                        'tipo_regulacion': 'DIGESA',
-                        'regulation_id': row[0],
-                        'seccion_exacta': f"{row[2]}: {row[3]}" if row[3] else row[2],
-                        'texto_cita': f"Acción: {row[2]}",
-                        'url_oficial': "",
-                        'version_norma': ""
-                    })
+                    for row in cur.fetchall():
+                        citas.append({
+                            'tipo_regulacion': 'DIGESA',
+                            'regulation_id': row[0],
+                            'seccion_exacta': f"Acción: {row[2]}" + (f" (Límite: {row[3]})" if row[3] else ""),
+                            'texto_cita': row[4][:300] if row[4] else "",
+                            'url_oficial': f"https://www.digesa.minsa.gob.pe/directiva/{row[1].lower()}",
+                            'version_norma': ""
+                        })
 
-                # Codex (fallback)
+                # Prioridad 3: Codex (fallback)
                 if not citas:
                     cur.execute("""
                         SELECT standard_id, codigo_cat, nombre_estandar, texto
                         FROM codex_standards
-                        WHERE nombre_estandar ILIKE %s
+                        WHERE nombre_estandar ILIKE %s OR codigo_cat ILIKE %s
                         LIMIT 5
-                    """, (f"%{ingrediente_lower}%",))
+                    """, (f"%{ingrediente_lower}%", f"%{ingrediente_lower}%"))
 
                     for row in cur.fetchall():
                         citas.append({
                             'tipo_regulacion': 'Codex',
                             'regulation_id': row[0],
                             'seccion_exacta': row[1],
-                            'texto_cita': row[3][:200] if row[3] else "",
-                            'url_oficial': f"https://www.fao.org/fao-who-codexalimentarius/standards/{row[1]}",
+                            'texto_cita': row[3][:300] if row[3] else "",
+                            'url_oficial': f"https://www.fao.org/fao-who-codexalimentarius/standards/{row[1].lower()}",
                             'version_norma': row[2]
                         })
 
             elif pais == 'EU':
-                # EFSA
+                # Prioridad 1: EFSA
                 cur.execute("""
-                    SELECT regulation_id, e_number, ingredient_name, authorized_uses
+                    SELECT regulation_id, e_number, ingredient_name, authorized_uses, max_levels_pct
                     FROM efsa_regulations
-                    WHERE ingredient_name ILIKE %s
+                    WHERE ingredient_name ILIKE %s OR e_number ILIKE %s
                     LIMIT 5
-                """, (f"%{ingrediente_lower}%",))
+                """, (f"%{ingrediente_lower}%", f"%{ingrediente_lower}%"))
 
                 for row in cur.fetchall():
+                    uses = row[3] if row[3] else []
                     citas.append({
                         'tipo_regulacion': 'EFSA',
                         'regulation_id': row[0],
                         'seccion_exacta': row[1],  # E-number
-                        'texto_cita': f"Authorized uses: {', '.join(row[3]) if row[3] else 'N/A'}",
-                        'url_oficial': f"https://www.efsa.europa.eu/en/additives/{row[1]}",
+                        'texto_cita': f"Authorized uses: {', '.join(uses) if uses else 'N/A'}. Max level: {row[4] or 'q.s.'}",
+                        'url_oficial': f"https://www.efsa.europa.eu/en/additives/{row[1].lower()}",
                         'version_norma': ""
                     })
 
-                # Codex (fallback)
+                # Prioridad 2: Codex
                 if not citas:
                     cur.execute("""
                         SELECT standard_id, codigo_cat, nombre_estandar, texto
                         FROM codex_standards
-                        WHERE nombre_estandar ILIKE %s
+                        WHERE nombre_estandar ILIKE %s OR codigo_cat ILIKE %s
                         LIMIT 5
-                    """, (f"%{ingrediente_lower}%",))
+                    """, (f"%{ingrediente_lower}%", f"%{ingrediente_lower}%"))
 
                     for row in cur.fetchall():
                         citas.append({
                             'tipo_regulacion': 'Codex',
                             'regulation_id': row[0],
                             'seccion_exacta': row[1],
-                            'texto_cita': row[3][:200] if row[3] else "",
-                            'url_oficial': "",
-                            'version_norma': ""
+                            'texto_cita': row[3][:300] if row[3] else "",
+                            'url_oficial': f"https://www.fao.org/fao-who-codexalimentarius/standards/{row[1].lower()}",
+                            'version_norma': row[2]
                         })
 
             elif pais == 'US':
-                # eCFR
+                # Prioridad 1: eCFR
                 cur.execute("""
                     SELECT regulation_id, title, part, section, texto_completo
                     FROM ecfr_regulations
@@ -350,29 +352,36 @@ class RepositorioRegulacionesPostgres(RepositorioRegulaciones):
                         'tipo_regulacion': 'eCFR',
                         'regulation_id': row[0],
                         'seccion_exacta': f"{row[1]} CFR {row[2]}.{row[3]}",
-                        'texto_cita': row[4][:200] if row[4] else "",
+                        'texto_cita': row[4][:300] if row[4] else "",
                         'url_oficial': f"https://www.ecfr.gov/current/title-{row[1]}/part-{row[2]}",
                         'version_norma': ""
                     })
 
-                # Codex (fallback)
+                # Prioridad 2: Codex
                 if not citas:
                     cur.execute("""
                         SELECT standard_id, codigo_cat, nombre_estandar, texto
                         FROM codex_standards
-                        WHERE nombre_estandar ILIKE %s
+                        WHERE nombre_estandar ILIKE %s OR codigo_cat ILIKE %s
                         LIMIT 5
-                    """, (f"%{ingrediente_lower}%",))
+                    """, (f"%{ingrediente_lower}%", f"%{ingrediente_lower}%"))
 
                     for row in cur.fetchall():
                         citas.append({
                             'tipo_regulacion': 'Codex',
                             'regulation_id': row[0],
                             'seccion_exacta': row[1],
-                            'texto_cita': row[3][:200] if row[3] else "",
-                            'url_oficial': "",
-                            'version_norma': ""
+                            'texto_cita': row[3][:300] if row[3] else "",
+                            'url_oficial': f"https://www.fao.org/fao-who-codexalimentarius/standards/{row[1].lower()}",
+                            'version_norma': row[2]
                         })
+
+            # Guardar búsqueda en audit log (para tracking)
+            cur.execute("""
+                INSERT INTO audit_regulaciones (tipo_fuente, accion, cantidad_cambios, detalles, hash_anterior, hash_nuevo)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, ('search', 'query', len(citas), f"Searched: {ingrediente} in {pais}", '', ''))
+            conn.commit()
 
             self.logger.info(f"✅ Encontradas {len(citas)} citas para '{ingrediente}' en {pais}")
             return citas
