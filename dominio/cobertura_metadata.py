@@ -28,9 +28,15 @@ class CoberturaMetadata:
     failed: int                # Error genérico
     out_of_scope: int          # No aplica
 
-    # Cálculos
-    coverage_pct: float        # verified / in_scope * 100
-    publishable: bool          # coverage_pct > 60%
+    # Cálculos. Van con default porque __post_init__ los deriva SIEMPRE de
+    # verified/in_scope: pedirlos en el constructor obligaba a inventar dos
+    # valores que se descartaban en la linea siguiente, y de hecho ni el
+    # calculador ni los tests los pasaban (TypeError en las 11 llamadas).
+    #
+    # Se dejan como campos y no como propiedades porque se persisten en
+    # mapa_comercial_metadata y se leen de vuelta en _row_to_metadata.
+    coverage_pct: float = 0.0  # verified / in_scope * 100
+    publishable: bool = False  # coverage_pct > 60%
     note: Optional[str] = None
 
     # Auditoría
@@ -48,6 +54,22 @@ class CoberturaMetadata:
 
         # Publicable si > 60%
         self.publishable = self.coverage_pct > 60.0
+
+        # Nota explicativa de lo que no se pudo consultar. Se deriva aqui, con
+        # el resto de los calculos, y no en CoberturaCalculator: asi cualquier
+        # metadata la lleva, se construya donde se construya.
+        #
+        # Solo se rellena si viene vacia, para no pisar la que se lee de
+        # mapa_comercial_metadata en _row_to_metadata.
+        if self.note is None:
+            motivos = []
+            if self.blocked_policy > 0:
+                motivos.append(f"{self.blocked_policy} tiendas bloqueadas por policy")
+            if self.blocked_server > 0:
+                motivos.append(f"{self.blocked_server} tiendas rate-limited")
+            if self.blocked_robots > 0:
+                motivos.append(f"{self.blocked_robots} tiendas robots.txt")
+            self.note = "; ".join(motivos) if motivos else None
 
     def to_dict(self) -> dict:
         """Serializar a diccionario."""

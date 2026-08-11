@@ -93,20 +93,8 @@ class CoberturaCalculator:
         failed = counts.get("failed", 0)
         out_of_scope = counts.get("out_of_scope", 0)
 
-        # Generar nota explicativa
-        blocked_reasons = []
-        if blocked_policy > 0:
-            blocked_reasons.append(f"{blocked_policy} tiendas bloqueadas por policy")
-        if blocked_server > 0:
-            blocked_reasons.append(f"{blocked_server} tiendas rate-limited")
-        if blocked_robots > 0:
-            blocked_reasons.append(f"{blocked_robots} tiendas robots.txt")
-
-        note = None
-        if blocked_reasons:
-            note = "; ".join(blocked_reasons)
-
-        # Crear metadata
+        # La nota explicativa la deriva CoberturaMetadata en su __post_init__,
+        # junto con coverage_pct y publishable. Estaba duplicada aqui.
         metadata = CoberturaMetadata(
             sweep_id=sweep_id,
             insumo=insumo,
@@ -120,7 +108,6 @@ class CoberturaCalculator:
             deferred=deferred,
             failed=failed,
             out_of_scope=out_of_scope,
-            note=note,
         )
 
         logger.info(

@@ -20,6 +20,11 @@ dependencies = [
     "jinja2>=3.1.4",
     "python-dotenv>=1.0.1",
     "pytest>=8.3.3",
+    # Los tests de S5 usan @pytest.mark.asyncio, pero el plugin no estaba
+    # declarado en ninguna parte: pytest ignoraba la marca (UnknownMark) y las
+    # corrutinas nunca llegaban a ejecutarse, con lo que esos tests no podian
+    # pasar.
+    "pytest-asyncio>=0.24.0",
     "markdown>=3.1.4",
     "requests>=2.31.0",
     "xhtml2pdf>=0.2.15",
@@ -52,3 +57,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["dominio", "casos_de_uso", "puertos", "adaptadores", "api", "etl", "evals"]
+
+[tool.pytest.ini_options]
+# strict = cada test async debe llevar @pytest.mark.asyncio, que es como estan
+# escritos los de S5. Sin esta seccion pytest-asyncio no sabe que modo usar.
+asyncio_mode = "strict"
+# Sin esto, cada test async avisa de que el scope por defecto del event loop
+# es implicito y va a cambiar en una version futura.
+asyncio_default_fixture_loop_scope = "function"
