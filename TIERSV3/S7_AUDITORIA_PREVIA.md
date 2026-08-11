@@ -134,7 +134,12 @@ contra la BD (`uso_mensual`, `ejecuciones`, `etapas_ejecucion` con `cache_hit`,
 
 ## 🚧 BLOQUEADORES
 
-### B1 — `catalogo_comercial` no existe (afecta 7.5, 7.7, 7.9)
+### B1 — `catalogo_comercial` no existe (afecta 7.5, 7.7, 7.9) — ✅ RESUELTO por D1
+
+> Zanjado el 2026-08-11: la tabla **no se crea**. Promover pasa a ser un cambio
+> de estado en `staging_agente`. Ver D1 más abajo. Lo que sigue es el análisis
+> que llevó a esa decisión.
+
 
 No hay tabla, ni migración, ni un solo `INSERT`. Las únicas apariciones son documentación y los SVG de arquitectura. Y hay una decisión explícita en contra:
 
@@ -257,9 +262,45 @@ El DSL propuesto pide cinco cosas. Esto es lo que el sistema puede alimentar hoy
 
 ## ❓ DECISIONES QUE NECESITO ANTES DE ESCRIBIR CÓDIGO
 
-**D1 — ¿Qué es "promover"?**
-- (a) Crear `catalogo_comercial` en Postgres y revertir el corte de §0. Es lo que S7 dice literalmente, y lo que S5 (dedup por EAN) y S8 dan por hecho.
-- (b) Promover = `staging_agente.promoted_at = now()` + `no_verificado = false`, y que el mapa comercial lea de ahí. Respeta la arquitectura actual, no requiere tabla nueva, pero deja S7.7 (`promotion_source` en catálogo) sin sitio.
+**D1 — ¿Qué es "promover"?** ✅ **RESUELTO (2026-08-11): opción (b).**
+
+Promover es **marcar la fila en `staging_agente`**, no moverla a otra tabla.
+`catalogo_comercial` no se crea: se respeta el corte de §0 documentado en
+[dominio/mapa_comercial.py:4-6](dominio/mapa_comercial.py#L4-L6).
+
+```sql
+update public.staging_agente
+   set promoted_at      = now(),
+       no_verificado    = false,
+       promotion_source = 'auto_watermark'   -- o 'manual_human'
+ where staging_id = ...;
+```
+
+Implementado en
+[supabase/migraciones/006_promotion_source.sql](supabase/migraciones/006_promotion_source.sql):
+
+- Columna `promotion_source` en `staging_agente`.
+- `staging_promotion_source_valido`: sólo `auto_watermark` o `manual_human`.
+  S7.7 listaba además `n1_direct` y `n2_direct`, pero por la cuarentena sólo
+  pasa N3 — un producto del snapshot o de Bright Data no entra en
+  `staging_agente`, así que serían estados imposibles.
+- `staging_promocion_coherente`: `promoted_at` y `promotion_source` van juntos
+  o no van. Sin esto, el "¿qué % es auto-promovido?" de 7.7 se calcularía sobre
+  un campo que puede quedar a null por descuido.
+- Vista `staging_promovido`, contraparte de `staging_pendiente`: es de donde el
+  mapa comercial debe leer lo ya promovido.
+
+Verificado: los seis estados posibles se aceptan o rechazan como corresponde.
+
+**Consecuencias para el resto del plan:**
+
+| Afectado | Qué cambia |
+|---|---|
+| 7.5 (job) | El paso "mover a `catalogo_comercial`" es un `UPDATE` sobre staging. Más simple de lo planeado. |
+| 7.7 | `promotion_source` vive en `staging_agente`, con dos valores en vez de cuatro. |
+| 7.4 (`promotion_log`) | Su FK a `staging_id` ya tiene destino; no hace falta inventar un id de catálogo. |
+| S5 (dedup por EAN) | **Sigue asumiendo `catalogo_comercial`.** Cuando se retome, habrá que decidir si deduplica sobre staging promovido. |
+| S8.6 | La UI lista y promueve filas de `staging_agente`; no cambia. |
 
 **D2 — ¿Poblamos `staging_agente` de verdad, o trabajamos con fixtures?**
 - (a) Arreglar B2 + B3 (persistir la cascada N3 + implementar el extractor glm-5.2). Es trabajo de S2 que quedó abierto, ~1.5 días extra, pero sin él S7 no tiene insumo.

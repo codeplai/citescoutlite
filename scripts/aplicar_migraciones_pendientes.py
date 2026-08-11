@@ -55,6 +55,8 @@ MIGRACIONES = [
      "S4 - corpus regulatorio (8 tablas)"),
     ("scripts/migration_s6_alertas_tablas.sql",
      "S6 - alertas de retiro openFDA + RASFF (6 tablas)"),
+    ("supabase/migraciones/006_promotion_source.sql",
+     "S7.7 (D1) - promotion_source en staging_agente + vista staging_promovido"),
 ]
 
 # Lo que debe existir al terminar.
@@ -74,8 +76,8 @@ TABLAS_ESPERADAS = [
     "alert_ingest_log", "alert_notification_history",
 ]
 
-VISTAS_ESPERADAS = ["uso_mensual", "staging_pendiente", "gasto_usuario_mes",
-                    "gasto_global_dia"]
+VISTAS_ESPERADAS = ["uso_mensual", "staging_pendiente", "staging_promovido",
+                    "gasto_usuario_mes", "gasto_global_dia"]
 
 
 def soltar_tablas_s1(conexion) -> None:
