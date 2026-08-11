@@ -45,8 +45,13 @@ class EventosJobStore:
 
         data_json = json.dumps(data or {})
 
-        try:
-            conn = await self.get_connection()
+        # El `async with` cierra la conexion y, a diferencia del try/finally que
+        # habia, no se rompe cuando la conexion ni llega a abrirse: alli `conn`
+        # no existia y el finally lanzaba UnboundLocalError, que sustituia al
+        # error de verdad. Con la base caida se leia "cannot access local
+        # variable 'conn'" en vez de por que no se pudo conectar.
+        conn = await self.get_connection()
+        async with conn:
             async with conn.cursor() as cur:
                 event_id = await cur.scalar(
                     """
@@ -58,8 +63,6 @@ class EventosJobStore:
                 )
                 logger.info(f"📌 [{evento}] run_id={run_id}, event_id={event_id}")
                 return event_id
-        finally:
-            await conn.aclose()
 
     async def get_events(self, run_id: str, limit: int = 100) -> list[dict]:
         """
@@ -72,8 +75,8 @@ class EventosJobStore:
         Returns:
             List of event dicts: {event_id, run_id, job_id, evento, data_json, created_at}
         """
-        try:
-            conn = await self.get_connection()
+        conn = await self.get_connection()
+        async with conn:
             async with conn.cursor() as cur:
                 events = await cur.fetchall(
                     """
@@ -96,8 +99,6 @@ class EventosJobStore:
                     }
                     for e in events
                 ]
-        finally:
-            await conn.aclose()
 
     async def get_latest_event(self, run_id: str) -> Optional[dict]:
         """Get the most recent event for a run."""
@@ -120,8 +121,8 @@ class EventosJobStore:
         # TODO S3.2: Implement real PostgreSQL LISTEN/NOTIFY for true streaming
         # For now, return existing events in chronological order
 
-        try:
-            conn = await self.get_connection()
+        conn = await self.get_connection()
+        async with conn:
             async with conn.cursor() as cur:
                 # Get all events in chronological order
                 async for event_row in await cur.stream(
@@ -141,8 +142,6 @@ class EventosJobStore:
                         "data": json.loads(event_row[4]),
                         "created_at": event_row[5].isoformat() if event_row[5] else None,
                     }
-        finally:
-            await conn.aclose()
 
 
 # Singleton instance
