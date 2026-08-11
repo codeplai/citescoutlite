@@ -29,22 +29,18 @@ from api.websocket_jobs import router as websocket_router
 from api.webhooks import router as webhooks_router
 from api.discovery import router as discovery_router
 from api.alertas import router as alertas_router
+from api.promociones import router as promociones_router
 
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# T3.4 - Conmutador de backend de estado.
-#
-# La rama 'sqlite' se conserva funcionando a proposito: es el plan B de la demo
-# (D5) y el modo en que corren los tests que no deben depender de la red.
-# Tambien decide como se autentica: Supabase Auth o el JWT propio de S1.
+# T3.4 - Conmutador de backend de estado y autenticacion. Ambos viven ahora en
+# api/auth.py, porque los routers tambien los necesitan y este modulo es el que
+# los monta: importarlos desde aqui seria un ciclo. Se reexportan para no
+# cambiar los endpoints de mas abajo.
 # ---------------------------------------------------------------------------
-APP_DB = os.getenv("APP_DB", "sqlite").strip().lower()
-USA_SUPABASE = APP_DB == "supabase"
-
-if APP_DB not in ("supabase", "sqlite"):
-    raise RuntimeError(
-        f"APP_DB={APP_DB!r} no es un valor valido. Usar 'supabase' o 'sqlite'.")
+from api.auth import (APP_DB, USA_SUPABASE, autenticacion, get_current_user,
+                      usuario_actual_id)
 
 app = FastAPI(title="AgroScout IA Lite MVP")
 
@@ -57,6 +53,9 @@ app.include_router(discovery_router)
 # el SQLite del plan B, y sus consultas usan el pool de adaptadores/db.py.
 if USA_SUPABASE:
     app.include_router(alertas_router)
+    # S7.6. Igual que alertas: staging_agente y las tablas de promocion solo
+    # existen en Postgres.
+    app.include_router(promociones_router)
 
 # Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
 # desarrollo en la propia maquina.
@@ -125,8 +124,6 @@ descubrimiento = DescubrimientoSnapshot()
 precios = PreciosSISAP()
 
 if USA_SUPABASE:
-    from adaptadores.auth_supabase import (TokenInvalido, VerificadorSupabase,
-                                           extraer_bearer)
     from adaptadores.auditoria_postgres import AuditoriaPostgres
     from adaptadores.cache_postgres import CachePostgres
     from adaptadores.entorno import clave_publica, url_supabase
@@ -138,9 +135,6 @@ if USA_SUPABASE:
     auditoria = AuditoriaPostgres()
     informes = RepositorioInformesSupabase()
     suscripciones = SuscripcionesPostgres()
-    # SUPABASE_JWT_SECRET solo se usa si el proyecto firmara con HS256; el
-    # nuestro firma con ES256 y se verifica por JWKS (T1.2).
-    verificador_jwt = VerificadorSupabase(os.getenv("SUPABASE_JWT_SECRET"))
 else:
     from adaptadores.auditoria_sqlite import AuditoriaSQLite
     from adaptadores.cache_sqlite import CacheSQLite
@@ -150,11 +144,9 @@ else:
     auditoria = AuditoriaSQLite()
     informes = InformeWeasyPrint()
     suscripciones = SuscripcionesSQLite()
-    verificador_jwt = None
 
 fda = VerificadorOpenFDA(offline=offline_mode)
 rag = VerificadorRAG(offline=offline_mode)
-autenticacion = Autenticacion(secret_key=os.getenv("JWT_SECRET_KEY", "agroscout-secret-key-change-in-production"))
 
 dependencias = Dependencias(
     redactor=redactor,
@@ -170,52 +162,6 @@ dependencias = Dependencias(
     snapshot_version=snapshot_version,
     offline_mode=offline_mode
 )
-
-
-# ---------------------------------------------------------------------------
-# Autenticacion
-# ---------------------------------------------------------------------------
-
-async def get_current_user(authorization: Optional[str] = Header(None)):
-    """Verifica el JWT del header Authorization.
-
-    Con APP_DB=supabase el token lo emite Supabase Auth y se verifica contra su
-    JWKS. Con APP_DB=sqlite sigue el JWT propio de S1, que es el plan B.
-
-    Todos los fallos —ausente, mal formado, firma invalida, expirado, emisor o
-    audiencia que no cuadran— responden 401 sin detalle: precisar el motivo solo
-    ayudaria a quien esta probando tokens.
-    """
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Token no proporcionado")
-
-    if not USA_SUPABASE:
-        token = autenticacion.extraer_bearer_token(authorization)
-        if not token:
-            raise HTTPException(status_code=401, detail="Formato de token inválido")
-        payload = autenticacion.verificar_token(token)
-        if not payload:
-            raise HTTPException(status_code=401, detail="Token inválido o expirado")
-        return payload
-
-    token = extraer_bearer(authorization)
-    if not token:
-        raise HTTPException(status_code=401, detail="Formato de token inválido")
-    try:
-        return verificador_jwt.verificar(token)
-    except TokenInvalido:
-        raise HTTPException(status_code=401, detail="Token inválido o expirado")
-
-
-def usuario_actual_id(current_user: dict) -> str | None:
-    """Identidad con la que se filtran ejecuciones e informes.
-
-    Con Supabase es el `sub` del JWT, que es el uuid de auth.users al que
-    apuntan las claves ajenas del esquema.
-    """
-    if USA_SUPABASE:
-        return current_user.get("sub")
-    return str(current_user["user_id"]) if current_user.get("user_id") else None
 
 
 class ConsultaRequest(BaseModel):

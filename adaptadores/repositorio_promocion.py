@@ -159,6 +159,93 @@ class RepositorioPromocion:
                 values (%s, %s, %s, %s, %s, 'rejected')
             """, (staging_id, tipo, promoted_by, reglas, json.dumps(errores)))
 
+    # --- Cola de revisión manual (7.6) --------------------------------------
+
+    def cola_manual(self, semilla: str, limite: int = 100,
+                    solo_con_errores: bool = False) -> list[dict[str, Any]]:
+        """Ofertas que esperan revisión humana, con su último veredicto.
+
+        Son las que el watermark mandó al 20 % manual, más las que el job
+        intentó promover y rechazó: unas y otras siguen en cuarentena y ambas
+        necesitan que alguien decida.
+
+        El orden pone delante lo que tiene errores conocidos y, dentro de eso,
+        lo más antiguo. Es el "smart filtering" de 7.6: lo que ya se sabe por
+        qué falló se revisa antes, y el TTL de 24 h aprieta a lo más viejo.
+        """
+        filtro = "and v.errores is not null and jsonb_array_length(v.errores) > 0" \
+            if solo_con_errores else ""
+
+        with pool().connection() as conn, conn.cursor() as cur:
+            filas = cur.execute(f"""
+                select s.staging_id, s.insumo, s.pais, s.producto_json,
+                       s.fuente_url, s.creado_en, s.grounding_check_status,
+                       w.automatica, w.cubo,
+                       v.errores, v.passed, v.created_at,
+                       extract(epoch from (now() - s.creado_en)) / 3600 as horas
+                  from public.staging_agente s
+                  left join public.promotion_watermark_log w
+                         on w.staging_id = s.staging_id and w.semilla = %s
+                  -- Solo el veredicto mas reciente de cada oferta: si el job
+                  -- corrio dos veces, la UI debe enseñar el ultimo.
+                  left join lateral (
+                        select errores, passed, created_at
+                          from public.promotion_validation_log
+                         where staging_id = s.staging_id
+                         order by created_at desc
+                         limit 1
+                  ) v on true
+                 where s.promoted_at is null
+                   {filtro}
+                 order by (v.errores is not null) desc, s.creado_en asc
+                 limit %s
+            """, (semilla, limite)).fetchall()
+
+        return [{
+            "staging_id": str(f[0]),
+            "insumo": f[1],
+            "pais": f[2],
+            "producto": f[3],
+            "fuente_url": f[4],
+            "creado_en": f[5].isoformat() if f[5] else None,
+            "grounding": f[6],
+            # None = el job aun no la ha visto esta semana.
+            "automatica": f[7],
+            "cubo": f[8],
+            "errores": f[9] or [],
+            "validacion_passed": f[10],
+            "validado_en": f[11].isoformat() if f[11] else None,
+            "horas_en_cuarentena": round(float(f[12]), 1) if f[12] is not None else None,
+        } for f in filas]
+
+    def historial(self, dias: int = 7, limite: int = 200) -> list[dict[str, Any]]:
+        """Promociones y rechazos recientes, para la pestaña de historial."""
+        with pool().connection() as conn, conn.cursor() as cur:
+            filas = cur.execute("""
+                select l.log_id, l.staging_id, l.promotion_type, l.promoted_by,
+                       l.result, l.rules_applied, l.validation_errors, l.created_at,
+                       s.insumo, s.producto_json ->> 'nombre'
+                  from public.promotion_log l
+                  left join public.staging_agente s on s.staging_id = l.staging_id
+                 where l.created_at >= now() - make_interval(days => %s)
+                 order by l.created_at desc
+                 limit %s
+            """, (dias, limite)).fetchall()
+
+        return [{
+            "log_id": f[0],
+            "staging_id": str(f[1]),
+            "tipo": f[2],
+            "promovido_por": str(f[3]) if f[3] else "system",
+            "resultado": f[4],
+            "reglas": f[5],
+            "errores": f[6],
+            "fecha": f[7].isoformat() if f[7] else None,
+            "insumo": f[8],
+            # La oferta puede haber caducado por TTL: el log sobrevive.
+            "producto": f[9],
+        } for f in filas]
+
     # --- Informes -----------------------------------------------------------
 
     def resumen_del_dia(self) -> dict[str, Any]:

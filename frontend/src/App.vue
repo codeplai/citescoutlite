@@ -18,6 +18,12 @@
           >
             Alertas de retiro
           </button>
+          <button
+            :class="['tab-btn', { activa: vista === 'promociones' }]"
+            @click="vista = 'promociones'"
+          >
+            Promociones
+          </button>
         </div>
         <div class="user-info">
           <span>{{ userEmail }}</span>
@@ -38,6 +44,9 @@
            meter una dependencia de enrutado por una segunda pantalla seria
            desproporcionado. Cuando llegue el panel de S8 tocara replantearlo. -->
       <AlertasRetiro v-else-if="vista === 'alertas'" />
+
+      <!-- S7.6: el 20 % que revisa una persona. -->
+      <Promociones v-else-if="vista === 'promociones'" />
     </div>
   </div>
 </template>
@@ -49,6 +58,7 @@ import Search from './components/Search.vue'
 import Result from './components/Result.vue'
 import TokenUsage from './components/TokenUsage.vue'
 import AlertasRetiro from './components/AlertasRetiro.vue'
+import Promociones from './components/Promociones.vue'
 import { CLAVE_TOKEN, CLAVE_USUARIO } from './api.js'
 
 const isAuthenticated = ref(false)

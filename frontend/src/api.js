@@ -78,4 +78,27 @@ export const api = {
   alertaDetalle: (alertId) => pedir(`/api/alertas/${alertId}`),
 
   estadisticasAlertas: () => pedir('/api/alertas/estadisticas/resumen'),
+
+  // S7.6 - Promocion manual (el 20 % que revisa una persona).
+  promocionesPendientes: ({ limite = 50, soloConErrores = false } = {}) => {
+    const params = new URLSearchParams({ limite, solo_con_errores: soloConErrores })
+    return pedir(`/api/promociones/pendientes?${params}`)
+  },
+
+  promover: (stagingId) =>
+    pedir(`/api/promociones/${stagingId}/promover`, { method: 'POST' }),
+
+  promoverLote: (stagingIds) =>
+    pedir('/api/promociones/promover-lote', {
+      method: 'POST',
+      body: JSON.stringify({ staging_ids: stagingIds }),
+    }),
+
+  rechazar: (stagingId) =>
+    pedir(`/api/promociones/${stagingId}/rechazar`, { method: 'POST' }),
+
+  historialPromociones: (dias = 7) =>
+    pedir(`/api/promociones/historial?dias=${dias}`),
+
+  resumenPromociones: () => pedir('/api/promociones/resumen'),
 }

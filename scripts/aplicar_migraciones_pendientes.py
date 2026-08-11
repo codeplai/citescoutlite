@@ -59,6 +59,8 @@ MIGRACIONES = [
      "S7.7 (D1) - promotion_source en staging_agente + vista staging_promovido"),
     ("supabase/migraciones/007_promocion_s7.sql",
      "S7.1-7.4 - promotion_rules, watermark_log, validation_log, promotion_log"),
+    ("supabase/migraciones/008_rol_perfiles.sql",
+     "S7.6 - rol (operador/admin) en perfiles"),
 ]
 
 # Lo que debe existir al terminar.
