@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from adaptadores.bright_data_api import BrightDataClient
 from adaptadores.catalogo_dedup import CatalogoDedup
+from adaptadores.entorno import ruta_db_sqlite
 from dominio.producto_catalogo import ProductoCatalogo, FieldWithSource
 
 logger = logging.getLogger(__name__)
@@ -35,10 +36,17 @@ def get_bd_client() -> BrightDataClient:
 
 
 def get_catalogo() -> CatalogoDedup:
-    """Lazy init de catálogo dedup."""
+    """Lazy init de catálogo dedup.
+
+    Por ruta_db_sqlite() y no por el default del constructor: agroscout.db esta
+    versionado y AGROSCOUT_DB_PATH existe justo para que los tests escriban en
+    otro archivo. Con el default, una pasada de la suite ensuciaba el binario
+    del repositorio, y ademas la cascada leia N2 de un archivo distinto del que
+    escribia este webhook.
+    """
     global _catalogo
     if _catalogo is None:
-        _catalogo = CatalogoDedup()
+        _catalogo = CatalogoDedup(ruta_db_sqlite())
     return _catalogo
 
 

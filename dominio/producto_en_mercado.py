@@ -72,6 +72,10 @@ class ProductoEnMercado(BaseModel):
         description="Siempre None en el MVP: el ETL de S2 descartó `stores`",
     )
 
-    fuente: Literal["OFF", "USDA"] = Field(description="Una sola fuente por fila")
+    # BRIGHT_DATA entra con el merge de N2 (S5.5): son productos de tienda
+    # traidos por la API licenciada, no del snapshot. Siguen siendo una sola
+    # fuente por fila, que es lo que este campo promete.
+    fuente: Literal["OFF", "USDA", "BRIGHT_DATA"] = Field(
+        description="Una sola fuente por fila")
     url: HttpUrl
     fecha_dato: date

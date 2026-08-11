@@ -36,6 +36,8 @@ from .bright_data_api import BrightDataClient
 from .bright_data_requests import BrightDataRequestStatus
 from .sweep_attempts import SweepAttemptsRepository
 from .cobertura_calculator import CoberturaCalculator
+from .catalogo_dedup import CatalogoDedup
+from .entorno import ruta_db_sqlite
 from casos_de_uso.agente import AgenteInvestigadorComercial, AgenteResultado
 
 logger = logging.getLogger(__name__)
@@ -70,6 +72,14 @@ class DescubrimientoCascada:
         self.sweep_repo = None  # Lazy init
         self.coverage_calc = None  # Lazy init
         self.metadata = None
+        # El catalogo donde el webhook de Bright Data deja lo de N2. Lazy como
+        # los de arriba y por el mismo motivo: construir CatalogoDedup crea sus
+        # tablas, asi que hacerlo aqui haria que instanciar la cascada tocase
+        # disco. Con eso, cualquier test que la construya escribia en el
+        # agroscout.db versionado y lo dejaba modificado en git.
+        self.catalogo_dedup = None  # Lazy init
+        # Filas que no llegaron al mapa, por motivo. Lo lee mapear_comercio.
+        self.descartadas: dict[str, int] = {}
 
     async def _get_agente(self) -> AgenteInvestigadorComercial:
         """Lazy initialization del agente."""
@@ -209,8 +219,12 @@ class DescubrimientoCascada:
 
                 if completed_reqs:
                     logger.info(f"N2: Received {len(completed_reqs)} webhook(s)")
-                    # TODO: Parsear data JSON a ProductoEnMercado
-                    # Por ahora: retornar lista vacía (en S5.5 implementar merge)
+                    # El parseo del JSON de Bright Data ya lo hizo el webhook
+                    # (_process_bd_data_to_catalog), que ademas dedupe por
+                    # (ean, sku, tienda). Aqui solo hay que recoger lo que dejo
+                    # en el catalogo y darle forma de fila del mapa comercial.
+                    resultados = self._recoger_n2_del_catalogo(insumo)
+                    logger.info(f"N2: {len(resultados)} productos recogidos del catálogo")
                     break
 
                 # Timeout check
@@ -231,6 +245,62 @@ class DescubrimientoCascada:
         except Exception as e:
             logger.error(f"N2: Unexpected error: {e}")
             return []
+
+    def _get_catalogo_dedup(self) -> CatalogoDedup:
+        """Catálogo de N2, creado al primer uso.
+
+        Por ruta_db_sqlite() y no por self.db_path: ese es el DuckDB del
+        snapshot y esto es SQLite. Asi se lee del mismo archivo que escribe el
+        webhook, tambien cuando AGROSCOUT_DB_PATH apunta a otro sitio.
+        """
+        if self.catalogo_dedup is None:
+            self.catalogo_dedup = CatalogoDedup(ruta_db_sqlite())
+        return self.catalogo_dedup
+
+    def _recoger_n2_del_catalogo(self, insumo: str) -> list[ProductoEnMercado]:
+        """Lee del catálogo lo que dejó el webhook y lo pasa a ProductoEnMercado.
+
+        Se filtra por transporte para no arrastrar lo que hayan escrito N1 o
+        Scrapling para el mismo insumo: esta funcion responde "que trajo N2".
+
+        Las filas sin URL se descartan y se cuentan: `url` es obligatoria y
+        HttpUrl en el modelo del mapa, y una fila sin procedencia comprobable no
+        puede publicarse. Que se caiga una fila nunca debe ser silencioso.
+        """
+        productos: list[ProductoEnMercado] = []
+        sin_url = 0
+
+        for pc in self._get_catalogo_dedup().get_by_insumo(insumo, transporte="N2_BRIGHT_DATA"):
+            if not pc.url:
+                sin_url += 1
+                continue
+
+            try:
+                productos.append(ProductoEnMercado(
+                    insumo=insumo,
+                    # Mismo formato que 'OFF:00000036': prefijo de fuente y, en
+                    # este caso, la tienda, porque el mismo EAN aparece en varias.
+                    producto_id=f"BD:{pc.tienda_id}:{pc.ean}",
+                    nombre=pc.nombre,
+                    marca=pc.marca.valor if pc.marca else None,
+                    # Precio de gondola de verdad. Es el hueco que el modelo
+                    # declaraba como "siempre None en el MVP" y que N2 llena.
+                    precio_rango=pc.precio.valor if pc.precio else None,
+                    fuente="BRIGHT_DATA",
+                    url=pc.url,
+                    fecha_dato=pc.updated_at.date(),
+                ))
+            except Exception as e:
+                # Tipicamente una URL que no valida contra HttpUrl.
+                sin_url += 1
+                logger.warning(f"N2: fila descartada ({pc.ean}/{pc.tienda_id}): {e}")
+
+        if sin_url:
+            self.descartadas["n2_url_invalida"] = (
+                self.descartadas.get("n2_url_invalida", 0) + sin_url)
+            logger.info(f"N2: {sin_url} filas descartadas por URL ausente o inválida")
+
+        return productos
 
     async def _save_coverage_metadata(self, sweep_id: str, insumo: str) -> None:
         """

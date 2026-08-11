@@ -333,6 +333,33 @@ class CatalogoDedup:
             """, (ean,)).fetchall()
             return [self._row_to_producto(row) for row in rows]
 
+    def get_by_insumo(self, insumo_query: str,
+                      transporte: Optional[str] = None) -> list[ProductoCatalogo]:
+        """Productos guardados para una búsqueda, opcionalmente por transporte.
+
+        Es la lectura que cierra N2: el webhook de Bright Data ya deja aquí los
+        productos deduplicados, y la cascada necesita recuperarlos para
+        convertirlos en filas del mapa comercial. Sin esto, `descubrir_n2` sabía
+        que habían llegado datos pero no tenía de dónde leerlos.
+
+        `transporte` permite pedir solo lo de una vía ('N2_BRIGHT_DATA') sin
+        arrastrar lo que hayan dejado N1_SNAPSHOT o N1_SCRAPLING para el mismo
+        insumo.
+        """
+        consulta = "SELECT * FROM catalogo_productos WHERE insumo_query = ?"
+        parametros: list = [insumo_query]
+
+        if transporte:
+            consulta += " AND transporte = ?"
+            parametros.append(transporte)
+
+        consulta += " ORDER BY tienda_id, sku"
+
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(consulta, parametros).fetchall()
+            return [self._row_to_producto(row) for row in rows]
+
     def get_stats(self) -> dict:
         """Estadísticas del catálogo."""
         with closing(sqlite3.connect(self.db_path)) as conn:

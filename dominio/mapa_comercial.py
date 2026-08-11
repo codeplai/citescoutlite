@@ -98,10 +98,15 @@ class MapaComercial(BaseModel):
             "paises": self.paises(),
             "marcas": self.marcas()[:40],
             "niveles_no_disponibles": self.niveles_no_disponibles,
+            # Se cuenta lo que de verdad falta, no el total. Estaba fijado a
+            # len(productos) porque en el MVP los tres campos eran siempre
+            # None; desde el merge de N2 hay filas con precio de gondola real,
+            # y declararlas como "sin dato" seria decirle al modelo que no
+            # mire un dato que si tiene.
             "sin_dato": {
-                "presentacion": len(self.productos),
-                "precio": len(self.productos),
-                "canal": len(self.productos),
+                "presentacion": sum(1 for p in self.productos if p.presentacion is None),
+                "precio": sum(1 for p in self.productos if p.precio_rango is None),
+                "canal": sum(1 for p in self.productos if p.canal is None),
             },
             "productos": [
                 {"id": p.producto_id, "nombre": p.nombre,
