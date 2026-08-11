@@ -190,8 +190,11 @@ SELECT
     s.score,
     s.severity_label
 FROM openfda_alerts o
+-- fecha_emitida es DATE: en Postgres `date - date` ya da un integer de dias,
+-- asi que EXTRACT(DAY FROM ...) sobra y ademas falla (no hay extract(unknown,
+-- integer)). La resta directa expresa lo mismo: alertas del mismo dia.
 FULL OUTER JOIN rasff_alerts r ON o.producto_nombre = r.producto_nombre
-    AND ABS(EXTRACT(DAY FROM o.fecha_emitida - r.fecha_emitida)) < 1
+    AND ABS(o.fecha_emitida - r.fecha_emitida) < 1
 LEFT JOIN alert_scores s ON (o.alert_id = s.alert_id AND s.alert_tipo = 'openfda')
     OR (r.rasff_id = s.alert_id AND s.alert_tipo = 'rasff')
 WHERE COALESCE(o.fecha_emitida, r.fecha_emitida) >= CURRENT_DATE - 1

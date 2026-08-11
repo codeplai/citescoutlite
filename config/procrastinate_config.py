@@ -33,8 +33,7 @@ app = procrastinate.App(connector=procrastinate.PsycopgConnector(conninfo=DATABA
 
 @app.task(
     name="job_agente_run",
-    max_attempts=4,  # 1 initial + 3 retries
-    schedule_in={"seconds": 0},  # Fire immediately
+    retry=3,  # 1 initial + 3 retries
 )
 async def job_agente_run(run_id: str, insumo: str, país: str, nivel_maximo_costo: int):
     """
@@ -74,8 +73,7 @@ async def job_agente_run(run_id: str, insumo: str, país: str, nivel_maximo_cost
 
 @app.task(
     name="job_mim_etl",
-    max_attempts=4,
-    schedule_in={"seconds": 0},
+    retry=3,
 )
 async def job_mim_etl(snapshot_version: str):
     """
@@ -188,8 +186,7 @@ async def job_mim_etl(snapshot_version: str):
 
 @app.task(
     name="job_informe_pdf",
-    max_attempts=4,
-    schedule_in={"seconds": 0},
+    retry=3,
 )
 async def job_informe_pdf(run_id: str):
     """
