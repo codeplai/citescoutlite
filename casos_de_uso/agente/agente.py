@@ -15,7 +15,9 @@ import time
 from typing import Optional
 from datetime import datetime
 from dotenv import load_dotenv
-from pydantic_ai import Agent
+import instructor
+from litellm import acompletion
+from tenacity import retry, stop_after_attempt, wait_exponential
 import httpx
 import trafilatura
 from tavily import TavilyClient
@@ -35,6 +37,24 @@ TIMEOUT_BUSQUEDA = 60  # segundos
 TIMEOUT_EXTRACCION = 30
 TIMEOUT_VALIDACION = 10
 
+# Mismo modelo que las etapas 3-5 en RedactorGLM. El prefijo 'openai/' es lo
+# que hace que litellm hable el dialecto OpenAI contra ModelArts.
+MODELO_EXTRACCION = "openai/glm-5.2"
+
+# Cuanto HTML se le manda al modelo. trafilatura ya devuelve solo el contenido
+# principal, pero 2000 caracteres —lo que habia— no llegan ni al precio en una
+# ficha de producto normal: se corta antes de la parte util.
+MAX_CARACTERES_HTML = 6000
+
+# Reintentos cortos a proposito: quien llama envuelve esto en un
+# asyncio.wait_for(TIMEOUT_EXTRACCION), asi que un backoff largo solo sirve
+# para agotar el timeout sin llegar a reintentar de verdad.
+# reraise: sin el, al agotar los intentos tenacity lanza un RetryError que
+# esconde la causa, y arriba solo se ve "RetryError[Future...]".
+_REINTENTOS = dict(stop=stop_after_attempt(3),
+                   wait=wait_exponential(multiplier=1, min=1, max=4),
+                   reraise=True)
+
 
 class AgenteInvestigadorComercial:
     """Agente que busca productos en web y los extrae."""
@@ -42,6 +62,7 @@ class AgenteInvestigadorComercial:
     def __init__(self):
         self.tavily_client = TavilyClient(api_key=TAVILY_API_KEY) if TAVILY_API_KEY else None
         self.http_client = httpx.AsyncClient(timeout=30.0)
+        self.llm = instructor.from_litellm(acompletion)
         self.products_extracted = 0
         self.start_time = None
 
@@ -106,44 +127,64 @@ class AgenteInvestigadorComercial:
             record_request_failure(url)
             raise RuntimeError(f"URL fetch error ({url}): {e}")
 
-    async def extraer_producto(self, html: str, schema: ProductoSchema) -> ProductoSchema:
+    async def extraer_producto(self, html: str,
+                               schema: type[ProductoSchema] = ProductoSchema) -> ProductoSchema:
         """
         Extrae datos estructurados de HTML usando glm-5.2 (Huawei ModelArts).
-        Usa Pydantic AI para tool-use.
+
+        Se apoya en instructor, igual que RedactorGLM: el modelo devuelve el
+        schema ya validado por pydantic, no una cadena que haya que parsear.
+
+        Lo que habia aqui no llegaba a llamar al modelo. Construia un
+        `pydantic_ai.Agent(model_type=..., model_name=..., api_key=...)` con
+        parametros que ese constructor no acepta, asi que reventaba con
+        TypeError, el except lo convertia en RuntimeError y N3 devolvia siempre
+        cero productos. El `return schema` que venia despues —la clase, no una
+        instancia— era inalcanzable.
+
+        La falta de credencial se comprueba aqui, fuera del reintento: es un
+        error de configuracion y reintentarlo tres veces con espera no lo
+        arregla, solo retrasa el fallo.
         """
         if not HUAWEI_MAAS_API_KEY:
             raise ValueError("HUAWEI_MAAS_API_KEY no configurado")
 
+        return await self._pedir_extraccion(html, schema)
+
+    @retry(**_REINTENTOS)
+    async def _pedir_extraccion(self, html: str,
+                                schema: type[ProductoSchema]) -> ProductoSchema:
+        """La llamada al modelo. Con reintentos porque aqui si hay red."""
+        sistema = (
+            "Eres un extractor de fichas de producto. Recibes el texto principal "
+            "de una pagina de una tienda y devuelves sus datos estructurados.\n\n"
+            "REGLA CRITICA: extrae SOLO lo que aparezca literalmente en el texto. "
+            "Si un dato no esta, ponlo a null. No lo deduzcas, no lo estimes y no "
+            "lo completes con conocimiento general: cada valor se verifica despues "
+            "contra el HTML de origen (grounding check) y un valor que no este ahi "
+            "se rechaza y tumba el producto entero.\n\n"
+            "- 'nombre': el del producto, tal cual aparece.\n"
+            "- 'precio': solo el numero, sin simbolo de moneda. Si hay varios "
+            "(oferta y tachado), el que se cobra hoy.\n"
+            "- 'precio_local': el precio con su moneda tal cual figura, ej 'S/ 24.90'.\n"
+            "- 'stock': unidades disponibles SOLO si la pagina da una cifra. Que "
+            "diga 'disponible' no es una cifra: en ese caso va null.\n"
+            "- 'unidad': la de venta, ej 'kg', 'L', '500 g'.\n"
+            "- 'fecha_disponibilidad': en formato YYYY-MM-DD.\n"
+        )
+        usuario = f"CONTENIDO DE LA PAGINA:\n{html[:MAX_CARACTERES_HTML]}"
+
         try:
-            # Crear agente extractor con glm-5.2
-            agent = Agent(
-                model_type="openai",
-                model_name="glm-5.2",
+            return await self.llm.chat.completions.create(
+                model=MODELO_EXTRACCION,
+                response_model=schema,
+                messages=[
+                    {"role": "system", "content": sistema},
+                    {"role": "user", "content": usuario},
+                ],
                 api_key=HUAWEI_MAAS_API_KEY,
-                base_url=HUAWEI_MAAS_BASE_URL,
+                api_base=HUAWEI_MAAS_BASE_URL,
             )
-
-            prompt = f"""Extrae datos de producto de este HTML.
-Retorna un JSON con estos campos:
-- nombre (str, requerido)
-- precio (float|null)
-- precio_local (str|null, ej: "ARS 1200")
-- marca (str|null)
-- stock (int|null)
-- descripcion (str|null)
-- unidad (str|null, ej: "kg")
-- categoria (str|null)
-- pais_origen (str|null)
-- fecha_disponibilidad (str|null, YYYY-MM-DD)
-
-HTML:
-{html[:2000]}  # Limitar a 2000 chars para no sobrecargar
-
-Retorna SOLO el JSON, sin explicaciones."""
-
-            # TODO(s2): Implementar llamada real a glm-5.2 con manejo de timeout
-            # Por ahora, retornar schema dummy para que compile
-            return schema
         except asyncio.TimeoutError:
             raise TimeoutError(f"Extracción timeout después de {TIMEOUT_EXTRACCION}s")
         except Exception as e:
@@ -188,7 +229,12 @@ Retorna SOLO el JSON, sin explicaciones."""
                     extraccion = ExtraccionProductoResultado(
                         producto=producto,
                         fuente_url=resultado.url,
-                        html_capturado=html[:500] if html else None,
+                        # Se guarda el MISMO trozo que vio el modelo. Estaba a
+                        # 500 caracteres: el grounding check verifica cada valor
+                        # extraido contra este texto, asi que un recorte mas
+                        # corto que la ventana de extraccion daria por inventado
+                        # todo lo que el modelo leyo mas alla del corte.
+                        html_capturado=html[:MAX_CARACTERES_HTML] if html else None,
                         timestamp=datetime.now(),
                         modelo_usado="glm-5.2",
                     )
