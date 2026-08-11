@@ -68,9 +68,16 @@ class RepoFalso:
     def historial(self, dias=7, limite=200):
         return []
 
-    def resumen_del_dia(self):
-        return {"promovidos_auto": 3, "promovidos_manual": 1, "rechazados": 2,
-                "motivos_de_rechazo": {}}
+    def resumen_del_dia(self, horas=24):
+        total = 6
+        return {"ventana_horas": horas, "promovidos_auto": 3,
+                "promovidos_manual": 1, "rechazados": 2, "total": total,
+                "pct_auto": 50.0,
+                "motivos_de_rechazo": {"dato_fresco": 2}}
+
+    def tendencia(self, dias=7):
+        return [{"dia": f"2026-08-{5 + i:02d}", "auto": i, "manual": 0,
+                 "rechazadas": 0} for i in range(dias)]
 
 
 def montar(repo, usuario=ADMIN, es_admin=True) -> TestClient:
@@ -209,3 +216,37 @@ class TestLecturas:
         cliente = montar(RepoFalso([]))
         r = cliente.get("/api/promociones/historial?dias=30")
         assert r.status_code == 200 and r.json()["dias"] == 30
+
+
+class TestEstadisticas:
+    """S7.9 - lo que pinta el widget."""
+
+    def test_resumen_y_tendencia_vienen_juntos(self):
+        """En dos llamadas, un refresco a medias mezclaria dos ventanas."""
+        cliente = montar(RepoFalso([]))
+        d = cliente.get("/api/promociones/estadisticas").json()
+        assert set(d) == {"resumen", "tendencia"}
+
+    def test_la_tendencia_trae_un_punto_por_dia(self):
+        cliente = montar(RepoFalso([]))
+        d = cliente.get("/api/promociones/estadisticas?dias=7").json()
+        assert len(d["tendencia"]) == 7
+
+    def test_el_porcentaje_lo_calcula_el_backend(self):
+        """Para que el job, la API y el panel no discrepen por redondeo."""
+        cliente = montar(RepoFalso([]))
+        assert cliente.get("/api/promociones/estadisticas").json()["resumen"]["pct_auto"] == 50.0
+
+    def test_ventana_configurable(self):
+        cliente = montar(RepoFalso([]))
+        d = cliente.get("/api/promociones/estadisticas?horas=72").json()
+        assert d["resumen"]["ventana_horas"] == 72
+
+    def test_ventanas_fuera_de_rango_se_rechazan(self):
+        cliente = montar(RepoFalso([]))
+        assert cliente.get("/api/promociones/estadisticas?horas=0").status_code == 422
+        assert cliente.get("/api/promociones/estadisticas?dias=999").status_code == 422
+
+    def test_requiere_estar_autenticado_pero_no_ser_admin(self):
+        cliente = montar(RepoFalso([]), usuario=OPERADOR, es_admin=False)
+        assert cliente.get("/api/promociones/estadisticas").status_code == 200

@@ -101,4 +101,9 @@ export const api = {
     pedir(`/api/promociones/historial?dias=${dias}`),
 
   resumenPromociones: () => pedir('/api/promociones/resumen'),
+
+  // Todo el widget de 7.9 en una llamada: si el resumen y la tendencia
+  // vinieran por separado, un refresco a medias mezclaria dos ventanas.
+  estadisticasPromociones: ({ horas = 24, dias = 7 } = {}) =>
+    pedir(`/api/promociones/estadisticas?horas=${horas}&dias=${dias}`),
 }

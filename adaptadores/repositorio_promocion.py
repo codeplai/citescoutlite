@@ -248,8 +248,46 @@ class RepositorioPromocion:
 
     # --- Informes -----------------------------------------------------------
 
-    def resumen_del_dia(self) -> dict[str, Any]:
-        """"X promovidos automáticamente hoy, Y manual, Z rechazados" (7.4)."""
+    def tendencia(self, dias: int = 7) -> list[dict[str, Any]]:
+        """Promociones y rechazos por día, para el gráfico de barras de 7.9.
+
+        Se genera la serie de días con generate_series y se hace LEFT JOIN, en
+        vez de agrupar solo lo que hay: un día sin actividad tiene que salir
+        como cero y no desaparecer del gráfico, porque una barra que falta se
+        lee como "ese día no se midió", no como "ese día no hubo nada".
+        """
+        with pool().connection() as conn, conn.cursor() as cur:
+            filas = cur.execute("""
+                select d::date as dia,
+                       count(l.log_id) filter (
+                            where l.result = 'promoted' and l.promotion_type = 'auto'),
+                       count(l.log_id) filter (
+                            where l.result = 'promoted' and l.promotion_type = 'manual'),
+                       count(l.log_id) filter (where l.result = 'rejected')
+                  from generate_series(
+                            date_trunc('day', now()) - make_interval(days => %s - 1),
+                            date_trunc('day', now()),
+                            interval '1 day') as d
+                  left join public.promotion_log l
+                         on date_trunc('day', l.created_at) = d
+                 group by d
+                 order by d
+            """, (dias,)).fetchall()
+
+        return [{
+            "dia": f[0].isoformat(),
+            "auto": f[1],
+            "manual": f[2],
+            "rechazadas": f[3],
+        } for f in filas]
+
+    def resumen_del_dia(self, horas: int = 24) -> dict[str, Any]:
+        """"X promovidos automáticamente, Y manual, Z rechazados" (7.4, 7.9).
+
+        Ventana móvil de N horas y no "desde medianoche": el job corre a las
+        04:00 UTC, así que a media mañana un corte por día natural dejaría
+        fuera la pasada de esa misma noche.
+        """
         with pool().connection() as conn, conn.cursor() as cur:
             fila = cur.execute("""
                 select
@@ -257,23 +295,31 @@ class RepositorioPromocion:
                     count(*) filter (where result = 'promoted' and promotion_type = 'manual'),
                     count(*) filter (where result = 'rejected')
                   from public.promotion_log
-                 where created_at >= date_trunc('day', now())
-            """).fetchone()
+                 where created_at >= now() - make_interval(hours => %s)
+            """, (horas,)).fetchone()
 
             # Desglose por regla: "Precio fuera de rango (10), Stock (5)".
+            # Misma ventana que los totales de arriba: con cortes distintos,
+            # los motivos no sumarian los rechazos y el panel se contradiria.
             motivos = cur.execute("""
                 select e ->> 'regla' as regla, count(*) as veces
                   from public.promotion_log,
                        lateral jsonb_array_elements(validation_errors) as e
                  where result = 'rejected'
-                   and created_at >= date_trunc('day', now())
+                   and created_at >= now() - make_interval(hours => %s)
                  group by 1
                  order by 2 desc
-            """).fetchall()
+            """, (horas,)).fetchall()
 
+        total = fila[0] + fila[1] + fila[2]
         return {
+            "ventana_horas": horas,
             "promovidos_auto": fila[0],
             "promovidos_manual": fila[1],
             "rechazados": fila[2],
+            "total": total,
+            # El "83 %" del widget. Se calcula aqui y no en el navegador para
+            # que el job, la API y el panel no puedan discrepar por redondeo.
+            "pct_auto": round(fila[0] / total * 100, 1) if total else 0.0,
             "motivos_de_rechazo": {r: v for r, v in motivos},
         }

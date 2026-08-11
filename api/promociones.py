@@ -174,6 +174,31 @@ async def historial(
 
 
 @router.get("/resumen")
-async def resumen(_usuario: dict = Depends(get_current_user)):
-    """"X automáticos hoy, Y manuales, Z rechazados" (7.4)."""
-    return _repo.resumen_del_dia()
+async def resumen(
+    horas: int = Query(24, ge=1, le=720),
+    _usuario: dict = Depends(get_current_user),
+):
+    """"X automáticos, Y manuales, Z rechazados" en las últimas N horas."""
+    return _repo.resumen_del_dia(horas=horas)
+
+
+@router.get("/estadisticas")
+async def estadisticas(
+    horas: int = Query(24, ge=1, le=720),
+    dias: int = Query(7, ge=1, le=90),
+    _usuario: dict = Depends(get_current_user),
+):
+    """Todo lo que pinta el widget de 7.9, en una sola llamada.
+
+    Va junto y no en tres endpoints porque el panel los enseña a la vez: con
+    llamadas separadas, un refresco a medias dejaria el porcentaje de una
+    ventana y las barras de otra.
+    """
+    try:
+        return {
+            "resumen": _repo.resumen_del_dia(horas=horas),
+            "tendencia": _repo.tendencia(dias=dias),
+        }
+    except Exception as e:
+        logger.error(f"Error calculando estadísticas de promoción: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

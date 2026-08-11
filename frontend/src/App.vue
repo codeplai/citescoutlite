@@ -132,6 +132,8 @@ const handleResult = (data) => {
   gap: 8px;
 }
 
+/* El panel es de fondo claro (--bg-color #F8F9FA): los realces van con el
+   verde de marca, no con blancos translucidos. */
 .tab-btn {
   background: transparent;
   color: var(--text-muted);
@@ -144,13 +146,15 @@ const handleResult = (data) => {
 }
 
 .tab-btn:hover {
-  color: inherit;
+  color: var(--text-main);
+  background: rgba(45, 151, 102, 0.06);
 }
 
 .tab-btn.activa {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: inherit;
+  background: rgba(45, 151, 102, 0.12);
+  border-color: var(--card-border);
+  color: var(--primary-hover);
+  font-weight: 600;
 }
 
 .user-info {

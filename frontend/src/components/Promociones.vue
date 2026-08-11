@@ -7,21 +7,11 @@
           Ofertas en cuarentena que esperan revisión · semana {{ semilla }}
         </p>
       </div>
-      <div class="resumen" v-if="resumen">
-        <div class="tarjeta">
-          <span class="num">{{ resumen.promovidos_auto }}</span>
-          <span class="etq">automáticas hoy</span>
-        </div>
-        <div class="tarjeta">
-          <span class="num">{{ resumen.promovidos_manual }}</span>
-          <span class="etq">manuales hoy</span>
-        </div>
-        <div class="tarjeta">
-          <span class="num">{{ resumen.rechazados }}</span>
-          <span class="etq">rechazadas hoy</span>
-        </div>
-      </div>
     </header>
+
+    <!-- S7.9. Las cifras viven en el widget, que ademas las grafica; tenerlas
+         tambien aqui era dos sitios que pueden discrepar. -->
+    <PromocionesDashboard ref="dashboard" />
 
     <div class="barra">
       <label class="filtro">
@@ -115,10 +105,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api.js'
+import PromocionesDashboard from './PromocionesDashboard.vue'
 
 const ofertas = ref([])
 const historial = ref([])
-const resumen = ref(null)
+const dashboard = ref(null)
 const semilla = ref('')
 const seleccionadas = ref([])
 const soloConErrores = ref(false)
@@ -150,8 +141,9 @@ const cargar = async () => {
     })
     ofertas.value = datos.ofertas
     semilla.value = datos.semilla
-    resumen.value = await api.resumenPromociones()
     historial.value = (await api.historialPromociones(7)).entradas
+    // Tras promover o rechazar, las cifras del widget cambian.
+    dashboard.value?.cargar()
   } catch (e) {
     mostrar(`No se pudo cargar: ${e.message}`, 'error')
     ofertas.value = []
@@ -249,31 +241,6 @@ h2 {
   font-size: 0.9rem;
 }
 
-.resumen {
-  display: flex;
-  gap: 12px;
-}
-
-.tarjeta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  min-width: 96px;
-}
-
-.num {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.etq {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
 .barra {
   display: flex;
   align-items: center;
@@ -296,10 +263,12 @@ h2 {
   font-size: 0.9rem;
 }
 
+/* Fondo claro: los realces van con los colores de marca y de estado, no con
+   blancos translucidos, que sobre #F8F9FA no se ven. */
 .btn {
-  background: rgba(255, 255, 255, 0.06);
-  color: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -312,13 +281,15 @@ h2 {
 }
 
 .btn.primario {
-  background: rgba(34, 197, 94, 0.15);
-  border-color: rgba(34, 197, 94, 0.4);
+  background: var(--primary-color);
+  border-color: var(--primary-hover);
+  color: #ffffff;
 }
 
 .btn.peligro {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
+  background: #ffffff;
+  border-color: rgba(208, 59, 59, 0.45);
+  color: #b3312f;
 }
 
 .aviso {
@@ -328,11 +299,13 @@ h2 {
 }
 
 .aviso.ok {
-  background: rgba(34, 197, 94, 0.12);
+  background: rgba(45, 151, 102, 0.12);
+  color: var(--primary-hover);
 }
 
 .aviso.error {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(208, 59, 59, 0.1);
+  color: #b3312f;
 }
 
 .vacio {
@@ -351,7 +324,7 @@ h2 {
 .tabla td {
   padding: 10px 8px;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #ececeb;
 }
 
 .tabla th {
@@ -404,7 +377,7 @@ h2 {
 
 .historial li {
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #f0f0ee;
 }
 
 .pill {
@@ -424,7 +397,7 @@ h2 {
 }
 
 .pill.tipo {
-  background: rgba(255, 255, 255, 0.08);
+  background: #ececeb;
 }
 
 .fecha {
