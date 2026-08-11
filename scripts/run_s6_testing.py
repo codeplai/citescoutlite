@@ -70,8 +70,7 @@ def crear_tablas():
     try:
         from adaptadores.db import pool
 
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             # Dividir el SQL en comandos
             statements = sql_content.split(';')
 

@@ -19,7 +19,17 @@ from puertos.descargador_alertas import DescargadorAlertas, AlertaNormalizada
 
 logger = logging.getLogger(__name__)
 
-# URL del RSS feed de RASFF
+# URL del RSS feed de RASFF.
+#
+# OJO: esta fuente esta MUERTA (comprobado 2026-08-11). ec.europa.eu responde
+# 301 hacia food.ec.europa.eu/safetyhealthanimals/rasff/rss.php, y ahi la
+# respuesta es un 404 en HTML. La Comision retiro el RSS al migrar a RASFF
+# Window, que expone los datos por otra via.
+#
+# Mientras no se decida la fuente de reemplazo, este descargador devuelve 0
+# alertas y lo deja dicho en el log; no se inventa un endpoint. Todo lo demas
+# (normalizacion, dedup por hash, scoring) esta escrito y se aprovecha en
+# cuanto haya de donde leer.
 RASFF_FEED_URL = "https://ec.europa.eu/food/safetyhealthanimals/rasff/rss.php"
 RASFF_TIMEOUT = 30
 RASFF_MAX_RETRIES = 3
@@ -34,13 +44,21 @@ class DescargadorRASFFAlerts(DescargadorAlertas):
         self.logger = logger
 
     async def validar_acceso(self) -> bool:
-        """Verificar que RASFF feed es accesible."""
+        """Verificar que RASFF feed es accesible.
+
+        follow_redirects: ec.europa.eu responde 301 hacia food.ec.europa.eu.
+        Sin seguirlo, `status_code < 400` daba por bueno el 301 y la validacion
+        pasaba en verde mientras la descarga fallaba tres veces seguidas.
+
+        Se exige 200 exacto: cualquier otra cosa no es un feed.
+        """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout,
+                                         follow_redirects=True) as client:
                 response = await client.head(RASFF_FEED_URL, timeout=self.timeout)
-                is_ok = response.status_code < 400
+                is_ok = response.status_code == 200
                 status = "✅" if is_ok else "❌"
-                self.logger.info(f"{status} RASFF feed: {response.status_code}")
+                self.logger.info(f"{status} RASFF feed: {response.status_code} ({response.url})")
                 return is_ok
         except Exception as e:
             self.logger.error(f"❌ Error validando RASFF: {e}")
@@ -56,7 +74,8 @@ class DescargadorRASFFAlerts(DescargadorAlertas):
         ayer = datetime.utcnow() - timedelta(days=1)
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with httpx.AsyncClient(timeout=self.timeout,
+                                         follow_redirects=True) as client:
                 self.logger.info(f"📥 Descargando RASFF alerts (últimas 24h)...")
 
                 # Reintentos exponencial

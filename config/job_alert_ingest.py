@@ -221,11 +221,17 @@ async def calcular_scores_alertas() -> int:
 
             for alert_id, fecha, categoria, pais, fuente in cur.fetchall():
                 try:
-                    # Crear AlertaNormalizada temporal
+                    # Crear AlertaNormalizada temporal.
+                    #
+                    # fecha llega como date (la columna es DATE) y el contrato
+                    # de AlertaNormalizada pide datetime; CalculadorRiskScore
+                    # hace fecha_emitida.date(), que sobre un date revienta con
+                    # "'datetime.date' object has no attribute 'date'". Sin esta
+                    # conversion no se calculaba ni un score.
                     alerta_norm = AlertaNormalizada(
                         alert_id=alert_id,
                         fuente=fuente,
-                        fecha_emitida=fecha,
+                        fecha_emitida=datetime.combine(fecha, datetime.min.time()),
                         producto_nombre="",  # No necesario para scoring
                         riesgo_texto="",
                         riesgo_categoria=categoria,
@@ -442,13 +448,14 @@ async def job_alert_ingest() -> Dict[str, Any]:
 
 if PROCRASTINATE_AVAILABLE:
 
+    # `periodic` va ENCIMA de `task` y no en una funcion aparte: en
+    # procrastinate 3.x decora la Task ya construida y le pasa como primer
+    # argumento el timestamp del tick. No existe `periodic_task`, que es lo que
+    # habia aqui; el fallo estaba tapado porque el import de mas arriba
+    # apuntaba a un modulo sin `app` y este bloque entero no llegaba a correr.
+    @procrastinate_app.periodic(cron="0 3 * * *")  # 03:00 UTC cada dia
     @procrastinate_app.task(name="job_alert_ingest", priority=100)
-    async def task_job_alert_ingest() -> Dict[str, Any]:
+    async def task_job_alert_ingest(timestamp: int) -> Dict[str, Any]:
         """Tarea Procrastinate: job_alert_ingest"""
+        logger.info(f"🕐 job_alert_ingest disparado (tick {timestamp})")
         return await job_alert_ingest()
-
-    @procrastinate_app.periodic_task(cron="0 3 * * *")  # 03:00 UTC every day
-    async def schedule_job_alert_ingest() -> None:
-        """Schedule job cada noche a las 03:00 UTC"""
-        logger.info("🕐 Scheduled job_alert_ingest triggered")
-        await task_job_alert_ingest.defer()

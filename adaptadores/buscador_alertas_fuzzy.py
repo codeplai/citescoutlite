@@ -144,8 +144,7 @@ class BuscadorAlertasFuzzy:
         alertas = []
 
         try:
-            conn = pool().connection()
-            with conn.cursor() as cur:
+            with pool().connection() as conn, conn.cursor() as cur:
                 # Query: últimas 90 días, ordenadas por fecha
                 cur.execute(
                     """
@@ -208,8 +207,7 @@ class BuscadorAlertasFuzzy:
         alertas = []
 
         try:
-            conn = pool().connection()
-            with conn.cursor() as cur:
+            with pool().connection() as conn, conn.cursor() as cur:
                 # Query: últimas 90 días, ordenadas por fecha
                 cur.execute(
                     """
@@ -270,8 +268,7 @@ class BuscadorAlertasFuzzy:
     ) -> tuple[Optional[float], Optional[str]]:
         """Obtener scoring y severity_label para una alerta, si existe."""
         try:
-            conn = pool().connection()
-            with conn.cursor() as cur:
+            with pool().connection() as conn, conn.cursor() as cur:
                 cur.execute(
                     """
                     SELECT score, severity_label
@@ -315,8 +312,7 @@ class BuscadorAlertasFuzzy:
             fuentes = set(a.fuente for a in alertas)
             fuentes_str = ",".join(sorted(fuentes)) if fuentes else "ninguna"
 
-            conn = pool().connection()
-            with conn.cursor() as cur:
+            with pool().connection() as conn, conn.cursor() as cur:
                 cur.execute(
                     """
                     INSERT INTO alert_lookup_log

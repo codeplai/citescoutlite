@@ -42,8 +42,7 @@ def setup_alertas_prueba():
     print("\n🔧 Setup: Insertando alertas de prueba")
 
     try:
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             # Limpiar alertas de prueba anteriores
             cur.execute("DELETE FROM openfda_alerts WHERE producto_nombre LIKE 'TEST%'")
             cur.execute("DELETE FROM rasff_alerts WHERE producto_nombre LIKE 'TEST%'")

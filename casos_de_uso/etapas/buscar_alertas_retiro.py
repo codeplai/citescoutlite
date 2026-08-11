@@ -56,8 +56,7 @@ async def buscar_alertas_para_etapa5(
     try:
         from adaptadores.db import pool
         # Verificar que las tablas existen (query rápida)
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             cur.execute(
                 "SELECT 1 FROM information_schema.tables "
                 "WHERE table_name = 'openfda_alerts' LIMIT 1"

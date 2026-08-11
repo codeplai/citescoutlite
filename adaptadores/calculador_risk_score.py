@@ -126,14 +126,13 @@ class CalculadorRiskScore:
             True si guardó correctamente
         """
         try:
-            conn = pool().connection()
-            with conn.cursor() as cur:
+            with pool().connection() as conn, conn.cursor() as cur:
                 # Upsert: si existe, actualizar; si no, insertar
                 cur.execute(
                     """
                     INSERT INTO alert_scores (alert_id, alert_tipo, score, severity_label, dias_desde_emitida)
                     VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (alert_id) DO UPDATE SET
+                    ON CONFLICT (alert_id, alert_tipo) DO UPDATE SET
                         score = EXCLUDED.score,
                         severity_label = EXCLUDED.severity_label,
                         dias_desde_emitida = EXCLUDED.dias_desde_emitida
@@ -220,8 +219,7 @@ async def obtener_pesos_de_bd() -> Dict[str, float]:
         clave='risk_score_pesos', valor=JSON con pesos
     """
     try:
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             # Buscar configuración (asume tabla 'config')
             cur.execute(
                 """

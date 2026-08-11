@@ -33,18 +33,18 @@ class DescargadorOpenFDAAlerts(DescargadorAlertas):
         self.logger = logger
 
     async def validar_acceso(self) -> bool:
-        """Verificar que openFDA API responde."""
+        """Verificar que openFDA API responde.
+
+        Sin filtro de fecha a proposito. Antes preguntaba por las ultimas 24h,
+        pero openFDA responde 404 NOT_FOUND cuando una busqueda no tiene
+        coincidencias —no un array vacio—, y los recalls de alimentos no son
+        diarios. Cualquier dia tranquilo se leia como "API caida" y el job se
+        saltaba la ingesta entera.
+        """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # Probar con query simple (últimas 24h)
-                ahora = datetime.utcnow()
-                ayer = ahora - timedelta(days=1)
-
                 url = OPENFDA_API_BASE
-                params = {
-                    "search": f'report_date:[{ayer.strftime("%Y%m%d")} TO {ahora.strftime("%Y%m%d")}]',
-                    "limit": 1
-                }
+                params = {"limit": 1}
 
                 response = await client.get(url, params=params, timeout=self.timeout)
                 is_ok = response.status_code < 400
@@ -97,6 +97,15 @@ class DescargadorOpenFDAAlerts(DescargadorAlertas):
                             else:
                                 self.logger.info(f"  ℹ️  openFDA: 0 alertas en las últimas 24h")
 
+                            break
+
+                        elif response.status_code == 404:
+                            # openFDA devuelve 404 NOT_FOUND cuando la busqueda
+                            # no tiene coincidencias. Es una respuesta valida
+                            # que significa "0 alertas", no un fallo: sin este
+                            # caso caia en el else y gastaba los 3 reintentos
+                            # con backoff antes de rendirse.
+                            self.logger.info("  ℹ️  openFDA: 0 alertas en las últimas 24h")
                             break
 
                         elif response.status_code == 429:

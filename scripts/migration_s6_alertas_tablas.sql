@@ -90,6 +90,17 @@ CREATE TABLE IF NOT EXISTS alert_scores (
 CREATE INDEX IF NOT EXISTS idx_alert_scores_alert_id
     ON alert_scores(alert_id);
 
+-- Un score por alerta y fuente. Es la clave natural: las consultas del
+-- dashboard emparejan siempre por (alert_id, alert_tipo).
+--
+-- Va como indice unico y no como CONSTRAINT porque asi es idempotente sobre
+-- una tabla que ya existe (Postgres no tiene ADD CONSTRAINT IF NOT EXISTS).
+-- Sin el, el upsert de CalculadorRiskScore fallaba con "there is no unique or
+-- exclusion constraint matching the ON CONFLICT specification" y no se
+-- guardaba ni un score.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_alert_scores_alerta
+    ON alert_scores(alert_id, alert_tipo);
+
 CREATE INDEX IF NOT EXISTS idx_alert_scores_severity
     ON alert_scores(severity_label);
 
