@@ -6,7 +6,34 @@
 
 ---
 
-## 🔴 RESUMEN EJECUTIVO
+> ## ✅ CIERRE (2026-08-11)
+>
+> S7 está implementada. Lo que sigue es la auditoría que se hizo antes de
+> empezar, conservada porque explica **por qué** cada cosa se hizo como se hizo.
+> Los bloqueadores llevan marcado su estado.
+>
+> | Ítem | Estado |
+> |---|---|
+> | 7.1 Watermark | ✅ `dominio/watermark.py` |
+> | 7.2 promotion_rules | ⚠️ Tabla y reglas sí; **el editor del panel no** |
+> | 7.3 Validador | ✅ `casos_de_uso/promocion/validador.py` |
+> | 7.4 promotion_log | ✅ Migración 007 |
+> | 7.5 Job nocturno | ✅ `config/job_promotion_auto.py`, 04:00 UTC |
+> | 7.6 UI manual | ✅ `Promociones.vue` + 6 endpoints + rol admin |
+> | 7.7 promotion_source | ✅ Resuelto por D1 (migración 006) |
+> | 7.8 Tests edge | ✅ Los 6 casos del plan |
+> | 7.9 Dashboard | ✅ `PromocionesDashboard.vue` |
+> | 7.10 Documentación | ✅ [PROMOTION_PROCEDURES.md](PROMOTION_PROCEDURES.md) |
+>
+> **Lo que queda abierto y no depende de código:**
+> 1. La credencial de ModelArts da 403 → `staging_agente` vacío → todo corre
+>    sobre cero ofertas. Bloquea también las etapas 1 y 3-5.
+> 2. Tres de las seis reglas están apagadas por falta de datos (precio
+>    histórico por producto, stock en unidades, clasificación de tienda).
+> 3. El editor de reglas de 7.2 quedó sin construir: se opera por SQL.
+> 4. La UI no se ha visto renderizada en un navegador.
+
+## 🔴 RESUMEN EJECUTIVO (auditoría previa, 2026-08-10)
 
 S7 promueve ofertas **desde** `staging_agente` **hacia** `catalogo_comercial`.
 
