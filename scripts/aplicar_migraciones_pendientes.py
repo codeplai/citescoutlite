@@ -57,6 +57,8 @@ MIGRACIONES = [
      "S6 - alertas de retiro openFDA + RASFF (6 tablas)"),
     ("supabase/migraciones/006_promotion_source.sql",
      "S7.7 (D1) - promotion_source en staging_agente + vista staging_promovido"),
+    ("supabase/migraciones/007_promocion_s7.sql",
+     "S7.1-7.4 - promotion_rules, watermark_log, validation_log, promotion_log"),
 ]
 
 # Lo que debe existir al terminar.
@@ -74,6 +76,9 @@ TABLAS_ESPERADAS = [
     # S6
     "openfda_alerts", "rasff_alerts", "alert_scores", "alert_lookup_log",
     "alert_ingest_log", "alert_notification_history",
+    # 007 (S7)
+    "promotion_rules", "promotion_watermark_log", "promotion_validation_log",
+    "promotion_log",
 ]
 
 VISTAS_ESPERADAS = ["uso_mensual", "staging_pendiente", "staging_promovido",
