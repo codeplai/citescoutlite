@@ -81,7 +81,7 @@ class TestDedupBasics:
         assert merged2.precio.source == "N1_VTEX"
         assert merged2.stock.valor == "50"
         assert merged2.stock.source == "N2_BRIGHT_DATA"
-        assert conflicts2 is None  # Sin conflictos (campos diferentes)
+        assert conflicts2 is not None and len(conflicts2) == 0  # Sin conflictos (campos diferentes)
 
     def test_conflict_n1_wins(self, catalogo):
         """Conflicto: N1 gana cuando ambos tienen precio."""
@@ -258,6 +258,6 @@ class TestIntegrationP14:
         assert merged2.categoria.source == "N2_BRIGHT_DATA"
 
         # Sin conflictos (campos complementarios)
-        assert conflicts is None
+        assert conflicts is not None and len(conflicts) == 0
 
         print("✅ P14 dedup scenario: N1 precio + N2 stock merged correctly")
