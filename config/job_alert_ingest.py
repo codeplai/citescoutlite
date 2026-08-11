@@ -26,9 +26,14 @@ from puertos.descargador_alertas import AlertaNormalizada
 
 logger = logging.getLogger(__name__)
 
-# Importar Procrastinate si está configurado
+# Importar Procrastinate si está configurado.
+#
+# El app vive en procrastinate_config, no en job_scheduling (que solo documenta
+# horarios y no define ninguno). Apuntaba ahi y el ImportError se tragaba
+# silenciosamente, con lo que el periodic task de las 03:00 UTC nunca llego a
+# registrarse.
 try:
-    from config.job_scheduling import app as procrastinate_app
+    from config.procrastinate_config import app as procrastinate_app
     PROCRASTINATE_AVAILABLE = True
 except ImportError:
     PROCRASTINATE_AVAILABLE = False
@@ -65,8 +70,7 @@ async def ingestar_alertas_openFDA() -> Tuple[int, int, int]:
         logger.info(f"  ✅ Descargadas {len(alertas)} alertas de openFDA")
 
         # Ingestar en BD
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             for alerta in alertas:
                 try:
                     # Intentar insertar
@@ -139,8 +143,7 @@ async def ingestar_alertas_rasff() -> Tuple[int, int, int]:
         logger.info(f"  ✅ Descargadas {len(alertas)} alertas de RASFF")
 
         # Ingestar en BD
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             for alerta in alertas:
                 try:
                     # Intentar insertar
@@ -202,9 +205,8 @@ async def calcular_scores_alertas() -> int:
 
     try:
         calculador = CalculadorRiskScore()
-        conn = pool().connection()
 
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             # Alertas sin score
             cur.execute(
                 """
@@ -264,8 +266,7 @@ async def notificar_alertas_criticas() -> int:
     notificaciones = 0
 
     try:
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             # Alertas críticas de las últimas 24h no notificadas
             cur.execute(
                 """
@@ -365,8 +366,7 @@ async def job_alert_ingest() -> Dict[str, Any]:
 
         logger.info("\n4️⃣  Registrando estadísticas en alert_ingest_log")
         try:
-            conn = pool().connection()
-            with conn.cursor() as cur:
+            with pool().connection() as conn, conn.cursor() as cur:
                 cur.execute(
                     """
                     INSERT INTO alert_ingest_log

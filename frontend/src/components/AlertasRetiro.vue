@@ -245,9 +245,15 @@
 </template>
 
 <script>
+// Las llamadas pasan por el cliente de api.js y no por fetch directo: es el
+// unico sitio que adjunta el token y el que cierra la sesion ante un 401.
+//
+// Este componente venia escrito para Vue CLI (process.env.VUE_APP_*, puerto
+// 8000, clave de token "token"). Nada de eso existe aqui: el bundler es Vite,
+// la API escucha en 8001 y el token se guarda en `agroscout_token`. Tal cual
+// estaba, reventaba al montarlo con "process is not defined".
 import { ref, onMounted } from "vue";
-
-const API_BASE = process.env.VUE_APP_API_URL || "http://localhost:8000";
+import { api } from "../api.js";
 
 export default {
   name: "AlertasRetiro",
@@ -272,36 +278,18 @@ export default {
       cargando.value = true;
 
       try {
-        const params = new URLSearchParams({
+        const data = await api.alertasActivas({
           limite: filtroLimite.value,
           dias: filtroDias.value,
+          severidad: filtroSeveridad.value,
         });
 
-        if (filtroSeveridad.value) {
-          params.append("severidad", filtroSeveridad.value);
-        }
-
-        const response = await fetch(
-          `${API_BASE}/api/alertas/activas?${params}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}`);
-        }
-
-        const data = await response.json();
         alertas.value = data.alertas;
-        estadisticas.value = {
-          total_alertas: data.cantidad_total,
-          alertas_criticas: data.cantidad_criticas,
-          alertas_activas_90d: data.cantidad_activas,
-          ultima_actualizacion: data.ultima_actualizacion,
-        };
+        // Las tarjetas de arriba NO se rellenan desde aqui. Los conteos que
+        // devuelve /activas son los de la pagina ya filtrada y recortada por
+        // el limite, asi que al filtrar por "critical" las tarjetas pasaban a
+        // mostrar el total de lo filtrado en vez del global. Los totales
+        // buenos salen de /estadisticas/resumen.
       } catch (error) {
         console.error("Error cargando alertas:", error);
         alertas.value = [];
@@ -313,16 +301,7 @@ export default {
     // Cargar estadísticas
     const cargarEstadisticas = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/alertas/estadisticas/resumen`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          estadisticas.value = data;
-        }
+        estadisticas.value = await api.estadisticasAlertas();
       } catch (error) {
         console.error("Error cargando estadísticas:", error);
       }
@@ -331,15 +310,7 @@ export default {
     // Mostrar detalle de alerta
     const mostrarDetalle = async (alerta) => {
       try {
-        const response = await fetch(`${API_BASE}/api/alertas/${alerta.alert_id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        if (response.ok) {
-          alertaSeleccionada.value = await response.json();
-        }
+        alertaSeleccionada.value = await api.alertaDetalle(alerta.alert_id);
       } catch (error) {
         console.error("Error cargando detalles:", error);
       }

@@ -28,6 +28,7 @@ from api.health import router as health_router
 from api.websocket_jobs import router as websocket_router
 from api.webhooks import router as webhooks_router
 from api.discovery import router as discovery_router
+from api.alertas import router as alertas_router
 
 load_dotenv()
 
@@ -52,6 +53,10 @@ app.include_router(health_router)
 app.include_router(websocket_router)
 app.include_router(webhooks_router)
 app.include_router(discovery_router)
+# S6.7. Solo tiene sentido contra Postgres: las tablas de alertas no existen en
+# el SQLite del plan B, y sus consultas usan el pool de adaptadores/db.py.
+if USA_SUPABASE:
+    app.include_router(alertas_router)
 
 # Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
 # desarrollo en la propia maquina.

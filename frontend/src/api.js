@@ -67,4 +67,15 @@ export const api = {
    * porque un enlace emitido al principio puede caducar antes de usarse.
    */
   urlInforme: (ejecucionId) => pedir(`/informes/${ejecucionId}`),
+
+  // S6.7 - Alertas de retiro (openFDA + RASFF).
+  alertasActivas: ({ limite = 50, dias = 90, severidad = '' } = {}) => {
+    const params = new URLSearchParams({ limite, dias })
+    if (severidad) params.append('severidad', severidad)
+    return pedir(`/api/alertas/activas?${params}`)
+  },
+
+  alertaDetalle: (alertId) => pedir(`/api/alertas/${alertId}`),
+
+  estadisticasAlertas: () => pedir('/api/alertas/estadisticas/resumen'),
 }

@@ -31,6 +31,11 @@ dependencies = [
     "supabase>=2.0.0",
     "procrastinate>=2.0.0",
     "pydantic-ai>=0.2.0",
+    # El agente de S2 la importa a nivel de modulo, y de ahi cuelga la cadena
+    # api.main -> discovery -> cascada -> agente. Estaba solo en
+    # requirements.txt, asi que con uv (que lee este archivo) la API no
+    # levantaba: ModuleNotFoundError: No module named 'tavily'.
+    "tavily-python>=0.3.0",
     "trafilatura>=1.6.0",
     "beautifulsoup4>=4.12.0",
     "redis>=5.0.0",

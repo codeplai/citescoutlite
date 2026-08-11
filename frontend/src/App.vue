@@ -5,18 +5,39 @@
     <div v-else class="main-content">
       <nav class="navbar glass-panel">
         <div class="logo">AgroScout <span class="highlight">IA</span></div>
+        <div class="tabs">
+          <button
+            :class="['tab-btn', { activa: vista === 'consulta' }]"
+            @click="vista = 'consulta'"
+          >
+            Consulta
+          </button>
+          <button
+            :class="['tab-btn', { activa: vista === 'alertas' }]"
+            @click="vista = 'alertas'"
+          >
+            Alertas de retiro
+          </button>
+        </div>
         <div class="user-info">
           <span>{{ userEmail }}</span>
           <button @click="logout" class="logout-btn">Salir</button>
         </div>
       </nav>
 
-      <Search v-if="!currentResult" @search-result="handleResult" />
-      
-      <div v-if="currentResult">
-        <TokenUsage :ejecucion-id="currentResult.ejecucion_id" />
-        <Result :result="currentResult" @reset="currentResult = null" />
-      </div>
+      <template v-if="vista === 'consulta'">
+        <Search v-if="!currentResult" @search-result="handleResult" />
+
+        <div v-if="currentResult">
+          <TokenUsage :ejecucion-id="currentResult.ejecucion_id" />
+          <Result :result="currentResult" @reset="currentResult = null" />
+        </div>
+      </template>
+
+      <!-- S6.7. Se monta aqui en vez de con vue-router: la SPA no lo usa y
+           meter una dependencia de enrutado por una segunda pantalla seria
+           desproporcionado. Cuando llegue el panel de S8 tocara replantearlo. -->
+      <AlertasRetiro v-else-if="vista === 'alertas'" />
     </div>
   </div>
 </template>
@@ -27,15 +48,18 @@ import Login from './components/Login.vue'
 import Search from './components/Search.vue'
 import Result from './components/Result.vue'
 import TokenUsage from './components/TokenUsage.vue'
+import AlertasRetiro from './components/AlertasRetiro.vue'
 import { CLAVE_TOKEN, CLAVE_USUARIO } from './api.js'
 
 const isAuthenticated = ref(false)
 const userEmail = ref('')
 const currentResult = ref(null)
+const vista = ref('consulta')
 
 const cerrarSesion = () => {
   isAuthenticated.value = false
   currentResult.value = null
+  vista.value = 'consulta'
 }
 
 onMounted(() => {
@@ -91,6 +115,32 @@ const handleResult = (data) => {
   background: var(--accent-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: inherit;
+}
+
+.tab-btn.activa {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: inherit;
 }
 
 .user-info {

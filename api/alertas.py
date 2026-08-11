@@ -41,7 +41,12 @@ class AlertaItemResponse(BaseModel):
 
 
 class AlertasActivasResponse(BaseModel):
-    """Respuesta para listado de alertas activas."""
+    """Respuesta para listado de alertas activas.
+
+    Ojo con las tres cantidades: son de **la pagina devuelta**, ya filtrada por
+    severidad y recortada por `limite`. No son totales del sistema. Para eso
+    esta /estadisticas/resumen, que cuenta sobre la tabla entera.
+    """
 
     alertas: List[AlertaItemResponse]
     cantidad_total: int
@@ -82,7 +87,7 @@ class AlertaDetalleResponse(BaseModel):
 async def obtener_alertas_activas(
     limite: int = Query(50, ge=1, le=200),
     dias: int = Query(90, ge=1, le=365),
-    severidad: Optional[str] = Query(None, regex="^(critical|high|medium|low)$"),
+    severidad: Optional[str] = Query(None, pattern="^(critical|high|medium|low)$"),
 ):
     """
     Obtener alertas activas (últimas N días).
@@ -96,53 +101,51 @@ async def obtener_alertas_activas(
         AlertasActivasResponse con listado + estadísticas
     """
     try:
-        conn = pool().connection()
-        with conn.cursor() as cur:
-            # Query base: últimas 90 días
-            fecha_cutoff = f"CURRENT_DATE - {dias}"
-            severidad_filter = ""
-            params = [limite]
+        with pool().connection() as conn, conn.cursor() as cur:
+            # El filtro de severidad y el ORDER BY van FUERA del UNION, envuelto
+            # en una subconsulta: Postgres solo admite en el ORDER BY de un UNION
+            # las columnas del resultado, no alias de las tablas de cada rama.
+            #
+            # La columna de score se llama `score` en alert_scores; el nombre
+            # severity_score es el del contrato de la API, y se traduce aqui.
+            cur.execute(
+                """
+                SELECT * FROM (
+                    SELECT o.alert_id, o.producto_nombre, o.razon_categoria,
+                           o.razon_texto, o.fecha_emitida, o.url_oficial,
+                           o.pais, 'openfda' AS fuente,
+                           s.score, s.severity_label
+                      FROM openfda_alerts o
+                      LEFT JOIN alert_scores s
+                             ON s.alert_id = o.alert_id AND s.alert_tipo = 'openfda'
+                     WHERE o.fecha_emitida >= CURRENT_DATE - %(dias)s
 
-            if severidad:
-                severidad_filter = "AND s.severity_label = %s"
-                params.append(severidad)
+                    UNION ALL
 
-            # Alertas de openFDA
-            query = f"""
-            SELECT
-                o.alert_id, o.producto_nombre, o.razon_categoria,
-                o.razon_texto, o.fecha_emitida, o.url_oficial,
-                o.pais, 'openfda' as fuente,
-                s.severity_score, s.severity_label
-            FROM openfda_alerts o
-            LEFT JOIN alert_scores s ON o.alert_id = s.alert_id AND s.alert_tipo = 'openfda'
-            WHERE o.fecha_emitida >= {fecha_cutoff}
-            {severidad_filter}
-
-            UNION ALL
-
-            SELECT
-                r.rasff_id, r.producto_nombre, r.hazard_categoria,
-                r.hazard_texto, r.fecha_emitida, r.url_oficial,
-                r.pais_destino, 'rasff' as fuente,
-                s.severity_score, s.severity_label
-            FROM rasff_alerts r
-            LEFT JOIN alert_scores s ON r.rasff_id = s.alert_id AND s.alert_tipo = 'rasff'
-            WHERE r.fecha_emitida >= {fecha_cutoff}
-            {severidad_filter}
-
-            ORDER BY
-                CASE
-                    WHEN s.severity_label = 'critical' THEN 1
-                    WHEN s.severity_label = 'high' THEN 2
-                    WHEN s.severity_label = 'medium' THEN 3
-                    ELSE 4
-                END,
-                fecha_emitida DESC
-            LIMIT %s
-            """
-
-            cur.execute(query, params)
+                    SELECT r.rasff_id, r.producto_nombre, r.hazard_categoria,
+                           r.hazard_texto, r.fecha_emitida, r.url_oficial,
+                           r.pais_destino, 'rasff' AS fuente,
+                           s.score, s.severity_label
+                      FROM rasff_alerts r
+                      LEFT JOIN alert_scores s
+                             ON s.alert_id = r.rasff_id AND s.alert_tipo = 'rasff'
+                     WHERE r.fecha_emitida >= CURRENT_DATE - %(dias)s
+                ) a
+                 -- El ::text no es decorativo: sin el, Postgres no puede
+                 -- inferir el tipo del parametro suelto en `$n IS NULL`.
+                 WHERE %(severidad)s::text IS NULL
+                    OR a.severity_label = %(severidad)s::text
+                 ORDER BY CASE a.severity_label
+                              WHEN 'critical' THEN 1
+                              WHEN 'high'     THEN 2
+                              WHEN 'medium'   THEN 3
+                              ELSE 4
+                          END,
+                          a.fecha_emitida DESC
+                 LIMIT %(limite)s
+                """,
+                {"dias": dias, "severidad": severidad, "limite": limite},
+            )
 
             alertas = []
             cantidad_criticas = 0
@@ -220,7 +223,10 @@ async def obtener_alertas_criticas(
     Returns:
         AlertasActivasResponse con solo críticas
     """
-    return await obtener_alertas_activas(limite=limite, severidad="critical")
+    # `dias` va explicito aunque su valor sea el mismo que el de por defecto:
+    # esto es una llamada de Python normal, no una peticion HTTP, asi que
+    # FastAPI no resuelve los Query() y el default llegaria como objeto Query.
+    return await obtener_alertas_activas(limite=limite, dias=90, severidad="critical")
 
 
 @router.get("/{alert_id}", response_model=AlertaDetalleResponse)
@@ -235,8 +241,7 @@ async def obtener_alerta_detalle(alert_id: str):
         AlertaDetalleResponse con todos los campos
     """
     try:
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             # Buscar en openFDA
             cur.execute(
                 """
@@ -245,10 +250,11 @@ async def obtener_alerta_detalle(alert_id: str):
                     o.razon_categoria, o.razon_texto, o.fecha_emitida,
                     o.url_oficial, o.pais, o.pais,  -- pais_destino = pais
                     o.empresa, o.titulo_enforcement,
-                    s.severity_score, s.severity_label,
+                    s.score, s.severity_label,
                     NULL as similitud, o.created_at
                 FROM openfda_alerts o
-                LEFT JOIN alert_scores s ON o.alert_id = s.alert_id
+                LEFT JOIN alert_scores s
+                       ON s.alert_id = o.alert_id AND s.alert_tipo = 'openfda'
                 WHERE o.alert_id = %s
                 """,
                 (alert_id,),
@@ -265,10 +271,11 @@ async def obtener_alerta_detalle(alert_id: str):
                         r.hazard_categoria, r.hazard_texto, r.fecha_emitida,
                         r.url_oficial, r.pais_origen, r.pais_destino,
                         NULL, r.reference_number,
-                        s.severity_score, s.severity_label,
+                        s.score, s.severity_label,
                         NULL as similitud, r.created_at
                     FROM rasff_alerts r
-                    LEFT JOIN alert_scores s ON r.rasff_id = s.alert_id
+                    LEFT JOIN alert_scores s
+                           ON s.alert_id = r.rasff_id AND s.alert_tipo = 'rasff'
                     WHERE r.rasff_id = %s
                     """,
                     (alert_id,),
@@ -341,8 +348,7 @@ async def obtener_estadisticas_resumen():
         }
     """
     try:
-        conn = pool().connection()
-        with conn.cursor() as cur:
+        with pool().connection() as conn, conn.cursor() as cur:
             # Total de alertas
             cur.execute("SELECT COUNT(*) FROM openfda_alerts")
             total_openfda = cur.fetchone()[0]
