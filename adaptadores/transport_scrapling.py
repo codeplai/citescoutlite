@@ -2,9 +2,23 @@
 S5.1 - Scrapling Transport
 
 Adaptador que renderiza JavaScript usando Scrapling SDK.
-Soporta 30-50 tiendas dinámicas (SPAs, lazy-load, etc).
+Pensado para las tiendas dinamicas (SPAs, lazy-load) que no se pueden leer con
+una descarga simple.
 
 Docs: https://scrapling.dev/docs
+
+ESTADO: NO IMPLEMENTADO. Falta lo de fuera, no el codigo:
+
+  1. La dependencia `scrapling` no esta declarada ni instalada.
+  2. No hay SCRAPLING_API_KEY en el entorno (es un servicio de pago).
+  3. TIENDAS_JS_PESADAS nunca se lleno: la auditoria de S5.1.4 no se hizo.
+
+Hasta que eso exista, `buscar()` devuelve NOT_CONFIGURED. Antes devolvia un
+HTML de mentira —"<!-- Rendered by Scrapling ... -->"— con status SUCCESS, y
+eso es peor que no estar: quien lo conectara al barrido habria contado esas
+tiendas como verificadas en sweep_attempts, inflando la cobertura declarada de
+P14 con tiendas que nunca se consultaron. La cobertura es justo lo que se le
+promete al cliente como medido.
 """
 
 import logging
@@ -22,6 +36,10 @@ class TransportStatus(str, Enum):
     RATE_LIMITED = "rate_limited"
     BLOCKED = "blocked"
     ERROR = "error"
+    # El transporte no esta operativo (sin SDK o sin credencial). No es un
+    # fallo de la tienda: no debe contar como intento verificado ni como
+    # bloqueo de la tienda al calcular cobertura.
+    NOT_CONFIGURED = "not_configured"
 
 
 class ScraplingTransport:
@@ -35,12 +53,11 @@ class ScraplingTransport:
     - Fallback: si falla, retornar HTML vacío (status='timeout')
     """
 
-    # Tiendas dinámicas (JS-heavy) identificadas en S5.1
-    TIENDAS_JS_PESADAS = {
-        "shopify_dynamic": "https://shop.example.com",  # Placeholder
-        "spa_framework": "https://spa.example.com",     # Placeholder
-        # Se completa en S5.1.4 con auditoría real
-    }
+    # Tiendas dinamicas (JS-heavy). Vacio: la auditoria de S5.1.4 que debia
+    # llenarlo no se hizo. Tenia dos entradas de ejemplo, shop.example.com y
+    # spa.example.com, que get_tiendas_soportadas() devolvia como si fueran
+    # tiendas reales soportadas.
+    TIENDAS_JS_PESADAS: dict[str, str] = {}
 
     def __init__(self, api_key: Optional[str] = None, timeout_sec: int = 30, max_workers: int = 5):
         """
@@ -58,11 +75,16 @@ class ScraplingTransport:
         self._request_count = 0
         self._last_request_time = 0
 
-        # TODO: Instanciar cliente Scrapling real cuando esté disponible
-        # from scrapling import Client
-        # self.client = Client(api_key=api_key)
+        # Cuando la dependencia exista, aqui va:
+        #     from scrapling import Client
+        #     self.client = Client(api_key=self.api_key)
+        # De momento no hay SDK que instanciar, y se dice en voz alta en vez de
+        # dejar el atributo a None sin mas.
         self.client = None
-        logger.info(f"ScraplingTransport initialized: timeout={timeout_sec}s, workers={max_workers}")
+        logger.warning(
+            "ScraplingTransport sin cliente: falta la dependencia `scrapling` "
+            "y SCRAPLING_API_KEY. buscar() devolvera NOT_CONFIGURED."
+        )
 
     async def buscar(self, url: str, query: str, tienda_id: str) -> tuple[str, TransportStatus]:
         """
@@ -78,20 +100,23 @@ class ScraplingTransport:
             - html_completo: HTML renderizado con JS ejecutado
             - status: TransportStatus indicando resultado
         """
+        if self.client is None:
+            # Sin SDK no hay nada que renderizar. Se sale antes del rate-limit
+            # porque no hay peticion que espaciar.
+            logger.warning(
+                f"Scrapling no configurado; no se consulta {tienda_id} ({url})")
+            return "", TransportStatus.NOT_CONFIGURED
+
         try:
             # Aplicar rate-limit (0.1 req/s)
             await self._apply_rate_limit()
 
             logger.info(f"Scrapling request: tienda={tienda_id}, url={url}, query={query}")
 
-            # TODO: Reemplazar con cliente Scrapling real
-            # html = await asyncio.wait_for(
-            #     self.client.render_page(url, headless=True),
-            #     timeout=self.timeout_sec
-            # )
-
-            # Mock: por ahora retornar HTML de placeholder
-            html = f"<!-- Rendered by Scrapling: {url}?q={query} -->"
+            html = await asyncio.wait_for(
+                self.client.render_page(url, headless=True),
+                timeout=self.timeout_sec,
+            )
 
             return html, TransportStatus.SUCCESS
 
@@ -118,11 +143,19 @@ class ScraplingTransport:
         self._request_count += 1
 
     async def test_connection(self) -> bool:
-        """Test que Scrapling API está disponible."""
+        """Test que Scrapling API está disponible.
+
+        Devolvia True incondicionalmente, incluso sin cliente: un chequeo de
+        salud que solo sabe decir que si no sirve para nada, y aqui ademas
+        habria dado por operativo un transporte inexistente.
+        """
+        if self.client is None:
+            logger.warning("Scrapling sin cliente: conexión no disponible")
+            return False
+
         try:
             logger.info("Testing Scrapling connection...")
-            # TODO: Test real contra API de Scrapling
-            # await self.client.test_auth()
+            await self.client.test_auth()
             logger.info("Scrapling connection OK")
             return True
         except Exception as e:
@@ -130,5 +163,5 @@ class ScraplingTransport:
             return False
 
     def get_tiendas_soportadas(self) -> list[str]:
-        """Retornar tiendas dinámicas soportadas por Scrapling."""
+        """Tiendas dinámicas soportadas. Vacío mientras no haya auditoría."""
         return list(self.TIENDAS_JS_PESADAS.keys())
