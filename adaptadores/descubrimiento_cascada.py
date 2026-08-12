@@ -130,14 +130,90 @@ class DescubrimientoCascada:
 
         return False
 
+    def _a_staging(self, insumo: str, pais: str, mes: str, producto: dict,
+                   fuente_url: str, evidencia: str | None, modelo: str,
+                   verificador, cambio) -> dict:
+        """Una oferta lista para `staging_agente`, venga de donde venga.
+
+        El grounding se calcula AQUI y viaja con la oferta. Antes no se
+        calculaba en ninguna parte del camino a staging, asi que
+        `grounding_check_status` llegaba a null a la tabla y la regla
+        `grounding_ok` de S7 —que esta activa— no tenia nada que leer.
+        Verificar en el momento tambien es lo unico correcto: se comprueba
+        contra la misma evidencia que se guarda, no contra una descarga
+        posterior en la que el precio ya podria ser otro.
+
+        La conversion a soles va DESPUES de extraer y de verificar, nunca
+        antes:
+
+        - El modelo no la ve. Si `conversion_soles` estuviera en
+          ProductoSchema, instructor la mandaria en la definicion de la
+          herramienta y el modelo se inventaria una tasa.
+        - El precio convertido **no esta en la pagina**: meterlo en `precio`
+          haria fallar el grounding de toda oferta de fuera. Por eso el
+          original no se toca y la cifra en soles viaja aparte, con su tasa,
+          su fecha y su fuente.
+        """
+        grounding = verificador.verificar(evidencia or "", producto)
+
+        conversion = cambio.a_soles(producto.get("precio"),
+                                    producto.get("moneda"))
+        if conversion is not None:
+            producto["conversion_soles"] = conversion.to_json()
+
+        return {
+            "insumo": insumo,
+            "pais": pais,
+            "mes": mes,
+            "producto_json": producto,
+            "fuente_url": fuente_url,
+            "html_capturado": evidencia,
+            "provenance": "agente",
+            "no_verificado": True,  # Requiere promocion manual
+            "grounding_check_status": grounding.to_json(),
+            "modelo_usado": modelo,
+        }
+
+    async def descubrir_tiendas_conocidas(self, insumo: str, pais: str) -> list[dict]:
+        """Catalogo de las cadenas peruanas, antes de salir a buscar a ciegas.
+
+        Va primero porque es estrictamente mejor que el barrido web para las
+        tiendas que cubre: es un API publico, sin anti-bot, sin coste y sin
+        modelo de por medio, y ademas da stock en unidades y EAN, que raspando
+        una ficha no se consiguen.
+
+        Que falle no interrumpe nada: el agente sigue detras.
+        """
+        from adaptadores.catalogo_vtex import CatalogoVTEX
+        from adaptadores.tipo_cambio import tipo_cambio
+        from casos_de_uso.agente.grounding_check import GroundingChecker
+
+        mes = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m")
+        verificador, cambio = GroundingChecker(), tipo_cambio()
+
+        try:
+            ofertas = await CatalogoVTEX().buscar(insumo)
+        except Exception as e:
+            logger.warning(f"Catalogo de tiendas conocidas fallo: {e}")
+            return []
+
+        return [self._a_staging(insumo, pais, mes, o.producto.model_dump(),
+                                o.fuente_url, o.evidencia, f"vtex:{o.tienda}",
+                                verificador, cambio)
+                for o in ofertas]
+
     async def descubrir_n3(
         self, insumo: str, pais: str
     ) -> tuple[AgenteResultado, list[dict]]:
         """
-        Ejecuta N3: agente investigador comercial.
+        Ejecuta N3: catalogo de tiendas conocidas + agente investigador.
         Retorna: (resultado_agente, lista_para_staging_agente)
         """
         agente = await self._get_agente()
+
+        # Las cadenas conocidas primero. No compite con el agente: lo
+        # complementa, porque cubre justo las tiendas donde el agente falla.
+        items_tiendas = await self.descubrir_tiendas_conocidas(insumo, pais)
 
         try:
             resultado = await asyncio.wait_for(
@@ -145,26 +221,44 @@ class DescubrimientoCascada:
                 timeout=120,  # 2 minutos total
             )
 
-            # Convertir AgenteResultado a lista de dicts para staging
-            staging_items = []
-            for extraccion in resultado.productos_encontrados:
-                staging_items.append({
-                    "insumo": insumo,
-                    "pais": pais,
-                    "producto_json": extraccion.producto.model_dump(),
-                    "fuente_url": extraccion.fuente_url,
-                    "html_capturado": extraccion.html_capturado,
-                    "provenance": "agente",
-                    "no_verificado": True,  # Requiere promoción manual
-                    "timestamp": extraccion.timestamp.isoformat(),
-                    "modelo_usado": extraccion.modelo_usado,
-                })
+            from adaptadores.tipo_cambio import tipo_cambio
+            from casos_de_uso.agente.grounding_check import GroundingChecker
 
-            return resultado, staging_items
+            verificador, cambio = GroundingChecker(), tipo_cambio()
+            mes = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m")
 
-        except asyncio.TimeoutError:
-            raise TimeoutError(f"Agente N3 timeout después de 120s para '{insumo}' en {pais}")
-        except Exception as e:
+            del_agente = [
+                self._a_staging(insumo, pais, mes,
+                                extraccion.producto.model_dump(),
+                                extraccion.fuente_url, extraccion.html_capturado,
+                                extraccion.modelo_usado, verificador, cambio)
+                for extraccion in resultado.productos_encontrados
+            ]
+
+            # Las de las cadenas van delante: son las de mejor procedencia
+            # (precio y stock del propio catalogo) y quien revise la cuarentena
+            # las vera primero.
+            return resultado, items_tiendas + del_agente
+
+        except (asyncio.TimeoutError, Exception) as e:
+            # Si el agente se cae pero las cadenas ya dieron ofertas, se
+            # devuelven esas. Perder un catalogo consultado con exito porque
+            # despues fallara una busqueda web seria tirar el dato de mejor
+            # procedencia por culpa del de peor.
+            if items_tiendas:
+                motivo = ("timeout" if isinstance(e, asyncio.TimeoutError)
+                          else f"{type(e).__name__}: {e}")
+                logger.warning(f"El agente fallo ({motivo}); se conservan "
+                               f"{len(items_tiendas)} oferta(s) de las cadenas")
+                return AgenteResultado(
+                    insumo=insumo, pais=pais, productos_encontrados=[],
+                    total_items_buscados=0, tiempo_total_ms=0,
+                    errores=[str(e)[:200]], estado="parcial",
+                ), items_tiendas
+
+            if isinstance(e, asyncio.TimeoutError):
+                raise TimeoutError(
+                    f"Agente N3 timeout después de 120s para '{insumo}' en {pais}")
             raise RuntimeError(f"Agente N3 error: {e}")
 
     async def descubrir_n2(self, insumo: str, pais: str, run_id: str, timeout_sec: int = 30) -> list[ProductoEnMercado]:

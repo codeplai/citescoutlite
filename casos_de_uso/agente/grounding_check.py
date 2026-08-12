@@ -59,7 +59,17 @@ class GroundingChecker:
         self.case_sensitive = case_sensitive
 
     def _normalizar_texto(self, texto: str) -> str:
-        """Normaliza texto para búsqueda (espacios múltiples, etc)."""
+        """Normaliza texto para búsqueda (espacios múltiples, etc).
+
+        Se quitan también las barras invertidas. La evidencia que se guarda es
+        JSON —el nodo JSON-LD de la página o la respuesta del catálogo—, y ahí
+        una comilla dentro de un valor viaja escapada. Un producto llamado
+        `Smartphone MOTOROLA G17 6.8" ... Arándano` queda en la evidencia como
+        `6.8\\"`, y la comparación literal fallaba por esa barra: el grounding
+        daba por inventado un nombre que estaba entero delante. Afectaría a
+        cualquier ficha con pulgadas en el nombre.
+        """
+        texto = texto.replace("\\", "")
         texto = re.sub(r'\s+', ' ', texto).strip()
         if not self.case_sensitive:
             texto = texto.lower()
@@ -80,14 +90,27 @@ class GroundingChecker:
         if valor_norm in html_norm:
             return True
 
-        # Para números (ej: precio), busca también variaciones
+        # Para números (ej: precio), compara por VALOR y no por texto.
+        #
+        # La comparación era textual: se buscaba `\b<numero>` tal cual. Eso da
+        # por no encontrado un precio que sí está, solo porque viene escrito de
+        # otra forma: el JSON-LD de Vega dice `"price": 6` y nosotros extraemos
+        # 6.0, así que se buscaba "6.0" en un texto que pone "6". Lo mismo con
+        # "24.90" frente a 24.9. Y la regla `grounding_ok` de S7 está activa:
+        # cada uno de esos falsos negativos es una oferta buena rechazada.
+        # Se reutiliza el lector de numeros de datos_estructurados en vez de
+        # escribir otro aqui: aquel ya distingue '1.234,50' de '1,234.50' y de
+        # '15.2', y tener dos parsers distintos garantiza que tarde o temprano
+        # discrepen sobre el mismo precio.
         if re.search(r'\d', valor_norm):
-            # Extrae números del valor
-            numeros = re.findall(r'\d+\.?\d*', valor_norm)
-            if numeros:
-                # Busca si el número principal está en HTML
-                numero_principal = numeros[0]
-                if re.search(rf'\b{re.escape(numero_principal)}', html_norm):
+            from .datos_estructurados import a_decimal
+
+            buscado = a_decimal(valor_norm)
+            if buscado is None:
+                return False
+            for candidato in re.findall(r'\d[\d.,]*', html_norm):
+                numero = a_decimal(candidato)
+                if numero is not None and abs(numero - buscado) < 1e-9:
                     return True
 
         return False
