@@ -178,4 +178,12 @@ export const api = {
     pedir(`/api/admin/usuarios/${usuarioId}/plan`, {
       method: 'PUT', body: JSON.stringify({ plan }),
     }),
+
+  // S8.2 - Cost-meter. Todo en una llamada: con endpoints separados, un
+  // refresco a medias dejaría la serie de una ventana y el desglose de otra, y
+  // las cifras dejarían de cuadrar delante de quien las está leyendo.
+  costos: (dias = 30) => pedir(`/api/costos?dias=${dias}`),
+
+  exportarCostos: (detalle, dias = 30) =>
+    pedirArchivo(`/api/costos/export.csv?detalle=${detalle}&dias=${dias}`),
 }

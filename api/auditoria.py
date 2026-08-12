@@ -8,17 +8,14 @@ hizo que y a que hora, y eso es informacion sobre las personas que operan el
 sistema, no sobre los datos.
 """
 
-import csv
-import io
-import json
 import logging
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import StreamingResponse
 
 from adaptadores.auditoria_panel import EVENTOS, AuditoriaPanel
 from api.auth import requiere_admin
+from api.exportacion import respuesta_csv
 
 logger = logging.getLogger(__name__)
 
@@ -87,60 +84,29 @@ async def listar(
                       desplazamiento=desplazamiento)
 
 
-def _texto(valor: Any) -> str:
-    """Un valor de columna listo para CSV.
-
-    Los jsonb van serializados con `ensure_ascii=False`: el destino es Excel,
-    no un parser, y `\\u00fa` en una celda no lo lee nadie.
-    """
-    if valor is None:
-        return ""
-    if isinstance(valor, (dict, list)):
-        return json.dumps(valor, ensure_ascii=False, default=str)
-    return str(valor)
-
-
 @router.get("/export.csv")
 async def exportar(filtros: _Filtros = Depends(),
                    _admin: dict = Depends(requiere_admin)):
     """La misma consulta que el listado, en CSV.
 
-    ## Dos detalles que deciden si el fichero sirve
-
-    1. **BOM al principio.** Excel en Windows abre un CSV sin BOM como
-       ANSI: 'Perú' sale 'PerÃº' y una auditoria de CITE llena de mojibake no
-       vale como entregable. Los tres bytes del BOM lo arreglan y no molestan a
-       nada que lea UTF-8.
-    2. **Terminador CRLF**, que es lo que dice el RFC 4180 y lo que Excel
-       espera; `csv` en Windows lo pondria igual, pero aqui se escribe a un
-       buffer en memoria y hay que decirlo.
+    El BOM y el CRLF que necesita Excel los pone `api/exportacion.py`, que es
+    tambien de donde los toma el export de costes: son dos detalles faciles de
+    olvidar en uno de los dos sitios.
     """
     pagina = _repo.leer(**filtros.como_dict(), limite=MAXIMO_EXPORT + 1,
                         desplazamiento=0)
     entradas = pagina["entradas"][:MAXIMO_EXPORT]
 
-    buffer = io.StringIO()
-    escritor = csv.writer(buffer, lineterminator="\r\n")
-    escritor.writerow(COLUMNAS_CSV)
-    for entrada in entradas:
-        escritor.writerow([_texto(entrada.get(c)) for c in COLUMNAS_CSV])
-
     aviso = _aviso_de_corte(pagina["total"], len(entradas))
     if aviso:
         logger.warning(aviso)
 
-    cuerpo = "﻿" + buffer.getvalue()
-    return StreamingResponse(
-        io.BytesIO(cuerpo.encode("utf-8")),
-        media_type="text/csv; charset=utf-8",
-        headers={
-            "Content-Disposition": 'attachment; filename="auditoria.csv"',
-            # Para que el panel pueda avisar de que el fichero va cortado en
-            # vez de que la persona se lo lleve creyendo que esta entero.
-            "X-Total-Registros": str(pagina["total"]),
-            "X-Registros-Exportados": str(len(entradas)),
-        },
-    )
+    return respuesta_csv("auditoria.csv", COLUMNAS_CSV, entradas, {
+        # Para que el panel pueda avisar de que el fichero va cortado en vez
+        # de que la persona se lo lleve creyendo que esta entero.
+        "X-Total-Registros": str(pagina["total"]),
+        "X-Registros-Exportados": str(len(entradas)),
+    })
 
 
 def _aviso_de_corte(total: int, exportados: int) -> Optional[str]:

@@ -590,6 +590,134 @@
 > - **31 tests nuevos** en [test_s8_control.py](tests/test_s8_control.py),
 >   incluido el camino completo `atender_consulta` → `Presupuesto`.
 >
+> ### FASE 4 — Cost-meter, 8.2 (2026-08-12)
+>
+> La pantalla que CITE mira todos los días. Ya tenía de dónde leer: 690 filas
+> en `etapas_ejecucion` sobre 190 ejecuciones.
+>
+> #### El primer riesgo que lista S8, evitado
+>
+> El propio documento avisa de que la agregación no puede hacerse en el
+> cliente. Todo se agrega **en SQL y en un solo viaje**: una consulta con CTE
+> que devuelve las cuatro vistas ya montadas. Con el RTT medido a Supabase
+> (~112 ms), cuatro consultas serían ~450 ms de red antes de contar un solo
+> dólar, y el techo del DoD son 500 ms.
+>
+> **Escrita mal la primera vez.** La serie diaria usaba subconsultas
+> correlacionadas —cada uno de los 30 días recorría las etapas por su cuenta,
+> O(días × etapas)— y tardaba **864 ms**, por encima del DoD. Agregando una vez
+> y pegando por la izquierda:
+>
+> | | |
+> |---|---|
+> | consulta, 30 días | **101 ms** de mediana (desde 864) |
+> | `GET /api/costos`, stack HTTP completo | **208 ms** de mediana |
+> | 365 días, el tope | 193 ms |
+>
+> #### Tres decisiones que hacen legible la pantalla
+>
+> **1. La serie lleva los días vacíos.** `generate_series` genera los 30 días y
+> el gasto se pega por la izquierda. Sin eso, un día sin consultas no aparece y
+> la gráfica une el lunes con el miércoles dibujando una línea continua donde
+> no hubo nada — en un panel de costes eso se lee como «gastamos todos los
+> días».
+>
+> **2. El coste se atribuye al día del RUN, no al de la etapa.** Un run que
+> empieza a las 23:58 tiene etapas de dos días; repartirlas haría que la serie
+> no cuadrase con el total por usuario. **Y cuadran**, verificado sobre los
+> datos reales: $0,106178 y 194 runs, idénticos por serie, por etapa, por
+> usuario y por estado.
+>
+> **3. La tabla de etapas enseña los aciertos de caché.** Que la etapa 4 cueste
+> $0 no significa que no se ejecute: se sirvió de caché 77 de 77 veces. Sin esa
+> columna, «etapa 4: $0» se lee como «la etapa 4 no se ejecuta», que es una
+> conclusión falsa y cara.
+>
+> #### Lo entregado
+>
+> | | |
+> |---|---|
+> | 4.1 | [repositorio_costos.py](adaptadores/repositorio_costos.py) + `GET /api/costos` |
+> | 4.2 | `GET /api/costos/export.csv?detalle=serie\|etapa\|usuario\|estado` |
+> | 4.3 | [Costos.vue](frontend/src/components/Costos.vue) |
+>
+> La pantalla reutiliza el lenguaje visual de `PromocionesDashboard`: barra
+> apilada en vez de tarta, etiquetas directas —el color no puede ser el único
+> portador del dato— y un `<details>` con la tabla equivalente.
+>
+> **La barra de cuota lleva la proyección marcada encima.** Lo que importa no
+> es solo cuánto se lleva gastado, sino si al ritmo actual se supera el tope
+> antes de que acabe el mes. Hoy: 1,1 % del tope, proyección de cierre $0,27
+> sobre $10.
+>
+> **Y una vista que no pedía 8.2:** cómo cerraron las consultas. Un run parcial
+> gasta menos pero entrega menos, así que sin esto un descenso del gasto se lee
+> como un ahorro cuando puede ser una degradación. De 194 runs: 78 completas,
+> 69 degradadas por falta de datos, 23 limitadas por plan, 16 por presupuesto,
+> 8 con error.
+>
+> #### De paso, el CSV se movió a un sitio común
+>
+> [api/exportacion.py](api/exportacion.py). El BOM que necesita Excel y el CRLF
+> del RFC 4180 son dos detalles fáciles de olvidar en uno de los dos sitios que
+> exportan, y ahora los pone el mismo código para auditoría y para costes.
+>
+> #### Verificación
+>
+> - Control de acceso: admin 200, operador **403**, sin token **401**.
+> - Rangos: `dias` fuera de rango **422**, detalle inventado **400**, y un
+>   fallo de base devuelve 500 **sin filtrar el SQL** al navegador.
+> - Las cuatro vistas exportan con BOM, CRLF y nombre propio
+>   (`costos-usuario-7d.csv`), sobre el mismo periodo que la pantalla.
+> - **22 tests nuevos** en [test_s8_costos.py](tests/test_s8_costos.py),
+>   incluida la cuadratura entre las cuatro vistas y la proyección en meses de
+>   28, 30 y 31 días.
+>
+> ### FASE 8 — Documentación, 8.10 (2026-08-12)
+>
+> [PANEL_USER_GUIDE.md](PANEL_USER_GUIDE.md), en el mismo registro que el
+> manual de promoción de S7.10: para que CITE opere sin llamar a desarrollo.
+>
+> **La sección que pedía 8.10 —qué significa «sin dato» y por qué hay tanto—
+> es la mitad del documento**, y no por relleno: es la duda que va a generar
+> todas las demás. Está escrita con las cifras reales del sistema, no en
+> abstracto:
+>
+> | Cómo cerró | Cuántas |
+> |---|---|
+> | Completa | 80 |
+> | Pocos productos | 70 |
+> | Limitada por plan | 24 |
+> | Por presupuesto | 17 |
+> | Con error | 8 |
+>
+> El punto que hay que dejar claro en la capacitación es que **119 de 199 no
+> sean «completa» no es una avería**: tres de esos cuatro motivos son el
+> sistema funcionando como se diseñó. Un usuario gratuito *debe* recibir un
+> informe sin las etapas premium. El único que hay que vigilar es «con error».
+>
+> También lleva, con nombre y apellidos, **lo que el panel no enseña** —jobs en
+> vivo, SLO, editor de reglas, export en bloque— para que nadie lo busque.
+>
+> #### Lo que no lleva: capturas
+>
+> **No hay capturas reales.** No dispongo de navegador en este entorno, así que
+> no puedo tomarlas y no voy a simularlas. Cada apartado describe la pantalla
+> con detalle suficiente para seguirla, y el documento dice explícitamente
+> dónde van las seis y en qué condiciones tomarlas (sesión de
+> `demo-premium@cite.gob.pe`, 1440 px). Es media hora de trabajo con el panel
+> abierto.
+>
+> #### Y el guion de la capacitación
+>
+> Una hora, minutada. Con dos decisiones:
+>
+> - **§4 («sin dato») ocupa 10 de los 60 minutos**, más que ninguna pantalla.
+> - **El kill-switch se enseña en vivo**: encenderlo, lanzar una consulta, ver
+>   que cierra parcial en vez de fallar, apagarlo. Es la única forma de que
+>   quede claro que detener el gasto no rompe nada, que es justo la duda que
+>   aparece cuando hace falta usarlo de verdad.
+>
 > ### Lo que queda abierto
 >
 > **Café ya da ofertas** (5 por cadena, más una de la web abierta): lo resolvió
@@ -1012,21 +1140,24 @@ FASE 8 · Documentación (0.5 día)                             [8.10]
 
 ---
 
-## ✂️ ALCANCE ACORDADO (D5)
+## ✂️ ALCANCE ACORDADO (D5) — ✅ CERRADO (2026-08-12)
 
 **Se ejecuta en S8** — fases 0, 1, 2, 3, 4 y 8:
 
-| Ítem | Cómo se entrega |
-|---|---|
-| 8.2 Cost-meter | Completo, leyendo `etapas_ejecucion` (D2) |
-| 8.3 Audit trail | Completo, con antes/después y export CSV |
-| 8.5 Kill-switch | Completo, con estado persistido y auditado |
-| 8.9 Planes | Completo |
-| 8.6 Promovedor manual | **Ya entregado en S7.6**; sólo se reubica en el router |
-| 8.10 Documentación | Completo |
+| Ítem | Cómo se entrega | Estado |
+|---|---|---|
+| 8.2 Cost-meter | Completo, leyendo `etapas_ejecucion` (D2) | ✅ fase 4 |
+| 8.3 Audit trail | Completo, con antes/después y export CSV | ✅ fase 2 |
+| 8.5 Kill-switch | Completo, con estado persistido y auditado | ✅ fase 3 |
+| 8.9 Planes | Completo | ✅ fase 3 |
+| 8.6 Promovedor manual | **Ya entregado en S7.6**; solo se reubica en el router | ✅ fase 1 |
+| 8.10 Documentación | Completo | ✅ fase 8, sin capturas |
 
 Seis de diez ítems, y son los que no dependen de infraestructura inexistente.
 Son también los cuatro que CITE mira todos los días.
+
+**Las seis fases están hechas y verificadas.** El detalle de cada una está
+arriba, en el bloque de estado de ejecución.
 
 **Pasa a S9** — la semana de CI y carga, donde encajan por dependencias:
 
@@ -1055,4 +1186,39 @@ resto, y son las cuatro que CITE va a mirar todos los días.
 
 ---
 
-**AUDITORÍA COMPLETA. ESPERANDO D1-D5 PARA ARRANCAR.**
+## 🏁 CIERRE (2026-08-12)
+
+El diagnóstico de arriba se mantiene tal como se escribió, sin retocar: sirve
+para ver qué se predijo bien y qué no.
+
+**Lo que se cumplió.** La deuda arrastrada era el problema real, no el tamaño
+de S8. Las fases 0 a 4 dedicaron más esfuerzo a arreglar lo que no funcionaba
+—el worker, `staging_agente`, `/consultas`, la migración— que a construir
+pantallas.
+
+**Lo que el diagnóstico exageró.** B4 decía «hay dos tablas `audit_log`» como
+si compitieran; mirándolas, una estaba muerta y la otra era un log técnico con
+el nombre mal puesto. La decisión que parecía bloqueante se resolvió en diez
+minutos.
+
+**Lo que el diagnóstico no vio.** Que el frontend **no tenía forma de saber el
+rol del usuario**: sin eso, el guard de administrador de la fase 1 no se podía
+ni escribir. Apareció al empezar a construir, no al auditar.
+
+**Estado del alcance:** las seis fases acordadas en D5, hechas y verificadas
+contra el sistema real. 8.1 y 8.8 pasan a S9 por decisión propia; 8.4 y 8.7
+quedan a evaluar.
+
+**Cabos sueltos, ninguno bloqueante:**
+
+- `stock_minimo` sigue apagada en `promotion_rules` con una descripción que ya
+  no es cierta: VTEX da el dato en 81 de 104 ofertas.
+- `rule_updated` es el único evento auditado sin quien lo emita: el editor de
+  reglas de 7.2 nunca se construyó.
+- `public.audit_log` sigue ahí, huérfana y con 0 filas, esperando un
+  `drop table` del dueño del esquema.
+- El manual **no lleva capturas**: hacen falta media hora con el panel abierto.
+- **Despliegue:** el modo historia del router exige que el servidor estático
+  devuelva `index.html` en cualquier ruta. En desarrollo lo hace Vite; en el
+  repo no hay configuración de despliegue, y sin ese *fallback* `/promociones`
+  dará 404 al recargar.

@@ -36,6 +36,7 @@ from api.discovery import router as discovery_router
 from api.admin import router as admin_router
 from api.alertas import router as alertas_router
 from api.auditoria import router as auditoria_router
+from api.costos import router as costos_router
 from api.promociones import router as promociones_router
 
 load_dotenv()
@@ -71,6 +72,8 @@ if USA_SUPABASE:
     app.include_router(auditoria_router)
     # S8.5 y S8.9. Igual: `sistema_config` y `perfiles` solo existen aqui.
     app.include_router(admin_router)
+    # S8.2. Agrega sobre `etapas_ejecucion` con CTE y generate_series.
+    app.include_router(costos_router)
 
 # Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
 # desarrollo en la propia maquina.

@@ -63,6 +63,14 @@ export const rutas = [
     meta: { titulo: 'Auditoría', grupo: 'Administración', icono: '☰', admin: true },
   },
   {
+    // S8.2. El desglose enseña cuánto ha gastado cada usuario, así que es de
+    // administración; cada uno ve lo suyo en la propia pantalla de consulta.
+    path: '/costos',
+    name: 'costos',
+    component: () => import('../components/Costos.vue'),
+    meta: { titulo: 'Costes', grupo: 'Administración', icono: '◔', admin: true },
+  },
+  {
     // S8.5 y S8.9. Aquí se detiene el gasto de todo el mundo y se cambia el
     // plan de cualquiera: de las tres de administración, la que más importa
     // que no aparezca en el menú de un operador.
