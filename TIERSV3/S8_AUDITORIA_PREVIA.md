@@ -392,6 +392,204 @@
 > repo no hay configuración de despliegue, así que cuando la haya tendrá que
 > llevar el *fallback* o `/promociones` dará 404 al recargar.
 >
+> ### FASE 2 — Auditoría transversal, 8.3 (2026-08-12)
+>
+> De las **seis acciones** que 8.3 enumera, dejaba rastro **una**: la promoción
+> manual, en `promotion_log` (S7.4). Y ese rastro sirve para promociones, no
+> para responder la pregunta de 8.3 —"quién cambió esto y qué había antes"—
+> sobre cualquier cosa que se toque desde el panel.
+>
+> #### B4 era menos grave de lo que parecía
+>
+> El bloqueador decía "hay dos tablas llamadas `audit_log`". Mirándolas:
+>
+> - **`public.audit_log`** (Postgres): huérfana del esquema S1, **0 filas**,
+>   solo la menciona `create_schema_s1.sql`. Ningún Python la toca. Y su forma
+>   —`(evento, tabla, fila_id, detalles)`— no sirve: le falta el antes/después.
+> - **`adaptadores/audit_log.py`**: es una **tercera** cosa. Un log técnico en
+>   SQLite (`level, component, message`) para el canario y los conflictos de
+>   dedup. Lo usan 3 módulos y funciona.
+>
+> No compiten: una está muerta y la otra es un log operativo con el nombre mal
+> puesto. Tabla nueva con nombre inequívoco, `auditoria_panel`, y **la huérfana
+> no se toca**: borrar una tabla es del dueño del esquema, no de una migración
+> que viene a crear otra cosa. Queda anotado al final de la 009.
+>
+> #### Tres decisiones de diseño
+>
+> **1. Solo inserción, con trigger.** Un registro que se puede editar o borrar
+> no es una auditoría: es un log. Y la aplicación se conecta como dueña del
+> esquema, así que un `revoke` no la detendría. El trigger sí, y deja el motivo
+> por escrito:
+>
+> ```
+> update -> auditoria_panel es de solo insercion (se intento UPDATE).
+>           Para caducar datos, elimina la particion del mes con drop table.
+> ```
+>
+> **2. Partición por mes — pero no por volumen.** CITE hará miles de filas al
+> año, no millones. El motivo es la **retención de un año** que pide S8: con
+> particiones, caducar un mes es `drop table` (instantáneo) en vez de un
+> `delete` que deja páginas muertas. Se crean 13 meses por delante y hay una
+> partición por defecto como red: perder una escritura de auditoría es peor que
+> tenerla en el sitio equivocado.
+>
+> **3. El correo se copia, no se resuelve al leer.** Y el resumen de la oferta
+> también. No es duplicar por duplicar: **`staging_agente` tiene un TTL de
+> 24 h**, así que una entrada que solo guardara el `staging_id` sería ilegible
+> al día siguiente — y la auditoría se conserva un año.
+>
+> #### La auditoría no tumba la acción que audita
+>
+> `registrar()` no propaga excepciones. Es incómodo y va en esa dirección a
+> propósito: entre "promover y no poder anotarlo" y "no poder promover porque
+> la auditoría está caída", lo segundo convierte el fallo de un registro
+> accesorio en una caída del panel. El fallo se anota con `error`, no se pierde.
+>
+> #### Lo entregado
+>
+> | | |
+> |---|---|
+> | 2.1 | [009_auditoria_panel.sql](supabase/migraciones/009_auditoria_panel.sql) — aplicada, 14 particiones |
+> | 2.2 | [adaptadores/auditoria_panel.py](adaptadores/auditoria_panel.py), enganchado en promover, rechazar y **login** |
+> | 2.3 | `GET /api/auditoria` con filtros (acción, correo, rango de fechas) y paginación |
+> | 2.4 | `GET /api/auditoria/export.csv`, con los mismos filtros que la tabla |
+> | 2.5 | [Auditoria.vue](frontend/src/components/Auditoria.vue) — tabla, detalle antes/después con las claves que cambiaron resaltadas, y paginación |
+>
+> **Marcador de 8.3, actualizado:**
+>
+> | Acción | Antes | Ahora |
+> |---|---|---|
+> | `promotion_manual` | ✅ solo en promotion_log | ✅ con antes/después |
+> | `promotion_rejected` | ❌ | ✅ |
+> | `login` | ❌ | ✅ |
+> | `plan_changed` | ❌ | fase 3 |
+> | `kill_switch_toggled` | ❌ | fase 3 |
+> | `rule_updated` | ❌ | el editor de 7.2 sigue sin construirse |
+> | `export` | ❌ | evento reservado; 8.7 quedó fuera de S8 |
+>
+> #### Dos cosas que se corrigieron sobre la marcha
+>
+> 1. **El mismo dato en columnas distintas.** En `promotion_manual` el resumen
+>    de la oferta iba en `detalles` y en `promotion_rejected` en `antes`. Ahora
+>    `antes`/`despues` son siempre el cambio de estado y `detalles` siempre el
+>    contexto. Un rechazo no cambia la fila —sigue en cuarentena hasta que el
+>    TTL se la lleve—, así que sus dos columnas van vacías: rellenar un
+>    "después" para que no quede en blanco sería afirmar un cambio que no
+>    ocurrió.
+> 2. **Los tests de S7 escribían en la tabla real.** `_auditoria` es de módulo,
+>    así que promover con un repo falso llamaba a la auditoría de verdad con
+>    `staging_id` inventados. Hoy no pasaba, pero **por accidente**: los tests
+>    no leen `.env`, la conexión falla y `registrar` se lo traga. Ahora el
+>    doble se instala siempre.
+>
+> #### Verificación
+>
+> - Migración aplicada contra Supabase: 14 particiones, el insert enruta a
+>   `auditoria_panel_2026_08`, `update` y `delete` bloqueados, partición por
+>   defecto vacía.
+> - Recorrido real por la API: login, promover y rechazar dejaron sus tres
+>   entradas; filtros por acción, correo parcial y rango de fechas; paginación
+>   sin solape.
+> - CSV: BOM UTF-8, CRLF, 10 columnas, cabeceras de aviso de corte.
+> - Control de acceso en las tres rutas: admin 200, operador **403**, sin token
+>   **401**.
+> - **35 tests nuevos**: 27 en
+>   [test_s8_auditoria.py](tests/test_s8_auditoria.py) y 8 en la clase de
+>   auditoría de
+>   [test_s7_api_promociones.py](tests/test_s7_api_promociones.py).
+>
+> ### FASE 3 — Kill-switch y planes, 8.5 y 8.9 (2026-08-12)
+>
+> **B5 tenía razón: el kill-switch no era un switch.** Lo que había era un
+> umbral calculado —`gasto_global_mes >= PRESUPUESTO_GLOBAL_MES_USD`—, sin
+> estado persistido, sin forma de accionarlo a mano y, por tanto, sin nada que
+> auditar.
+>
+> #### Por qué una tabla y no otra variable de entorno
+>
+> Los topes viven en el entorno y está bien: son política, cambian cuando
+> cambia el presupuesto del proyecto y tocarlos es un despliegue. El
+> kill-switch es lo contrario: **se acciona durante un incidente**, por alguien
+> que no tiene acceso al servidor, y después hay que poder responder quién lo
+> apagó y cuándo. Nada de eso cabe en una variable de entorno.
+>
+> `sistema_config` es clave-valor con jsonb porque las fases siguientes van a
+> necesitar más ajustes y una columna por ajuste obliga a una migración por
+> cada uno. El precio es que Postgres no valida la forma del valor, y por eso
+> la valida el adaptador — con `is True`, no con `bool(...)`: un `{"activo":
+> "sí"}` escrito a mano contra la base pararía el sistema entero.
+>
+> #### Dónde encaja en la arquitectura
+>
+> `Presupuesto` es aritmética sobre topes y no sabe leer una tabla, así que la
+> parada llega **como un dato** (`parada_manual`) y la lee `atender_consulta`,
+> que ya es la frontera donde se resuelven el entitlement y el contexto. Puerto
+> `ConfiguracionSistema` + adaptador `ConfiguracionPostgres`, igual que el
+> resto.
+>
+> Se lee **en cada run, sin caché**: es una lectura indexada de una fila, y un
+> kill-switch que tarda un minuto en surtir efecto no es un kill-switch.
+>
+> **Dos asimetrías deliberadas:**
+>
+> - **Leer falla a apagado; escribir falla hacia arriba.** Un error de lectura
+>   que dejara el sistema parado convertiría una incidencia de base de datos en
+>   una caída del servicio. Pero si un administrador pulsa «parar» y no se
+>   guarda, tiene que enterarse: un botón que dice haber parado el gasto sin
+>   haberlo parado es peor que uno que da error.
+> - **`nivel_agotado()` devuelve `'manual'`, pero `motivo_parcial` sigue siendo
+>   `'presupuesto'`.** La columna tiene un check de tres valores y `'manual'` lo
+>   violaría. Dentro, el nombre propio importa: «se paró el gasto» y «se acabó
+>   el presupuesto del mes» no son la misma noticia.
+>
+> #### El DoD, verificado sobre el sistema real
+>
+> Con el interruptor encendido, `POST /consultas`:
+>
+> ```
+> HTTP 200  en 2,7 s
+> ejecuciones.estado         = parcial
+> ejecuciones.motivo_parcial = presupuesto
+> etapas ejecutadas          = 0     coste = $0.00     tokens = 0
+> ```
+>
+> Degrada, no falla — el principio del ADR-001. Y el interruptor quedó apagado
+> otra vez al terminar.
+>
+> #### Lo entregado
+>
+> | | |
+> |---|---|
+> | 3.1 | [010_sistema_config.sql](supabase/migraciones/010_sistema_config.sql) — aplicada, arranca apagada |
+> | 3.2 | `parada_manual` en `Presupuesto`, leída en `atender_consulta`; puerto + adaptador |
+> | 3.3 | `GET/PUT /api/admin/kill-switch`, auditado |
+> | 3.4 | `GET /api/admin/usuarios` y `PUT /api/admin/usuarios/{id}/plan`, auditado |
+> | 3.5 | [Control.vue](frontend/src/components/Control.vue) — semáforo verde/naranja, motivo, confirmación y tabla de planes con el gasto del mes |
+>
+> `/uso` también se corrigió: calculaba `kill_switch_activo` solo con el umbral
+> de gasto, así que con el sistema parado a mano el usuario veía verde — justo
+> el caso en que más falta hace saberlo.
+>
+> **Solo se audita si el estado cambió de verdad.** El panel refresca; si cada
+> refresco dejara una entrada, entre ellas se perdería la única que importa: la
+> vez que alguien lo apagó. Verificado: tres PUT, dos entradas.
+>
+> **Marcador de 8.3 tras esta fase:** `kill_switch_toggled` y `plan_changed`
+> pasan a ✅. Quedan `rule_updated` (el editor de 7.2 nunca se construyó) y
+> `export` (8.7 quedó fuera de S8).
+>
+> #### Verificación
+>
+> - Control de acceso en las cuatro rutas: admin 200, operador **403**, sin
+>   token **401**. Un operador no acciona el interruptor ni por accidente.
+> - Recorrido real: encender, reenviar el mismo estado (sin auditar), apagar;
+>   subir y bajar de plan a un usuario y devolverlo a su valor original.
+> - Errores: plan inventado **400**, usuario inexistente **404**, uuid
+>   malformado **400**, motivo de más de 280 caracteres **422**.
+> - **31 tests nuevos** en [test_s8_control.py](tests/test_s8_control.py),
+>   incluido el camino completo `atender_consulta` → `Presupuesto`.
+>
 > ### Lo que queda abierto
 >
 > **Café ya da ofertas** (5 por cadena, más una de la web abierta): lo resolvió

@@ -80,10 +80,31 @@ class RepoFalso:
                  "rechazadas": 0} for i in range(dias)]
 
 
-def montar(repo, usuario=ADMIN, es_admin=True) -> TestClient:
+class AuditoriaFalsa:
+    """Doble de la auditoría de S8.3.
+
+    Se instala siempre, y no solo cuando un test mira lo que registró. Sin
+    esto, `promociones._auditoria` es el objeto real y estos tests escribirían
+    en la tabla de auditoría de verdad —con staging_ids inventados— en cuanto
+    alguien corra la suite con el entorno cargado. Hoy no pasa solo porque los
+    tests no leen `.env` y la conexión falla en silencio, que es una garantía
+    por accidente.
+    """
+
+    def __init__(self):
+        self.registros = []
+
+    def registrar(self, evento, **kwargs):
+        self.registros.append({"evento": evento, **kwargs})
+        return len(self.registros)
+
+
+def montar(repo, usuario=ADMIN, es_admin=True,
+           auditoria=None) -> TestClient:
     app = FastAPI()
     app.include_router(promociones.router)
     promociones._repo = repo
+    promociones._auditoria = auditoria if auditoria is not None else AuditoriaFalsa()
 
     app.dependency_overrides[get_current_user] = lambda: usuario
 
@@ -176,6 +197,92 @@ class TestPromocion:
         r = cliente.post("/api/promociones/no-es-uuid/promover")
         assert r.status_code == 200
         assert r.json()["ok"] is False
+
+
+class TestAuditoria:
+    """S8.3 - promover y rechazar dejan rastro."""
+
+    def test_promover_deja_una_entrada(self, oferta):
+        auditoria = AuditoriaFalsa()
+        cliente = montar(RepoFalso([oferta]), auditoria=auditoria)
+        cliente.post(f"/api/promociones/{oferta['staging_id']}/promover")
+
+        assert len(auditoria.registros) == 1
+        registro = auditoria.registros[0]
+        assert registro["evento"] == "promotion_manual"
+        assert registro["usuario_id"] == _ID_ADMIN
+        assert registro["usuario_email"] == "admin@cite.gob.pe"
+        assert registro["entidad_id"] == str(oferta["staging_id"])
+
+    def test_lo_que_cambio_va_en_antes_y_despues(self, oferta):
+        auditoria = AuditoriaFalsa()
+        cliente = montar(RepoFalso([oferta]), auditoria=auditoria)
+        cliente.post(f"/api/promociones/{oferta['staging_id']}/promover")
+
+        registro = auditoria.registros[0]
+        assert registro["antes"]["promotion_source"] is None
+        assert registro["despues"]["promotion_source"] == "manual_human"
+
+    def test_la_entrada_se_entiende_sin_la_oferta_delante(self, oferta):
+        """`staging_agente` tiene un TTL de 24 h. Una entrada que solo guardase
+        el id sería ilegible mañana, y la auditoría se conserva un año."""
+        auditoria = AuditoriaFalsa()
+        cliente = montar(RepoFalso([oferta]), auditoria=auditoria)
+        cliente.post(f"/api/promociones/{oferta['staging_id']}/promover")
+
+        assert auditoria.registros[0]["detalles"]["nombre"] == "Quinua"
+
+    def test_una_promocion_que_no_ocurrio_no_se_audita(self, oferta):
+        """Si otro proceso llegó antes, no hubo cambio: anotarlo sería
+        registrar algo que no pasó."""
+        repo = RepoFalso([oferta])
+        repo.promover_devuelve = False
+        auditoria = AuditoriaFalsa()
+        cliente = montar(repo, auditoria=auditoria)
+        cliente.post(f"/api/promociones/{oferta['staging_id']}/promover")
+
+        assert auditoria.registros == []
+
+    def test_un_403_no_deja_rastro_de_promocion(self, oferta):
+        auditoria = AuditoriaFalsa()
+        cliente = montar(RepoFalso([oferta]), usuario=OPERADOR, es_admin=False,
+                         auditoria=auditoria)
+        cliente.post(f"/api/promociones/{oferta['staging_id']}/promover")
+
+        assert auditoria.registros == []
+
+    def test_rechazar_tambien_deja_entrada(self, oferta):
+        auditoria = AuditoriaFalsa()
+        cliente = montar(RepoFalso([oferta]), auditoria=auditoria)
+        cliente.post(f"/api/promociones/{oferta['staging_id']}/rechazar")
+
+        registro = auditoria.registros[0]
+        assert registro["evento"] == "promotion_rejected"
+        assert registro["detalles"]["nombre"] == "Quinua"
+
+    def test_el_rechazo_no_inventa_un_cambio_de_estado(self, oferta):
+        """Rechazar no toca la fila: sigue en cuarentena hasta que el TTL se la
+        lleve. Rellenar un `despues` para que la columna no quede vacía sería
+        afirmar un cambio que no ha ocurrido."""
+        auditoria = AuditoriaFalsa()
+        cliente = montar(RepoFalso([oferta]), auditoria=auditoria)
+        cliente.post(f"/api/promociones/{oferta['staging_id']}/rechazar")
+
+        registro = auditoria.registros[0]
+        assert registro.get("antes") is None
+        assert registro.get("despues") is None
+
+    def test_cada_oferta_del_lote_tiene_su_entrada(self, oferta):
+        """Dentro de un año la pregunta es "por qué se promovió ESTA oferta", y
+        una entrada que diga "se promovieron 3" no la responde."""
+        ofertas = [{**oferta, "staging_id": uuid4()} for _ in range(3)]
+        auditoria = AuditoriaFalsa()
+        cliente = montar(RepoFalso(ofertas), auditoria=auditoria)
+        cliente.post("/api/promociones/promover-lote",
+                     json={"staging_ids": [str(o["staging_id"]) for o in ofertas]})
+
+        assert len(auditoria.registros) == 3
+        assert len({r["entidad_id"] for r in auditoria.registros}) == 3
 
 
 class TestLote:

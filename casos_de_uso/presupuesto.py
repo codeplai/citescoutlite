@@ -6,9 +6,16 @@ no enterarse de lo gastado.
 
 | Nivel        | Variable                      | Al superarse                       |
 |--------------|-------------------------------|------------------------------------|
+| Manual (S8.5)| `sistema_config.kill_switch`  | un admin lo acciono: nadie gasta   |
 | Run          | PRESUPUESTO_RUN_USD           | se saltan las etapas restantes     |
 | Usuario/mes  | PRESUPUESTO_USUARIO_MES_USD   | idem, desde `uso_mensual`          |
-| Global/mes   | PRESUPUESTO_GLOBAL_MES_USD    | kill-switch: nadie ejecuta LLM     |
+| Global/mes   | PRESUPUESTO_GLOBAL_MES_USD    | tope de gasto: nadie ejecuta LLM   |
+
+El de arriba es de S8.5 y es de otra naturaleza que los otros tres: no se
+deduce de ninguna cifra, lo acciona una persona. Por eso llega como un dato
+—`parada_manual`— y no se calcula aqui: este modulo es aritmetica sobre topes y
+no sabe leer una tabla. Quien lo lee es `atender_consulta`, que ya es la
+frontera donde se resuelven el entitlement y el contexto.
 
 Al degradar, la etapa devuelve su contrato con `sin_dato=True`, el run cierra en
 `parcial` con `motivo_parcial='presupuesto'` y **la respuesta es 200**. Sin
@@ -49,11 +56,17 @@ class Presupuesto:
     gasto_usuario_mes_usd: float = 0.0
     gasto_global_mes_usd: float = 0.0
     gasto_run_usd: float = 0.0
+    # S8.5. Por defecto False: quien construya un Presupuesto sin saber que
+    # existe el interruptor obtiene el comportamiento de antes, y ningun run se
+    # para por un dato que nadie le paso.
+    parada_manual: bool = False
 
     @classmethod
     def desde_entorno(cls, contexto: ContextoSuscripcion,
-                      tope_usuario_mes_usd: float | None = None) -> "Presupuesto":
+                      tope_usuario_mes_usd: float | None = None,
+                      parada_manual: bool = False) -> "Presupuesto":
         return cls(
+            parada_manual=parada_manual,
             tope_run_usd=_tope("PRESUPUESTO_RUN_USD", 0.25),
             # El tope mensual del usuario lo fija su plan (T6.1); la variable de
             # entorno es solo el valor por defecto del plan gratuito.
@@ -68,12 +81,22 @@ class Presupuesto:
     # -- consulta -----------------------------------------------------------
 
     def nivel_agotado(self) -> str | None:
-        """Cual de los tres topes esta superado, o None si se puede gastar.
+        """Que corta el gasto, o None si se puede gastar.
 
         Se comparan los gastos del mes **mas lo que lleve el run**: si no, un
         run largo podria pasarse del tope mensual dentro de si mismo sin que
         ningun nivel se diera por enterado.
         """
+        # Primero, y con nombre propio. Va delante porque una decision humana
+        # no la discute ninguna cifra: si un administrador ha parado el gasto,
+        # da igual cuanto quede de presupuesto.
+        #
+        # Y con nombre propio —'manual' y no 'global_mes'— porque el motivo se
+        # le enseña a quien recibe el informe degradado: "se paro el gasto" y
+        # "se acabo el presupuesto del mes" no son la misma noticia, ni llevan
+        # a la misma accion.
+        if self.parada_manual:
+            return "manual"
         if self.gasto_global_mes_usd + self.gasto_run_usd >= self.tope_global_mes_usd:
             return "global_mes"
         if self.gasto_usuario_mes_usd + self.gasto_run_usd >= self.tope_usuario_mes_usd:
@@ -96,6 +119,7 @@ class Presupuesto:
     def resumen(self) -> dict:
         return {
             "nivel_agotado": self.nivel_agotado(),
+            "parada_manual": self.parada_manual,
             "gasto_run_usd": round(self.gasto_run_usd, 6),
             "tope_run_usd": self.tope_run_usd,
             "gasto_usuario_mes_usd": round(self.gasto_usuario_mes_usd, 6),

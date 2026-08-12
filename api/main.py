@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from adaptadores.auditoria_panel import AuditoriaPanel
 from adaptadores.autenticacion import Autenticacion
 # Antes de que uvicorn cree su bucle. En Windows el policy por defecto es el
 # Proactor y psycopg en asincrono no puede usarlo, de modo que sin esto el
@@ -32,7 +33,9 @@ from api.health import router as health_router
 from api.websocket_jobs import router as websocket_router
 from api.webhooks import router as webhooks_router
 from api.discovery import router as discovery_router
+from api.admin import router as admin_router
 from api.alertas import router as alertas_router
+from api.auditoria import router as auditoria_router
 from api.promociones import router as promociones_router
 
 load_dotenv()
@@ -49,6 +52,8 @@ from api.auth import (APP_DB, USA_SUPABASE, autenticacion, get_current_user,
 
 app = FastAPI(title="AgroScout IA Lite MVP")
 
+_auditoria = AuditoriaPanel()
+
 # Incluir routers
 app.include_router(health_router)
 app.include_router(websocket_router)
@@ -61,6 +66,11 @@ if USA_SUPABASE:
     # S7.6. Igual que alertas: staging_agente y las tablas de promocion solo
     # existen en Postgres.
     app.include_router(promociones_router)
+    # S8.3. `auditoria_panel` esta particionada por mes: es de Postgres y no
+    # tiene equivalente en el SQLite del plan B.
+    app.include_router(auditoria_router)
+    # S8.5 y S8.9. Igual: `sistema_config` y `perfiles` solo existen aqui.
+    app.include_router(admin_router)
 
 # Origenes desde los que se puede abrir la SPA. Los de localhost cubren el
 # desarrollo en la propia maquina.
@@ -136,10 +146,13 @@ if USA_SUPABASE:
 
     from adaptadores.suscripciones_postgres import SuscripcionesPostgres
 
+    from adaptadores.configuracion_postgres import ConfiguracionPostgres
+
     cache_llm = CachePostgres()
     auditoria = AuditoriaPostgres()
     informes = RepositorioInformesSupabase()
     suscripciones = SuscripcionesPostgres()
+    configuracion = ConfiguracionPostgres()
 else:
     from adaptadores.auditoria_sqlite import AuditoriaSQLite
     from adaptadores.cache_sqlite import CacheSQLite
@@ -149,6 +162,10 @@ else:
     auditoria = AuditoriaSQLite()
     informes = InformeWeasyPrint()
     suscripciones = SuscripcionesSQLite()
+    # El plan B no tiene `sistema_config`: sin interruptor, y los runs corren
+    # como siempre. Es coherente con el resto de la rama sqlite, que tampoco
+    # monta los routers de alertas ni de promociones.
+    configuracion = None
 
 fda = VerificadorOpenFDA(offline=offline_mode)
 rag = VerificadorRAG(offline=offline_mode)
@@ -162,6 +179,7 @@ dependencias = Dependencias(
     verificador_fda=fda,
     verificador_rag=rag,
     suscripciones=suscripciones,
+    configuracion=configuracion,
     descubrimiento=descubrimiento,
     precios=precios,
     snapshot_version=snapshot_version,
@@ -215,6 +233,23 @@ async def login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
     datos = respuesta.json()
+
+    # S8.3 - `login` es una de las seis acciones que 8.3 quiere ver, y hasta
+    # ahora no se anotaba en ninguna parte: el login pasa por Supabase Auth,
+    # que lleva su propio registro al que el panel de CITE no tiene acceso.
+    #
+    # Solo se registran las entradas que salieron bien. Los intentos fallidos
+    # son otra cosa —vigilancia de accesos, no auditoria de cambios— y
+    # anotarlos aqui llenaria la tabla de correos tecleados a medias, que
+    # ademas pueden ser de personas que no existen.
+    _auditoria.registrar(
+        "login",
+        usuario_id=(datos.get("user") or {}).get("id"),
+        usuario_email=req.email,
+        entidad="auth.users",
+        entidad_id=(datos.get("user") or {}).get("id"),
+    )
+
     return {
         "access_token": datos["access_token"],
         "token_type": "bearer",
@@ -414,9 +449,25 @@ async def uso_mensual(current_user: dict = Depends(get_current_user)):
         # El tope global es del sistema, no del usuario, pero se expone porque
         # el kill-switch le afecta: si salta, sus runs degradan sin que su
         # propia cuota tenga nada que ver.
-        "kill_switch_activo": contexto.gasto_global_mes_usd >= _tope_global(),
+        #
+        # S8.5: desde que el interruptor existe, este campo tiene DOS causas.
+        # Calcularlo solo con el umbral dejaria al usuario viendo verde con el
+        # sistema parado a mano, que es exactamente el caso en el que mas falta
+        # hace saberlo.
+        "kill_switch_activo": (contexto.gasto_global_mes_usd >= _tope_global()
+                               or _parada_manual()),
         "ultimo_run": ultimo,
     }
+
+
+def _parada_manual() -> bool:
+    """Si un administrador ha accionado el interruptor de 8.5.
+
+    Sin adaptador de configuracion —el plan B de sqlite— no hay interruptor
+    que consultar, y la respuesta es que no.
+    """
+    return bool(dependencias.configuracion
+                and dependencias.configuracion.kill_switch().activo)
 
 
 def _tope_global() -> float:

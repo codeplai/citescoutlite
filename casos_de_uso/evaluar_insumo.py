@@ -176,7 +176,19 @@ async def atender_consulta(texto: str, d: Dependencias,
 
     contexto = d.suscripciones.contexto_de(usuario_id)
     entitlement = entitlement_de(contexto)
-    presupuesto = Presupuesto.desde_entorno(contexto, entitlement.tope_mes_usd)
+
+    # S8.5. Se lee al empezar cada run y no se cachea. Es una lectura indexada
+    # de una fila, y un kill-switch que tarda un minuto en surtir efecto no es
+    # un kill-switch: quien lo acciona lo hace porque el gasto se le esta
+    # yendo AHORA.
+    #
+    # Sin adaptador de configuracion —los tests deterministas de S2, el plan B
+    # de sqlite— no hay interruptor y el run sigue como siempre.
+    parada_manual = bool(
+        d.configuracion.kill_switch().activo if d.configuracion else False)
+
+    presupuesto = Presupuesto.desde_entorno(contexto, entitlement.tope_mes_usd,
+                                            parada_manual=parada_manual)
 
     d_run = replace(d, presupuesto=presupuesto)
     composicion = generar_dossier if entitlement.es_premium else generar_mapa_comercial

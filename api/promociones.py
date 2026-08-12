@@ -15,6 +15,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from adaptadores.auditoria_panel import AuditoriaPanel
 from adaptadores.repositorio_promocion import RepositorioPromocion
 from api.auth import get_current_user, requiere_admin, usuario_actual_id
 from casos_de_uso.promocion import validar_oferta
@@ -25,6 +26,30 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/promociones", tags=["promociones"])
 
 _repo = RepositorioPromocion()
+_auditoria = AuditoriaPanel()
+
+
+def _resumen_de(oferta: dict[str, Any] | None) -> dict[str, Any]:
+    """Lo justo para que la fila de auditoria se entienda sin abrir nada.
+
+    Copiar algo es obligatorio, no un adorno: `staging_agente` tiene un TTL de
+    24 h. Una entrada que solo guardase el `staging_id` seria ilegible al dia
+    siguiente —la fila a la que apunta ya no existe—, y la auditoria se guarda
+    un ano.
+
+    Pero solo lo justo. La oferta entera trae `producto_json` con la ficha
+    completa y `html_capturado`, que puede ser un JSON de miles de caracteres;
+    una auditoria que hay que leer con un visor de JSON no la lee nadie.
+    """
+    if not oferta:
+        return {}
+    producto = oferta.get("producto") or oferta.get("producto_json") or {}
+    return {
+        "insumo": oferta.get("insumo"),
+        "nombre": producto.get("nombre"),
+        "precio": producto.get("precio"),
+        "fuente_url": oferta.get("fuente_url"),
+    }
 
 
 class OfertaEnCola(BaseModel):
@@ -85,7 +110,8 @@ async def cola_pendiente(
                         total=len(ofertas))
 
 
-def _promover_una(staging_id: str, admin_id: str) -> ResultadoAccion:
+def _promover_una(staging_id: str, admin_id: str,
+                  admin_email: Optional[str] = None) -> ResultadoAccion:
     """Promueve una oferta revalidándola antes.
 
     Se revalida aunque sea una decisión humana: entre que el panel pintó la
@@ -120,6 +146,20 @@ def _promover_una(staging_id: str, admin_id: str) -> ResultadoAccion:
 
     if _repo.promover(uid, "manual_human", resultado.reglas_evaluadas,
                       promoted_by=UUID(admin_id)):
+        # S8.3. Se audita solo lo que de verdad cambió: si `promover` devolvió
+        # False porque otro proceso llegó antes, no hubo cambio que auditar y
+        # anotarlo sería registrar algo que no pasó.
+        _auditoria.registrar(
+            "promotion_manual",
+            usuario_id=admin_id, usuario_email=admin_email,
+            entidad="staging_agente", entidad_id=staging_id,
+            antes={"promoted_at": None, "promotion_source": None},
+            despues={"promotion_source": "manual_human"},
+            detalles={**_resumen_de(oferta),
+                      "validacion_passed": resultado.passed,
+                      "errores": resultado.errores_json(),
+                      "reglas_evaluadas": resultado.reglas_evaluadas},
+        )
         return ResultadoAccion(staging_id=staging_id, ok=True)
 
     return ResultadoAccion(staging_id=staging_id, ok=False,
@@ -128,7 +168,8 @@ def _promover_una(staging_id: str, admin_id: str) -> ResultadoAccion:
 
 @router.post("/{staging_id}/promover", response_model=ResultadoAccion)
 async def promover(staging_id: str, admin: dict = Depends(requiere_admin)):
-    return _promover_una(staging_id, usuario_actual_id(admin))
+    return _promover_una(staging_id, usuario_actual_id(admin),
+                         admin.get("email"))
 
 
 @router.post("/promover-lote", response_model=list[ResultadoAccion])
@@ -137,9 +178,14 @@ async def promover_lote(lote: PromocionLote, admin: dict = Depends(requiere_admi
 
     Una que falle no cancela el resto: con 20 ofertas por noche, obligar a
     repetir la selección entera porque una caducó haría la pantalla inservible.
+
+    Cada promoción deja su propia fila de auditoría, no una del lote: dentro de
+    un año la pregunta va a ser "por qué se promovió ESTA oferta", y una
+    entrada que diga "se promovieron 20" no la responde.
     """
     admin_id = usuario_actual_id(admin)
-    return [_promover_una(sid, admin_id) for sid in lote.staging_ids]
+    email = admin.get("email")
+    return [_promover_una(sid, admin_id, email) for sid in lote.staging_ids]
 
 
 @router.post("/{staging_id}/rechazar", response_model=ResultadoAccion)
@@ -160,7 +206,21 @@ async def rechazar(staging_id: str, admin: dict = Depends(requiere_admin)):
         raise HTTPException(status_code=400,
                             detail="No se pudo identificar al administrador")
 
+    ofertas = {str(o["staging_id"]): o for o in _repo.ofertas_en_cuarentena()}
+
     _repo.registrar_rechazo(uid, errores=[], reglas=[], promoted_by=UUID(admin_id))
+
+    _auditoria.registrar(
+        "promotion_rejected",
+        usuario_id=admin_id, usuario_email=admin.get("email"),
+        entidad="staging_agente", entidad_id=staging_id,
+        # Un rechazo no cambia la fila: sigue en cuarentena hasta que el TTL se
+        # la lleve. Lo único que pasa es que ahora consta que una persona la
+        # miró y dijo que no. Por eso `antes` y `despues` van vacíos: rellenar
+        # un "despues" inventado para que la columna no quede en blanco sería
+        # afirmar un cambio de estado que no ha ocurrido.
+        detalles=_resumen_de(ofertas.get(staging_id)),
+    )
     return ResultadoAccion(staging_id=staging_id, ok=True)
 
 

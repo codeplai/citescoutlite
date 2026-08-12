@@ -49,6 +49,29 @@ export const rutas = [
     component: () => import('../components/Promociones.vue'),
     meta: { titulo: 'Promociones', grupo: 'Operación', icono: '⇪' },
   },
+  {
+    // S8.3. Primera ruta que exige rol de administrador para LEER. Hasta ahora
+    // el rol solo cerraba acciones (promover, rechazar); la auditoría dice
+    // quién hizo qué y a qué hora, y eso es información sobre las personas que
+    // operan el sistema, no sobre los datos.
+    //
+    // El guard es comodidad, no seguridad: quien fuerce la URL solo consigue
+    // que /api/auditoria le devuelva 403.
+    path: '/auditoria',
+    name: 'auditoria',
+    component: () => import('../components/Auditoria.vue'),
+    meta: { titulo: 'Auditoría', grupo: 'Administración', icono: '☰', admin: true },
+  },
+  {
+    // S8.5 y S8.9. Aquí se detiene el gasto de todo el mundo y se cambia el
+    // plan de cualquiera: de las tres de administración, la que más importa
+    // que no aparezca en el menú de un operador.
+    path: '/control',
+    name: 'control',
+    component: () => import('../components/Control.vue'),
+    meta: { titulo: 'Presupuestos y control', grupo: 'Administración',
+            icono: '⏻', admin: true },
+  },
   { path: '/', redirect: { name: 'consulta' } },
   { path: '/:resto(.*)*', redirect: { name: 'consulta' } },
 ]

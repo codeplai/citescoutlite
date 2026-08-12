@@ -48,6 +48,44 @@ async function pedir(ruta, opciones = {}) {
   return respuesta.json()
 }
 
+/**
+ * Igual que `pedir`, pero devuelve el cuerpo como Blob.
+ *
+ * Hace falta porque una descarga con `<a href>` no lleva la cabecera
+ * `Authorization`, y el export de auditoría exige rol de administrador: el
+ * enlace directo daría 401. Se baja con fetch y se entrega el binario para que
+ * quien llama lo guarde.
+ */
+async function pedirArchivo(ruta) {
+  const respuesta = await fetch(`${BASE}${ruta}`, { headers: cabeceras() })
+
+  if (respuesta.status === 401) {
+    localStorage.removeItem(CLAVE_TOKEN)
+    localStorage.removeItem(CLAVE_USUARIO)
+    window.dispatchEvent(new CustomEvent('agroscout:sesion-caducada'))
+    throw new NoAutorizado('Sesión caducada')
+  }
+  if (!respuesta.ok) {
+    throw new Error(`${respuesta.status}: ${(await respuesta.text()).slice(0, 200)}`)
+  }
+
+  return {
+    blob: await respuesta.blob(),
+    // El backend avisa por cabecera si el fichero va cortado. Sin esto, quien
+    // exporta se lo lleva creyendo que está entero.
+    total: Number(respuesta.headers.get('X-Total-Registros') || 0),
+    exportados: Number(respuesta.headers.get('X-Registros-Exportados') || 0),
+  }
+}
+
+const conFiltros = (filtros) => {
+  const params = new URLSearchParams()
+  for (const [clave, valor] of Object.entries(filtros)) {
+    if (valor !== '' && valor != null) params.append(clave, valor)
+  }
+  return params
+}
+
 export const api = {
   login: (email, password) =>
     fetch(`${BASE}/token`, {
@@ -110,4 +148,34 @@ export const api = {
   // vinieran por separado, un refresco a medias mezclaria dos ventanas.
   estadisticasPromociones: ({ horas = 24, dias = 7 } = {}) =>
     pedir(`/api/promociones/estadisticas?horas=${horas}&dias=${dias}`),
+
+  // S8.3 - Auditoría. Solo administradores; el backend responde 403 al resto.
+  eventosAuditoria: () => pedir('/api/auditoria/eventos'),
+
+  auditoria: ({ limite = 50, desplazamiento = 0, ...filtros } = {}) => {
+    const params = conFiltros(filtros)
+    params.append('limite', limite)
+    params.append('desplazamiento', desplazamiento)
+    return pedir(`/api/auditoria?${params}`)
+  },
+
+  // El CSV lleva los MISMOS filtros que la tabla: lo que se descarga tiene que
+  // ser lo que se está viendo.
+  exportarAuditoria: (filtros = {}) =>
+    pedirArchivo(`/api/auditoria/export.csv?${conFiltros(filtros)}`),
+
+  // S8.5 y S8.9 - Control. Solo administradores.
+  killSwitch: () => pedir('/api/admin/kill-switch'),
+
+  fijarKillSwitch: ({ activo, motivo = null }) =>
+    pedir('/api/admin/kill-switch', {
+      method: 'PUT', body: JSON.stringify({ activo, motivo }),
+    }),
+
+  usuariosAdmin: () => pedir('/api/admin/usuarios'),
+
+  cambiarPlan: (usuarioId, plan) =>
+    pedir(`/api/admin/usuarios/${usuarioId}/plan`, {
+      method: 'PUT', body: JSON.stringify({ plan }),
+    }),
 }

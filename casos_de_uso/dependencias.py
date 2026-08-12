@@ -36,6 +36,10 @@ class Dependencias:
     # Dependencias se construye una sola vez al arrancar y se comparte entre
     # peticiones concurrentes.
     presupuesto: Any = None
+    # Kill-switch de S8.5. Sin el no hay interruptor y el run corre como
+    # siempre: los tests deterministas de S2 arman Dependencias sin tocar la
+    # base, y el plan B de sqlite no tiene sistema_config.
+    configuracion: Any = None
     snapshot_version: str = "2026-07"
     tarifas_modelos: Dict[str, Dict[str, float]] = None
     offline_mode: bool = False
