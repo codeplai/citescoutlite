@@ -45,7 +45,7 @@ asegurar_bucle_compatible()
 # cambiar los endpoints de mas abajo.
 # ---------------------------------------------------------------------------
 from api.auth import (APP_DB, USA_SUPABASE, autenticacion, get_current_user,
-                      usuario_actual_id)
+                      rol_de, usuario_actual_id)
 
 app = FastAPI(title="AgroScout IA Lite MVP")
 
@@ -306,6 +306,29 @@ async def obtener_tokens(id: str, current_user: dict = Depends(get_current_user)
         "tokens_entrada": int(entrada),
         "tokens_salida": int(salida),
         "costo_usd": round(float(costo), 6)
+    }
+
+
+@app.get("/api/sesion")
+async def sesion(current_user: dict = Depends(get_current_user)):
+    """S8.1 - Quién es quien está mirando el panel.
+
+    Hasta ahora el frontend no tenía forma de saberlo: `/token` devuelve el
+    token y el correo, y `/uso` devuelve el plan, pero el **rol** no salía por
+    ningún sitio. Sin este dato no se puede decidir qué entradas del panel
+    enseñar, y el panel de S8 tiene pantallas que solo son de administrador.
+
+    Es de lectura y no decide nada. **Quien autoriza sigue siendo
+    `requiere_admin` en cada endpoint**: lo que devuelve esto viaja al
+    navegador, y allí cualquiera puede reescribirlo desde las herramientas de
+    desarrollo. Sirve para no enseñar una puerta que se va a cerrar en la
+    cara, no para abrirla.
+    """
+    usuario_id = usuario_actual_id(current_user)
+    return {
+        "usuario_id": usuario_id,
+        "email": current_user.get("email"),
+        "rol": rol_de(usuario_id),
     }
 
 

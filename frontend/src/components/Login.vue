@@ -42,20 +42,41 @@
 
 <script setup>
 import { ref } from 'vue'
-import { api, CLAVE_TOKEN, CLAVE_USUARIO } from '../api.js'
+import { useRoute, useRouter } from 'vue-router'
+import { api } from '../api.js'
+import { entrar } from '../sesion.js'
 
 const email = ref('')
 const password = ref('')
 const errorMsg = ref('')
 const isLoading = ref(false)
-const emit = defineEmits(['login-success'])
+
+const route = useRoute()
+const router = useRouter()
+
+/**
+ * A dónde ir tras entrar. Se vuelve a donde se quería ir —sin esto, caducar la
+ * sesión en Promociones te dejaría siempre en Consulta—, pero el valor viene
+ * de la barra de direcciones y hay que acotarlo.
+ *
+ * Solo se acepta una ruta interna: una sola barra al principio. `//evil.pe` es
+ * protocolo-relativa y el navegador la trataría como otro dominio, que es la
+ * forma clásica de convertir una pantalla de login en un redirector abierto.
+ * `/\evil.pe` cuenta igual: varios navegadores tratan la contrabarra como
+ * barra al normalizar la URL.
+ */
+function destinoSeguro(volverA) {
+  if (typeof volverA !== 'string') return { name: 'consulta' }
+  if (!/^\/[^/\\]/.test(volverA)) return { name: 'consulta' }
+  return volverA
+}
 
 const handleLogin = async () => {
   if (!email.value || !password.value) return
-  
+
   isLoading.value = true
   errorMsg.value = ''
-  
+
   try {
     // El backend hace de proxy del password grant de Supabase y conserva la
     // misma forma de request y response que en S1, así que este componente no
@@ -68,10 +89,9 @@ const handleLogin = async () => {
     }
 
     const data = await res.json()
-    localStorage.setItem(CLAVE_TOKEN, data.access_token)
-    localStorage.setItem(CLAVE_USUARIO, data.user)
-    emit('login-success')
-    
+    entrar(data.user, data.access_token)
+    await router.push(destinoSeguro(route.query.volverA))
+
   } catch (error) {
     errorMsg.value = error.message
   } finally {

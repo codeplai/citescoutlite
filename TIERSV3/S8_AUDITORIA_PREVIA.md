@@ -322,6 +322,76 @@
 > real de Metro como fixture y sin salir a la red.
 > **Suite completa: 324 tests, 0 fallos.**
 >
+> ### FASE 1 — Esqueleto del panel (2026-08-12)
+>
+> La SPA navegaba con un `ref` llamado `vista` y una cadena de `v-else-if`. Con
+> tres pestañas se aguantaba; con seis pantallas más, no — y el problema no se
+> arregla añadiendo ramas: **no había URL**, así que no se podía enlazar una
+> pantalla, ni volver con el botón de atrás, y **recargar te devolvía siempre al
+> principio**.
+>
+> #### El hueco que había que tapar primero
+>
+> **El frontend no tenía forma de saber el rol del usuario.** `/token` devuelve
+> token y correo; `/uso`, el plan. El rol no salía por ningún endpoint, así que
+> el guard de admin (1.2) no se podía ni escribir. Añadido `GET /api/sesion`,
+> que devuelve `{usuario_id, email, rol}`.
+>
+> Es de lectura y **no autoriza nada**. Lo que devuelve viaja al navegador,
+> donde cualquiera lo reescribe desde las herramientas de desarrollo; quien
+> decide sigue siendo `requiere_admin` en cada endpoint. Sirve para no enseñar
+> una puerta que se va a cerrar en la cara. Por eso mismo **el rol no se guarda
+> en `localStorage`**: se vuelve a pedir al servidor en cada sesión, mientras
+> que el token y el correo sí se guardan porque hacen falta para reanudar.
+>
+> #### Lo entregado
+>
+> | | |
+> |---|---|
+> | 1.1 vue-router + barra lateral | `src/router/index.js`, `App.vue` reescrito como shell |
+> | 1.2 guard de sesión y de admin | `beforeEach`, con `volverA` para no perder el destino |
+> | 1.3 las 3 pestañas a rutas | `/consulta`, `/alertas`, `/promociones` |
+>
+> **El menú se dibuja recorriendo el router**, no con una lista aparte: cada
+> ruta declara en `meta` su título, su grupo y si es de administración. Una
+> pantalla nueva se añade en un solo sitio, y es imposible que salga en el menú
+> sin ruta o al revés. Las fases 2-4 solo tienen que añadir entradas con
+> `meta.admin`.
+>
+> Las tres pantallas se cargan bajo demanda: quien solo consulta precios ya no
+> descarga el panel de promociones. El *bundle* de entrada bajó a 98 kB y
+> Promociones (9 kB) y Alertas (9 kB) salieron a trozos aparte.
+>
+> #### Dos cosas que el cambio destapó
+>
+> 1. **El resultado de la consulta se habría perdido al navegar.** Vivía en
+>    `App.vue`, que envolvía las pestañas, así que ir a Alertas y volver lo
+>    conservaba. Al pasar Consulta a ser una ruta, su estado se destruye al
+>    salir: asomarse a Promociones habría borrado una búsqueda que cuesta
+>    dinero y medio minuto. Movido a un módulo aparte, y **se borra al cerrar
+>    sesión** para que quien entre después en el mismo navegador no se
+>    encuentre la búsqueda de la persona anterior.
+> 2. **`volverA` era un redirector abierto.** El destino tras el login viene de
+>    la barra de direcciones. Se acota a rutas internas: una sola barra al
+>    principio, porque `//evil.pe` es protocolo-relativa y el navegador la
+>    trataría como otro dominio.
+>
+> #### Verificación
+>
+> - `/api/sesion` contra las dos cuentas reales: premium → `admin`,
+>   gratuita → `operador`, sin token → 401.
+> - Las seis rutas sirven la SPA (`/`, `/consulta`, `/alertas`,
+>   `/promociones`, `/login`, y una inexistente): recargar en cualquiera carga
+>   el panel y el router la resuelve. **DoD cumplido.**
+> - **4 tests nuevos** en [tests/test_s8_sesion.py](tests/test_s8_sesion.py),
+>   centrados en que el rol lo pone el servidor y no la petición.
+>   **Suite: 328, 0 fallos.**
+>
+> **Aviso de despliegue:** el modo historia exige que el servidor estático
+> devuelva `index.html` en cualquier ruta. En desarrollo lo hace Vite; en el
+> repo no hay configuración de despliegue, así que cuando la haya tendrá que
+> llevar el *fallback* o `/promociones` dará 404 al recargar.
+>
 > ### Lo que queda abierto
 >
 > **Café ya da ofertas** (5 por cadena, más una de la web abierta): lo resolvió

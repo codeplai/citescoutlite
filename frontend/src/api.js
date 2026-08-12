@@ -56,6 +56,10 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
 
+  // S8.1 - Quién está mirando el panel, y con qué rol. El rol no salía por
+  // ningún endpoint, así que el panel no podía decidir qué entradas enseñar.
+  sesion: () => pedir('/api/sesion'),
+
   consultar: (texto) =>
     pedir('/consultas', { method: 'POST', body: JSON.stringify({ texto }) }),
 
