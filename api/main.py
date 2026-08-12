@@ -13,6 +13,10 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from adaptadores.autenticacion import Autenticacion
+# Antes de que uvicorn cree su bucle. En Windows el policy por defecto es el
+# Proactor y psycopg en asincrono no puede usarlo, de modo que sin esto el
+# WebSocket de jobs y todo lo que escriba eventos_job falla en desarrollo.
+from adaptadores.bucle_asincrono import asegurar_bucle_compatible
 from adaptadores.busqueda_lancedb import BusquedaLanceDB
 from adaptadores.descubrimiento_snapshot import DescubrimientoSnapshot
 from adaptadores.entorno import ruta_db_sqlite
@@ -32,6 +36,7 @@ from api.alertas import router as alertas_router
 from api.promociones import router as promociones_router
 
 load_dotenv()
+asegurar_bucle_compatible()
 
 # ---------------------------------------------------------------------------
 # T3.4 - Conmutador de backend de estado y autenticacion. Ambos viven ahora en

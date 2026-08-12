@@ -115,7 +115,20 @@ def run_gratuito(cliente, tokens):
 # --------------------------------------------------------------------------
 
 def test_esquema_supabase():
-    """Las 5 tablas existen, con RLS activo y 3 politicas."""
+    """Las 5 tablas de S3 existen, con RLS activo y su politica de dueno.
+
+    La comprobacion de politicas se hacia con `count(*) from pg_policies` sobre
+    el esquema entero, esperando 3. Eso no medi­a lo que dice medir: cualquier
+    tabla nueva con RLS lo rompe sin que nada de S3 haya cambiado. Es lo que
+    paso al aplicar las migraciones 004 (staging_agente) y 005
+    (presupuesto_uso), que traen dos politicas cada una: el test empezo a fallar
+    con 7 aunque las 3 de S3 seguian exactamente donde estaban.
+
+    Ahora se cuentan solo las de estas cinco tablas. `etapas_ejecucion` y
+    `cache_llm` llevan RLS activo y ninguna politica a proposito: sin politica
+    no pasa nadie, y quien las escribe es el backend con la service_role, que
+    salta RLS por definicion.
+    """
     from adaptadores.db import pool
     tablas = ("perfiles", "ejecuciones", "etapas_ejecucion", "cache_llm", "informes")
 
@@ -124,15 +137,19 @@ def test_esquema_supabase():
             select tablename, rowsecurity from pg_tables
              where schemaname = 'public' and tablename = any(%s)
         """, (list(tablas),)).fetchall())
-        politicas = conexion.execute(
-            "select count(*) from pg_policies where schemaname = 'public'").fetchone()[0]
+        politicas = dict(conexion.execute("""
+            select tablename, count(*) from pg_policies
+             where schemaname = 'public' and tablename = any(%s)
+             group by tablename
+        """, (list(tablas),)).fetchall())
         vista = conexion.execute("""select count(*) from pg_views
                                      where schemaname = 'public'
                                        and viewname = 'uso_mensual'""").fetchone()[0]
 
     assert set(rls) == set(tablas), f"faltan tablas: {set(tablas) - set(rls)}"
     assert all(rls.values()), f"RLS apagado en: {[t for t, v in rls.items() if not v]}"
-    assert politicas == 3, f"se esperaban 3 politicas, hay {politicas}"
+    assert politicas == {"perfiles": 1, "ejecuciones": 1, "informes": 1}, \
+        f"politicas de dueno inesperadas: {politicas}"
     assert vista == 1, "falta la vista uso_mensual"
 
 

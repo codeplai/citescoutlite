@@ -1,4 +1,26 @@
-"""S3.2 Job events tracking and real-time progress streaming."""
+"""S3.2 Job events tracking and real-time progress streaming.
+
+## Estado (revisado en S8.0)
+
+`eventos_job` estaba a 0 filas y este modulo era la razon: **ninguno de sus
+cuatro metodos podia ejecutarse**. Se escribio contra una API que psycopg3 no
+tiene, y como el unico llamador —`_emitir` en los jobs— envuelve la llamada en
+un try/except para que un fallo de registro no tumbe el trabajo ya hecho, los
+cuatro errores se tragaban en silencio:
+
+| Metodo | Lo que hacia | Por que fallaba |
+|---|---|---|
+| `create_event` | `await cur.scalar(sql, params)` | `AsyncCursor` no tiene `.scalar()` |
+| `get_events` | `await cur.fetchall(sql, params)` | `fetchall()` no acepta argumentos: hay que `execute()` antes |
+| `stream_events` | `async for x in await cur.stream(...)` | `stream()` ya devuelve un generador asincrono; no se espera |
+| los tres | `json.loads(fila[4])` | psycopg3 devuelve `jsonb` como dict, no como texto: `TypeError` |
+
+Todo esto quedaba ademas por detras de un fallo anterior en Windows (el policy
+Proactor de asyncio, ver `adaptadores/bucle_asincrono.py`), que era el unico
+sintoma visible. Al arreglar aquel, aparecieron estos.
+
+Importa porque `eventos_job` es la unica fuente del dashboard de jobs (S8.1).
+"""
 
 import json
 import logging
@@ -8,6 +30,28 @@ import psycopg
 from psycopg import AsyncConnection
 
 logger = logging.getLogger(__name__)
+
+
+def _a_dict(fila) -> dict:
+    """Una fila de eventos_job como dict listo para JSON.
+
+    `data_json` es una columna `jsonb`, y psycopg3 la devuelve ya convertida a
+    dict. El `json.loads()` que habia aqui recibia por tanto un dict y moria con
+    TypeError. Se admite texto igualmente por si alguna fila vieja se escribio
+    como cadena.
+    """
+    datos = fila[4]
+    if isinstance(datos, (str, bytes)):
+        datos = json.loads(datos)
+
+    return {
+        "event_id": fila[0],
+        "run_id": fila[1],
+        "job_id": fila[2],
+        "evento": fila[3],
+        "data": datos or {},
+        "created_at": fila[5].isoformat() if fila[5] else None,
+    }
 
 
 class EventosJobStore:
@@ -53,7 +97,7 @@ class EventosJobStore:
         conn = await self.get_connection()
         async with conn:
             async with conn.cursor() as cur:
-                event_id = await cur.scalar(
+                await cur.execute(
                     """
                     INSERT INTO eventos_job (run_id, job_id, evento, data_json)
                     VALUES (%s, %s, %s, %s)
@@ -61,6 +105,8 @@ class EventosJobStore:
                     """,
                     (run_id, job_id, evento, data_json),
                 )
+                fila = await cur.fetchone()
+                event_id = fila[0]
                 logger.info(f"📌 [{evento}] run_id={run_id}, event_id={event_id}")
                 return event_id
 
@@ -78,7 +124,7 @@ class EventosJobStore:
         conn = await self.get_connection()
         async with conn:
             async with conn.cursor() as cur:
-                events = await cur.fetchall(
+                await cur.execute(
                     """
                     SELECT event_id, run_id, job_id, evento, data_json, created_at
                     FROM eventos_job
@@ -88,17 +134,8 @@ class EventosJobStore:
                     """,
                     (run_id, limit),
                 )
-                return [
-                    {
-                        "event_id": e[0],
-                        "run_id": e[1],
-                        "job_id": e[2],
-                        "evento": e[3],
-                        "data": json.loads(e[4]),
-                        "created_at": e[5].isoformat() if e[5] else None,
-                    }
-                    for e in events
-                ]
+                events = await cur.fetchall()
+                return [_a_dict(e) for e in events]
 
     async def get_latest_event(self, run_id: str) -> Optional[dict]:
         """Get the most recent event for a run."""
@@ -124,8 +161,11 @@ class EventosJobStore:
         conn = await self.get_connection()
         async with conn:
             async with conn.cursor() as cur:
-                # Get all events in chronological order
-                async for event_row in await cur.stream(
+                # `stream()` ya devuelve un generador asincrono: se itera con
+                # `async for` directamente. El `await` que habia delante
+                # intentaba esperar el generador y reventaba antes de la
+                # primera fila.
+                async for fila in cur.stream(
                     """
                     SELECT event_id, run_id, job_id, evento, data_json, created_at
                     FROM eventos_job
@@ -134,14 +174,7 @@ class EventosJobStore:
                     """,
                     (run_id,),
                 ):
-                    yield {
-                        "event_id": event_row[0],
-                        "run_id": event_row[1],
-                        "job_id": event_row[2],
-                        "evento": event_row[3],
-                        "data": json.loads(event_row[4]),
-                        "created_at": event_row[5].isoformat() if event_row[5] else None,
-                    }
+                    yield _a_dict(fila)
 
 
 # Singleton instance

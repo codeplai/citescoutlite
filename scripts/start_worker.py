@@ -23,6 +23,19 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
+# Antes de asyncio.run(), que es donde nace el bucle. En Windows el policy por
+# defecto es el Proactor y psycopg en asincrono no puede usarlo: sin esto el
+# worker corre, pero ni el propio Procrastinate ni eventos_job pueden escribir.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from adaptadores.bucle_asincrono import asegurar_bucle_compatible
+asegurar_bucle_compatible()
+
+# La consola de Windows viene en cp1252 y los emojis de estos mensajes la
+# hacen lanzar UnicodeEncodeError por cada linea: el worker seguia vivo, pero
+# el log quedaba sepultado bajo tracebacks de logging que no eran el problema.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 # Configure logging with timestamps and structured format
 log_level = os.getenv("PROCRASTINATE_LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
@@ -36,6 +49,19 @@ logger = logging.getLogger(__name__)
 
 # Import configured Procrastinate app
 from config.procrastinate_config import app
+
+# Importar los modulos de los jobs es obligatorio, no decorativo: una tarea de
+# Procrastinate se registra cuando se **ejecuta** su decorador, es decir cuando
+# se importa el modulo que la define. Este proceso solo importaba
+# procrastinate_config, donde viven job_agente_run, job_mim_etl y
+# job_informe_pdf, pero no los dos periodicos, que estan en modulos aparte.
+#
+# Resultado hasta ahora: el worker arrancaba anunciando
+# "No periodic task found, periodic deferrer will not run", y **ni el job de
+# alertas de las 03:00 ni el de promocion de las 04:00 se dispararon jamas**.
+# S7 arreglo el import roto que tenian dentro; faltaba que alguien los cargara.
+import config.job_alert_ingest  # noqa: F401  (registra el periodico de las 03:00)
+import config.job_promotion_auto  # noqa: F401  (registra el de las 04:00)
 
 
 class WorkerHealthCheck:
@@ -71,13 +97,42 @@ health = WorkerHealthCheck()
 
 
 async def setup_database():
-    """Ensure database tables exist (Procrastinate creates them, but we verify)."""
-    logger.info("🗄️  Verifying database schema...")
-    async with app.connector() as conn:
-        # Procrastinate creates its own tables on first run
-        # Just verify connection
-        result = await conn.fetchval("SELECT version()")
-        logger.info(f"   PostgreSQL: {result.split(',')[0]}")
+    """Comprueba que se llega a la base y que el esquema de Procrastinate esta.
+
+    Lo que habia aqui estaba escrito contra asyncpg: `app.connector()` como si
+    fuera invocable —es un atributo, un PsycopgConnector— y `conn.fetchval()`,
+    que es API de asyncpg y no de psycopg. Reventaba con TypeError antes de
+    llegar al worker.
+
+    Se usa psycopg directamente en vez del connector de Procrastinate: es lo
+    que usa el resto del proyecto, y asi esta comprobacion no depende de la
+    forma interna del connector, que ya nos ha cambiado una vez.
+    """
+    logger.info("🗄️  Verificando el esquema...")
+
+    import psycopg
+
+    async with await psycopg.AsyncConnection.connect(
+            os.getenv("DATABASE_URL"), connect_timeout=15) as conn:
+        cur = await conn.execute("select version()")
+        version = (await cur.fetchone())[0]
+        logger.info(f"   PostgreSQL: {version.split(',')[0]}")
+
+        # El esquema de Procrastinate no se crea solo al abrir la app: hay que
+        # llamar a apply_schema(), y por creerlo automatico el worker de S3 se
+        # quedo sin tablas donde encolar (lo arreglo S7 en
+        # scripts/init_procrastinate.py). Si faltan, mejor decirlo aqui.
+        cur = await conn.execute(
+            "select count(*) from pg_tables "
+            " where schemaname = 'public' and tablename like 'procrastinate%'")
+        tablas = (await cur.fetchone())[0]
+
+    if tablas == 0:
+        raise RuntimeError(
+            "No hay tablas procrastinate_* en la base. Aplica el esquema con:\n"
+            "    uv run python scripts/init_procrastinate.py")
+
+    logger.info(f"   Esquema de Procrastinate: {tablas} tablas")
 
 
 async def setup_signal_handlers():
@@ -121,29 +176,43 @@ async def main():
     try:
         await setup_signal_handlers()
 
-        async with app.open():
+        # open() es el context manager sincrono; el asincrono es open_async().
+        # Con el primero, `async with` lanzaba TypeError antes de abrir
+        # siquiera la conexion.
+        async with app.open_async():
             await setup_database()
 
             # Setup event callbacks for S3.2 (job progress tracking)
-            from config.procrastinate_config import setup_event_callbacks
-            setup_event_callbacks()
+            # S3.2: los eventos de ciclo de vida ya no son callbacks del app
+            # (esa API no existe en procrastinate 3.9) sino un middleware que
+            # se pasa al worker, unas lineas mas abajo.
+            from config.procrastinate_config import middleware_eventos_job
 
             logger.info(f"\n👂 Worker listening for jobs...")
             logger.info(f"   Press Ctrl+C to stop gracefully")
             logger.info("=" * 70 + "\n")
 
-            # Create worker with exponential backoff retry strategy
-            worker = app.worker_defaults(
+            # `app.worker_defaults(...)` no existe en procrastinate 3.9: es la
+            # misma clase de error que S7 encontro en procrastinate_config.py
+            # (`max_attempts` y `schedule_in`). Aqui reventaba con
+            # `AttributeError` dentro del try, el except lo registraba y el
+            # proceso salia a los dos segundos. Por eso `procrastinate_workers`
+            # y `procrastinate_jobs` estaban a 0 y los dos jobs periodicos
+            # —alertas a las 03:00 y promocion a las 04:00— **nunca llegaron a
+            # dispararse**: no habia worker que los atendiera.
+            #
+            # Los reintentos ya no se configuran aqui sino por tarea, con
+            # `retry=` en el decorador @app.task.
+            await app.run_worker_async(
                 queues=queues,
                 concurrency=concurrency,
-                # Job handling: wait times between retries (in seconds)
-                # 1st attempt fails → wait 1s → 2nd attempt
-                # 2nd attempt fails → wait 2s → 3rd attempt
-                # 3rd attempt fails → wait 4s → 4th attempt (last)
+                # S3.2: cada job deja started/completed/failed en eventos_job.
+                worker_middleware=[middleware_eventos_job],
+                # El worker instala sus propios manejadores de senal y ya
+                # tenemos los nuestros unas lineas mas arriba; dos juegos
+                # compitiendo hacen que Ctrl+C no cierre limpio.
+                install_signal_handlers=False,
             )
-
-            # Run worker
-            await worker.run()
 
     except KeyboardInterrupt:
         logger.info("\n⏹️  Worker stopped by user")

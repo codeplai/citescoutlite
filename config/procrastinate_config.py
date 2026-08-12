@@ -239,88 +239,68 @@ async def job_informe_pdf(run_id: str):
 
 
 # ============================================================
-# S3.2 EVENT CALLBACKS: Emit eventos_job on state changes
+# S3.2 - eventos_job por cada job que corre el worker
+#
+# Esto eran cuatro decoradores: @app.on_job_queued, on_job_started,
+# on_job_completed y on_job_failed. **Ninguno existe en procrastinate 3.9**, y
+# como el registro iba dentro de un try/except que solo miraba ImportError, el
+# AttributeError salia por arriba y tumbaba el arranque del worker. Sumado a que
+# `setup_event_callbacks()` se llamaba sin await, el resultado es que los
+# eventos de ciclo de vida no se escribieron nunca.
+#
+# La forma actual de envolver la ejecucion de un job es un *worker middleware*:
+# una corrutina (call_next, context, worker) que rodea cada job, sea sync o
+# async. Cubre started / completed / failed.
+#
+# 'created' no se puede emitir desde aqui: ocurre al encolar, en otro proceso.
+# Cuando algo llame a `.defer()` de verdad —hoy no lo hace nadie en produccion,
+# es el bloqueador B2 de la auditoria de S8— habra que emitirlo alli.
 # ============================================================
 
-# Import after app is created to avoid circular imports
-_eventos_configured = False
+
+def _run_id_de(job) -> str:
+    """El run_id que el job trae en sus kwargs, o uno derivado de su id.
+
+    Sin esto, dos jobs distintos de la misma tarea compartirian run_id y sus
+    eventos se mezclarian en la misma linea de tiempo del panel.
+    """
+    return str(job.task_kwargs.get("run_id") or f"job_{job.id}")
 
 
-async def setup_event_callbacks():
-    """Register callbacks for job state changes (S3.2)."""
-    global _eventos_configured
+async def middleware_eventos_job(call_next, context, worker):
+    """Escribe started/completed/failed en eventos_job alrededor de cada job.
 
-    if _eventos_configured:
-        return
+    Los fallos al registrar se tragan a proposito: que no se pueda anotar un
+    evento no puede impedir que el trabajo se haga, ni convertir un job
+    correcto en uno fallido. Pero se registran en el log con nivel error, que
+    es lo que faltaba antes.
+    """
+    from adaptadores.eventos_job import emit_event
 
+    job = context.job
+    run_id = _run_id_de(job)
+
+    async def anotar(evento: str, data: dict) -> None:
+        try:
+            await emit_event(run_id=run_id, evento=evento,
+                             job_id=job.id, data=data)
+        except Exception as e:
+            logger.error(f"No se pudo escribir el evento {evento} "
+                         f"de {job.task_name}: {e}")
+
+    await anotar("started", {"task_name": job.task_name,
+                             "intento": job.attempts})
     try:
-        from adaptadores.eventos_job import emit_event
+        resultado = await call_next()
+    except Exception as e:
+        await anotar("failed", {"task_name": job.task_name,
+                                "error": str(e)[:200],
+                                "intento": job.attempts})
+        raise
 
-        @app.on_job_queued()
-        async def on_job_queued(app, job):
-            """Called when job is enqueued."""
-            try:
-                await emit_event(
-                    run_id=str(job.task_kwargs.get("run_id", f"job_{job.id}")),
-                    evento="created",
-                    job_id=job.id,
-                    data={
-                        "task_name": job.task_name,
-                        "attempts": 0,
-                        "max_attempts": job.max_attempts,
-                    },
-                )
-            except Exception as e:
-                logger.error(f"❌ Event callback error (queued): {e}")
-
-        @app.on_job_started()
-        async def on_job_started(app, job):
-            """Called when job execution starts."""
-            try:
-                await emit_event(
-                    run_id=str(job.task_kwargs.get("run_id", f"job_{job.id}")),
-                    evento="started",
-                    job_id=job.id,
-                    data={"task_name": job.task_name},
-                )
-            except Exception as e:
-                logger.error(f"❌ Event callback error (started): {e}")
-
-        @app.on_job_completed()
-        async def on_job_completed(app, job, *, result=None, **kwargs):
-            """Called when job completes successfully."""
-            try:
-                await emit_event(
-                    run_id=str(job.task_kwargs.get("run_id", f"job_{job.id}")),
-                    evento="completed",
-                    job_id=job.id,
-                    data={"task_name": job.task_name, "result": str(result)[:100]},
-                )
-            except Exception as e:
-                logger.error(f"❌ Event callback error (completed): {e}")
-
-        @app.on_job_failed()
-        async def on_job_failed(app, job, *, exception=None, **kwargs):
-            """Called when job fails."""
-            try:
-                await emit_event(
-                    run_id=str(job.task_kwargs.get("run_id", f"job_{job.id}")),
-                    evento="failed",
-                    job_id=job.id,
-                    data={
-                        "task_name": job.task_name,
-                        "error": str(exception)[:100] if exception else "Unknown error",
-                        "attempts": job.attempts,
-                    },
-                )
-            except Exception as e:
-                logger.error(f"❌ Event callback error (failed): {e}")
-
-        _eventos_configured = True
-        logger.info("✅ Event callbacks registered for job state changes")
-
-    except ImportError as e:
-        logger.warning(f"⚠️  Could not import eventos_job module: {e}")
+    await anotar("completed", {"task_name": job.task_name,
+                               "resultado": str(resultado)[:200]})
+    return resultado
 
 
 if __name__ == "__main__":

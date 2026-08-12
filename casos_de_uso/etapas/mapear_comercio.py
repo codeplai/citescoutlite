@@ -31,6 +31,10 @@ from puertos.descubrimiento_comercial import NivelDescubrimiento
 # Nivel pedido = AGENTE_WEB para ejecutar cascada completa si hay gaps.
 NIVEL_PEDIDO = NivelDescubrimiento.AGENTE_WEB
 
+# Ambito del MVP. Ver la nota en mapear_comercio() sobre por que no sale de
+# `InsumoInterpretado`.
+PAIS_POR_DEFECTO = "Perú"
+
 
 def mapear_comercio(d: Dependencias,
                     interpretado: InsumoInterpretado) -> MapaComercial:
@@ -46,7 +50,24 @@ def mapear_comercio(d: Dependencias,
     Auditoría registra niveles_ejecutados y cobertura en salida_json.
     """
     insumo = interpretado.insumo_normalizado
-    pais = interpretado.pais or "Perú"  # País del contexto de búsqueda
+    # `InsumoInterpretado` no tiene campo `pais` y nunca lo ha tuvo: es el
+    # esquema que rellena el LLM en la etapa 1 (adaptadores/redactor_glm.py) y
+    # sus campos son insumo_normalizado, reconocible, sinonimos_busqueda y
+    # terminos_ingles.
+    #
+    # La linea que habia aqui, `interpretado.pais or "Perú"`, llego en S2
+    # INTEG.1-3 apuntando a un campo inexistente. Pydantic lanza AttributeError
+    # ante un atributo que no declara, asi que **la etapa 2b reventaba en cada
+    # llamada** y con ella /consultas entero, que devolvia 500. Lleva asi desde
+    # S2; los 9 tests de test_etapa_2b.py y los 5 de test_e2e_s3.py que fallan
+    # por 'InsumoInterpretado object has no attribute pais' son eso.
+    #
+    # El pais no se anade al modelo porque hoy no es parte de la
+    # interpretacion: el MVP es de ambito peruano (ver el snapshot de
+    # datasets/ y la normalizacion de etl/normalizar_paises.py). Cuando la
+    # consulta admita pais, entra aqui como parametro del contexto de busqueda,
+    # no como algo que el LLM tenga que adivinar del texto libre.
+    pais = PAIS_POR_DEFECTO
 
     # Precio de materia prima: lectura local, sin red y sin coste. Va aunque no
     # haya adaptador de descubrimiento, porque son fuentes independientes.

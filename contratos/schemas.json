@@ -315,7 +315,8 @@
         "description": "Una sola fuente por fila",
         "enum": [
           "OFF",
-          "USDA"
+          "USDA",
+          "BRIGHT_DATA"
         ],
         "title": "Fuente",
         "type": "string"
@@ -563,7 +564,8 @@
             "description": "Una sola fuente por fila",
             "enum": [
               "OFF",
-              "USDA"
+              "USDA",
+              "BRIGHT_DATA"
             ],
             "title": "Fuente",
             "type": "string"
@@ -627,6 +629,26 @@
         "description": "Filas no publicadas, por motivo (mojibake, url inválida...)",
         "title": "Descartadas",
         "type": "object"
+      },
+      "niveles_ejecutados": {
+        "description": "[1], [1,2], o [1,2,3] según lo que se ejecutó",
+        "items": {
+          "type": "integer"
+        },
+        "title": "Niveles Ejecutados",
+        "type": "array"
+      },
+      "has_gaps": {
+        "default": false,
+        "description": "True si hay cobertura insuficiente (< 3 productos, < 2 países/marcas)",
+        "title": "Has Gaps",
+        "type": "boolean"
+      },
+      "productos_n3_staging": {
+        "default": 0,
+        "description": "Productos encontrados por agente (N3) en staging_agente (sin promocionar)",
+        "title": "Productos N3 Staging",
+        "type": "integer"
       },
       "precios_materia_prima": {
         "description": "Observaciones de precio mayorista (MIDAGRI). [] = el boletín no publica precio para este insumo",
@@ -1127,6 +1149,26 @@
             "title": "Descartadas",
             "type": "object"
           },
+          "niveles_ejecutados": {
+            "description": "[1], [1,2], o [1,2,3] según lo que se ejecutó",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Niveles Ejecutados",
+            "type": "array"
+          },
+          "has_gaps": {
+            "default": false,
+            "description": "True si hay cobertura insuficiente (< 3 productos, < 2 países/marcas)",
+            "title": "Has Gaps",
+            "type": "boolean"
+          },
+          "productos_n3_staging": {
+            "default": 0,
+            "description": "Productos encontrados por agente (N3) en staging_agente (sin promocionar)",
+            "title": "Productos N3 Staging",
+            "type": "integer"
+          },
           "precios_materia_prima": {
             "description": "Observaciones de precio mayorista (MIDAGRI). [] = el boletín no publica precio para este insumo",
             "items": {
@@ -1359,7 +1401,8 @@
             "description": "Una sola fuente por fila",
             "enum": [
               "OFF",
-              "USDA"
+              "USDA",
+              "BRIGHT_DATA"
             ],
             "title": "Fuente",
             "type": "string"
