@@ -91,7 +91,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_ORIGENES,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    # PUT desde S8.5/8.9: el kill-switch y el cambio de plan son
+    # actualizaciones idempotentes de un recurso que ya existe, no altas. Sin
+    # el en esta lista el navegador las mata en el preflight —el servidor ni
+    # se entera— y la pantalla de control queda inservible aunque los
+    # endpoints funcionen, que es como se descubrio.
+    allow_methods=["GET", "POST", "PUT", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
