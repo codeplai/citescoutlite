@@ -14,6 +14,21 @@ sin conexion.
 Se ejecuta con red, antes de la demo. Si el dia del ensayo hay que tirar del
 plan B, ya esta todo abajo.
 
+## Tambien hay que resembrar al cambiar un esquema de etapa
+
+La clave de cache incluye la lista de campos del modelo de salida de cada etapa
+(`_huella_de_esquema`, en casos_de_uso/etapas/ejecutor.py). Es deliberado:
+antes, anadir un campo NO invalidaba nada y `model_validate` lo rellenaba con su
+valor por defecto, de modo que la etapa devolvia para siempre un resultado al
+que le faltaba justo lo recien anadido —y en silencio, porque un campo vacio se
+lee igual que un dato ausente de verdad.
+
+El precio es este: **tocar un esquema deja obsoleto lo sembrado**, y
+`test_plan_b_sqlite` —que corre sin api_key a proposito— empieza a fallar con un
+error de litellm. No es la red: es que ya no hay nada que servir. Se arregla
+volviendo a ejecutar este script, y hace falta que Supabase tenga a su vez
+entradas con el esquema nuevo.
+
 Copia solo las filas del snapshot en curso (o el que se pase con --snapshot):
 traer entradas de snapshots viejos llenaria el archivo de respuestas que ninguna
 consulta va a volver a pedir.

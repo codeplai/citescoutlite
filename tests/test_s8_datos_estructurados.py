@@ -95,6 +95,90 @@ def test_sin_precio_no_es_oferta():
     assert extraer_productos(html) == []
 
 
+def test_sin_precio_si_entra_cuando_no_se_exige():
+    """Las gondolas del informe piden lo contrario que la cuarentena: una fila
+    con «sin dato» en el precio sigue diciendo que ese producto se vende en esa
+    tienda, y eso es mas que no enseñar nada."""
+    html = _script({"@type": "Product", "name": "Bio Quinoa 500g",
+                    "gtin13": "7610000000001"})
+    ofertas = extraer_productos(html, exigir_precio=False)
+
+    assert [o.producto.nombre for o in ofertas] == ["Bio Quinoa 500g"]
+    assert ofertas[0].producto.precio is None
+    # Lo demas de la ficha se conserva: sin precio no es sin datos.
+    assert ofertas[0].producto.ean == "7610000000001"
+
+
+def test_sin_nombre_no_entra_nunca():
+    """El nombre es lo unico que identifica la fila; sin el no hay oferta ni
+    aunque se afloje el precio."""
+    html = _script({"@type": "Product", "offers": {"price": 4.5,
+                                                   "priceCurrency": "PEN"}})
+    assert extraer_productos(html, exigir_precio=False) == []
+
+
+# ---------------------------------------------------------------------------
+# El codigo de barras
+#
+# Se leia y se tiraba: el nodo traia `gtin13` y `ean` salia siempre a None por
+# la via de JSON-LD. Era la perdida mas cara del extractor, porque el EAN es lo
+# unico que identifica el MISMO producto en dos tiendas —el nombre cambia de
+# una a otra— y sin el la tabla de gondola es una lista, no una comparacion.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("clave", ["gtin13", "gtin14", "gtin12", "gtin8", "gtin"])
+def test_el_gtin_llega_al_ean(clave):
+    """schema.org tiene una clave por longitud de codigo; todas son el mismo
+    dato para lo que aqui interesa."""
+    html = _script({"@type": "Product", "name": "Quinoa 500g", clave: "4001234567890",
+                    "offers": {"price": 4.99, "priceCurrency": "EUR"}})
+    assert extraer_productos(html)[0].producto.ean == "4001234567890"
+
+
+def test_el_gtin_de_la_oferta_tambien_vale():
+    """Shopify y algunos temas de WooCommerce lo declaran dentro de la Offer."""
+    html = _script({"@type": "Product", "name": "Quinoa 500g",
+                    "offers": {"price": 5.5, "priceCurrency": "CHF",
+                               "gtin13": "7610000000001"}})
+    assert extraer_productos(html)[0].producto.ean == "7610000000001"
+
+
+def test_manda_el_mas_especifico_cuando_hay_varios():
+    html = _script({"@type": "Product", "name": "Quinoa", "gtin13": "4001234567890",
+                    "gtin8": "12345670",
+                    "offers": {"price": 4.99, "priceCurrency": "EUR"}})
+    assert extraer_productos(html)[0].producto.ean == "4001234567890"
+
+
+@pytest.mark.parametrize("valor", ["", "N/A", "0", "sin código", 4001234567890.0, None])
+def test_lo_que_no_parece_un_codigo_de_barras_se_descarta(valor):
+    """Sin EAN la fila sale igual; solo no se empareja con nada.
+
+    Guardarlo tal cual seria peor: la tabla marca como «el mismo producto en
+    otra tienda» las filas que comparten EAN, y un valor basura repetido —un
+    '0', un 'N/A'— emparejaria productos distintos y la comparacion, que es el
+    entregable, diria algo falso. El float esta en la lista porque un gtin
+    numerico en JSON no cabe exacto en un double y str() lo dejaria en
+    '4001234567890.0'.
+    """
+    html = _script({"@type": "Product", "name": "Quinoa", "gtin13": valor,
+                    "offers": {"price": 4.99, "priceCurrency": "EUR"}})
+    assert extraer_productos(html)[0].producto.ean is None
+
+
+def test_un_gtin_con_separadores_se_limpia():
+    """Alguna ficha lo publica con guiones."""
+    html = _script({"@type": "Product", "name": "Quinoa", "gtin13": "400-1234-567890",
+                    "offers": {"price": 4.99, "priceCurrency": "EUR"}})
+    assert extraer_productos(html)[0].producto.ean == "4001234567890"
+
+
+def test_sin_gtin_el_ean_queda_vacio():
+    html = _script({"@type": "Product", "name": "Quinua",
+                    "offers": {"price": 4.5, "priceCurrency": "PEN"}})
+    assert extraer_productos(html)[0].producto.ean is None
+
+
 def test_json_roto_no_revienta():
     """Una pagina con JSON-LD malformado es normal; no puede tumbar el barrido."""
     html = ('<script type="application/ld+json">{"@type": "Product",</script>'
@@ -160,6 +244,17 @@ def test_lectura_de_precio(crudo, esperado):
     ("Pack Premium CATA- Caja Negra", "cafe", False),
     ("", "maca", False),
     ("Maca", "", False),
+    # El aleman compone palabras, y el termino queda pegado DETRAS. Estos tres
+    # se descartaban estando bien extraidos, con su precio, y el log decia
+    # "no es Quinoa" de productos que eran exactamente eso.
+    ("Bio-Weissquinoa - 500 g - Rapunzel", "Quinoa", True),
+    ("Bioquinoa Tricolore 500g", "Quinoa", True),
+    ("Waldheidelbeeren 200g", "Heidelbeeren", True),
+    # Y el compuesto por delante seguia funcionando, que es el caso frecuente.
+    ("Quinoamehl 1kg", "Quinoa", True),
+    # Aflojar por el final no puede colar lo que no es: el termino tiene que
+    # cerrar palabra, no aparecer en medio de cualquier sitio.
+    ("Harina de trigo", "Quinoa", False),
 ])
 def test_corresponde_al_insumo(nombre, insumo, esperado):
     assert corresponde_al_insumo(nombre, insumo) is esperado

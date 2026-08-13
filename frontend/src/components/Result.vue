@@ -170,6 +170,49 @@
       </p>
 
       <!--
+        Tabla de góndola: a cuánto se vende HOY, tienda por tienda.
+
+        Va debajo de la de OpenFoodFacts y no fundida con ella porque responden
+        preguntas distintas. Arriba: qué productos existen y con qué
+        composición. Aquí: a qué precio están y dónde. Una fila de arriba es un
+        producto; una de aquí es una oferta, y hay productos con varias.
+      -->
+      <!--
+        Las tres góndolas. Van en tablas separadas y no en una sola con columna
+        «país»: la lectura útil es «cuánto cuesta aquí FRENTE A cuánto cuesta
+        allá», y mezclarlas obligaría a filtrar para leer cualquiera de ellas.
+
+        El subtítulo de cada una dice cómo se obtuvo, y no es el mismo dato:
+        Perú sale de un API de catálogo —exacto y completo— y Alemania y Suiza
+        de una búsqueda web con extracción por modelo, que es irregular.
+        Presentarlas con la misma etiqueta haría creer que valen lo mismo.
+
+        Orden: origen primero, destinos después. No es alfabético ni por
+        volumen de datos, es el recorrido de la pregunta que trae aquí a un
+        exportador —cuánto vale mi producto aquí, cuánto allá—.
+      -->
+      <TablaGondola
+        titulo="Precio de góndola · Perú"
+        :ofertas="ofertasPeru"
+        etiqueta-tiendas="Cadenas consultadas"
+        subtitulo="Leído del catálogo de cada cadena en el momento de la consulta. Sin revisión humana: es lo que la tienda publica."
+      />
+
+      <TablaGondola
+        titulo="Precio de góndola · Alemania"
+        :ofertas="ofertasAlemania"
+        etiqueta-tiendas="Tiendas encontradas"
+        subtitulo="Ninguna cadena alemana publica su precio de forma abierta, así que esto se ha buscado y leído ficha a ficha. Sin revisión humana, y la cobertura es irregular: que un producto no salga aquí no significa que no se venda en Alemania."
+      />
+
+      <TablaGondola
+        titulo="Precio de góndola · Suiza"
+        :ofertas="ofertasSuiza"
+        etiqueta-tiendas="Tiendas encontradas"
+        subtitulo="Buscado y leído ficha a ficha, igual que Alemania. Migros y Coop bloquean el rastreo y no aparecen aquí, así que esto son tiendas suizas menores: es una referencia de precio, no una muestra del mercado. Se busca en alemán, de modo que las fichas en francés e italiano quedan fuera."
+      />
+
+      <!--
         Ficha de formulación. Se superpone **solo al panel del mapa**, no a toda
         la página: quien la abre está comparando filas, y oscurecer el informe
         entero para enseñar una etiqueta le quita de la vista justo el contexto
@@ -272,6 +315,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { api, NoAutorizado } from '../api.js'
+import TablaGondola from './TablaGondola.vue'
 
 const props = defineProps({
   result: {
@@ -336,6 +380,24 @@ const nPaises = computed(() =>
 const nMarcas = computed(() =>
   new Set((mapa.value?.productos ?? []).map(p => p.marca).filter(Boolean)).size
 )
+
+/* --- Góndola: a cuánto se vende hoy, tienda por tienda ------------------- */
+
+// Una lista por mercado y no una sola con columna «país»: la lectura útil es
+// «cuánto cuesta aquí frente a cuánto cuesta allá», y mezclarlas obligaría a
+// filtrar para leer cualquiera de ellas.
+//
+// Lista vacía = ese mercado no se consultó, o no había nada. `TablaGondola`
+// pinta la sección igual y declara la ausencia en una línea; ocultarla entera
+// —que es lo que hacía— convertía cualquier avería en una pantalla idéntica a
+// «no hay ofertas», y eso costó dos rondas de depuración.
+//
+// El resto —el orden por EAN, el chip de repetido, los «sin dato», la ficha
+// nutricional— vive dentro del componente, porque es idéntico en los dos
+// mercados y duplicarlo aquí acabaría en dos tablas que se comportan distinto.
+const ofertasPeru = computed(() => mapa.value?.ofertas_peru ?? [])
+const ofertasAlemania = computed(() => mapa.value?.ofertas_alemania ?? [])
+const ofertasSuiza = computed(() => mapa.value?.ofertas_suiza ?? [])
 
 // Precio de materia prima. Lista vacía = MIDAGRI no publica precio para este
 // insumo; no es lo mismo que "vale cero" ni que "está detrás del paywall".

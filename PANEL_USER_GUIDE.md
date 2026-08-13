@@ -80,46 +80,136 @@ página, se pierde: el informe vive en memoria, no guardado.
 
 #### Dónde buscar
 
-Encima del cuadro de búsqueda hay tres fuentes que se pueden marcar y
-desmarcar. No son tres versiones de lo mismo: **responden preguntas distintas**.
+Encima del cuadro de búsqueda hay cuatro fuentes que se pueden marcar y
+desmarcar. No son cuatro versiones de lo mismo: **responden preguntas
+distintas**.
 
 | Fuente | Qué responde | Qué cuesta |
 |---|---|---|
 | **OpenFoodFacts** | *Qué* productos existen y con qué composición. Catálogo global | Instantáneo, sin coste |
 | **Ecommerce del Perú** | A cuánto se vende **aquí**. Wong, Metro, Plaza Vea y Makro | Segundos, sin coste |
-| **Ecommerce de Alemania** | A cuánto se vende **allá**. REWE, Edeka, Alnatura | Minutos, **con coste** |
+| **Ecommerce de Alemania** | A cuánto se vende **allá**. Tiendas alemanas abiertas al rastreo, **no las grandes cadenas** — ver abajo | Minutos, **con coste** |
+| **Ecommerce de Suiza** | Lo mismo en el segundo destino. Tiendas suizas abiertas al rastreo, **tampoco las grandes** — ver abajo | Minutos, **con coste** |
 
-**Perú y Alemania juntos son el mapa que interesa**: lo que un producto cuesta
-aquí y lo que cuesta en el primer destino europeo de la quinua y el cacao
-peruanos. Por separado, cada mitad es solo una lista de precios; juntas
-responden a dónde conviene exportar.
+**El origen y los destinos juntos son el mapa que interesa**: lo que un producto
+cuesta aquí y lo que cuesta en Europa. Por separado, cada parte es solo una
+lista de precios; juntas responden a dónde conviene exportar.
 
-**Las dos gratuitas vienen marcadas; Alemania no.** Es deliberado: es la única
-que gasta dinero, y una opción cara activada por defecto se acaba pagando sin
-que nadie haya decidido pagarla.
+**Las dos gratuitas vienen marcadas; Alemania y Suiza no.** Es deliberado: son
+las que gastan dinero, y una opción cara activada por defecto se acaba pagando
+sin que nadie haya decidido pagarla.
 
-No se pueden desmarcar las tres: al menos una tiene que quedar.
+No se pueden desmarcar las cuatro: al menos una tiene que quedar.
 
-> **Los precios alemanes llegan en euros y se convierten a soles solos**, con
-> la serie oficial del BCRP (TC Euro venta). Junto a cada oferta se guarda la
-> tasa usada, su fecha y su fuente, así que las dos columnas del mapa son
-> comparables y la cifra sigue siendo auditable meses después. Ver §4.3.
-
-> ### ⚠️ El selector todavía no filtra
+> **Los precios extranjeros se convierten a soles solos**, y junto a cada oferta
+> se guarda la tasa usada, su fecha y su fuente, así que la cifra sigue siendo
+> auditable meses después. Ver §4.3.
 >
-> Lleva la etiqueta **«vista previa»** al lado por eso. Hoy la consulta se
-> ejecuta igual marques lo que marques, y el grado de avance de cada fuente es
-> muy distinto:
+> **Pero el euro y el franco no valen lo mismo como dato.** El euro sale de la
+> serie oficial del BCRP (TC Euro venta). **El BCRP no publica tipo de cambio
+> del franco suizo**, así que los soles de la tabla suiza se calculan con un
+> agregador comercial. Esas filas llevan la marca **«tasa no oficial»** al lado
+> del precio y la tabla lo explica en su pie. El precio en francos —el que
+> publica la tienda— sí es dato de primera mano; lo que no es oficial es la
+> conversión. Si el informe va a citar una cifra suiza, cita los francos.
+
+> ### ⚠️ El selector todavía no filtra, y ahora eso cuesta el doble
+>
+> Lleva la etiqueta **«vista previa»** al lado por eso. Las cuatro fuentes están
+> conectadas al informe:
 >
 > | Fuente | Estado real |
 > |---|---|
-> | OpenFoodFacts | **Conectada al informe.** Es lo único que ves hoy en una consulta |
-> | Ecommerce del Perú | **Funciona, pero no llega al informe.** Alimenta la cuarentena que se revisa en Promociones |
-> | Ecommerce de Alemania | **Nada construido.** REWE, Edeka y Alnatura son el objetivo, no una integración |
+> | OpenFoodFacts | **Conectada** (tabla de productos) |
+> | Ecommerce del Perú | **Conectada** (tabla de góndola, ver abajo) |
+> | Ecommerce de Alemania | **Conectada** (segunda tabla de góndola) |
+> | Ecommerce de Suiza | **Conectada** (tercera tabla de góndola) |
 >
-> Consecuencia práctica: **marcar Alemania todavía no trae precios alemanes**, y
-> marcar Perú tampoco los mete en el informe. No saques conclusiones de comparar
-> una búsqueda con unas casillas puestas y otra con otras; hoy dan lo mismo.
+> Pero la consulta se ejecuta igual marques lo que marques, y **las cuatro se
+> lanzan siempre**. Antes eso solo confundía; ahora tiene precio:
+>
+> - **Cada consulta tarda minutos, no segundos, y desde que existe Suiza son
+>   dos búsquedas con agente, una detrás de otra.** Ninguna cadena alemana
+>   publica su precio de forma abierta —se comprobaron REWE, Edeka, Alnatura,
+>   Kaufland y Lidl— y en Suiza, Migros y Coop devuelven un bloqueo hasta en
+>   `robots.txt`, así que esos precios se buscan y se leen ficha a ficha con el
+>   agente. Eso es lento por naturaleza, no un fallo.
+> - **Y por eso no verás REWE ni Edeka en la tabla.** Las grandes cadenas
+>   bloquean el rastreo. Lo que aparece son tiendas alemanas más pequeñas, a
+>   menudo de venta directa del productor: en una prueba con arándano
+>   («Heidelbeeren») salieron cinco ofertas, todas de granjas online y en
+>   formatos de 1 a 8 kg. **Es precio alemán real, pero no es precio de
+>   supermercado**, y para comparar con la góndola peruana —que sí es de
+>   supermercado— hay que tenerlo presente.
+> - **En Suiza pasa lo mismo, y ahí pesa más.** Migros y Coop son en torno al
+>   70 % del comercio de alimentación del país y las dos bloquean el acceso, así
+>   que la tabla suiza se llena con tiendas menores y con Piccantino, una
+>   tienda gourmet online. Léela como **una referencia de precio, no como una
+>   muestra del mercado suizo**.
+> - **Cada consulta gasta, y ahora gasta el doble.** El agente usa el modelo.
+>   Aparece en la pantalla de Costes (§3.5) como cualquier otro gasto.
+> - **Desmarcar Alemania o Suiza no evita ni lo uno ni lo otro**, porque el
+>   selector no filtra todavía.
+>
+> Si eso es un problema para una demostración o para el presupuesto del mes,
+> díselo a desarrollo (§7): las dos góndolas caras se apagan **por separado** y
+> es un cambio de configuración, no de código. Se puede dejar Alemania y quitar
+> Suiza, o al revés.
+
+#### La tabla de góndola
+
+Debajo de la tabla de productos de OpenFoodFacts aparece **Precio de góndola ·
+Perú**: a cuánto se vende hoy el insumo en Wong, Metro, Plaza Vea y Makro. Y
+debajo de ella, **Alemania** y **Suiza**, con las mismas columnas.
+
+La de OpenFoodFacts y las de góndola no son la misma tabla repetida: responden
+preguntas distintas. La de arriba dice **qué productos existen** y con qué
+composición; las de abajo, **a cuánto están y dónde**. Un producto de arriba
+puede corresponder a varias ofertas de abajo.
+
+Y los tres mercados van en tres tablas y no en una con columna «país» porque la
+lectura útil es *cuánto cuesta aquí frente a cuánto cuesta allá*: mezclados
+habría que filtrar para leer cualquiera de los tres.
+
+| Columna | Qué es |
+|---|---|
+| Producto | Nombre en la tienda; enlaza a su ficha |
+| Tienda | Cadena donde se leyó |
+| Precio | En Perú, soles. Fuera, el precio de la tienda y su conversión: «€ 4,99 → S/ 19,71». Si falla el tipo de cambio verás el original y «sin conversión» — el precio no se pierde |
+| Stock | Unidades. Vacío = la tienda no lo publica |
+| EAN | Código de barras |
+| Especificaciones nutricionales | **Ver tabla** abre calorías, proteínas, carbohidratos, azúcares, grasas, sodio y alérgenos |
+
+**Si una fila lleva «tasa no oficial» junto al precio**, la cifra en soles no
+viene del BCRP sino de un agregador comercial, porque el banco central no
+publica esa moneda. Hoy le pasa a toda la tabla suiza (el franco). El pie de la
+tabla lo dice también, con la fuente concreta.
+
+**La columna nutricional dirá «sin dato» en la mayoría de filas, y eso es
+correcto.** Sale de lo que cada cadena publica en su ficha, y hoy solo Makro la
+trae de forma consistente: sobre una búsqueda de quinua, 4 de 20 ofertas. No se
+completa con otras fuentes ni se deduce de productos parecidos — se comprobó
+que los códigos de barras peruanos casi no existen en OpenFoodFacts (1 de 16), y
+rellenar el hueco con un producto «parecido» sería inventar.
+
+Dentro de la ficha:
+
+- **La porción va primero**, porque los valores están referidos a ella y no a
+  100 g. «210,6 kcal» no significa nada sin saber si la ración es de 30 o de
+  60 gramos.
+- Si la tienda avisa de algo sobre sus propias cifras —Makro declara «Valores
+  Nutricionales Teóricos»— **ese aviso se enseña**. Presentar como medido algo
+  que la ficha marca como estimado sería lo contrario de lo que hace este
+  informe.
+
+**Las filas resaltadas con «también en otra tienda»** son las que se pueden
+comparar: el mismo código de barras aparece en más de una cadena, así que la
+diferencia de precio es del mismo producto y no de dos parecidos. El nombre
+cambia de una cadena a otra; el código de barras no.
+
+> Estas ofertas se leen **en el momento de la consulta** y **no pasan por
+> revisión humana**: es lo que la tienda publica en su catálogo. No es lo mismo
+> que la cola de Promociones, que sí se revisa antes de entrar al catálogo.
 >
 > Lo que ya funciona es la pantalla: qué fuentes hay, qué responde cada una,
 > qué cuesta y cuáles quedan marcadas.
@@ -287,8 +377,8 @@ Con nombre y apellidos, para que nadie lo busque:
 
 | | Por qué |
 |---|---|
-| **Elegir dónde buscar** | El selector de §3.1 está construido pero **no filtra todavía**: la consulta se ejecuta igual marques lo que marques |
-| **Precios de Alemania** | Ninguna tienda alemana está conectada aún. REWE, Edeka y Alnatura son el objetivo, no una integración hecha |
+| **Elegir dónde buscar** | El selector de §3.1 está construido pero **no filtra todavía**: la consulta se ejecuta igual marques lo que marques. Desde que Alemania está conectada esto ya no es solo cosmético — ver el aviso de §3.1 |
+| **Comparar Perú con Alemania por código de barras** | El mismo producto puede llevar EAN distinto en cada mercado. Dentro de cada tabla las coincidencias sí se marcan; entre las dos tablas, no se promete hasta medir cuántas coinciden de verdad |
 | **Trabajos en vivo** (8.1) | Aplazado a S9: hoy solo hay dos trabajos periódicos y no habría gran cosa que enseñar |
 | **Semáforo de SLO** (8.8) | Aplazado a S9: hace falta instrumentar primero, y un semáforo sin medición es decorativo |
 | **Editor de reglas de promoción** | Nunca se construyó. Las reglas se cambian por SQL (ver PROMOTION_PROCEDURES.md §6) |

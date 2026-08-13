@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sqlite3
 from datetime import datetime, timezone
@@ -21,6 +22,7 @@ from adaptadores.bucle_asincrono import asegurar_bucle_compatible
 from adaptadores.busqueda_lancedb import BusquedaLanceDB
 from adaptadores.descubrimiento_snapshot import DescubrimientoSnapshot
 from adaptadores.entorno import ruta_db_sqlite
+from adaptadores.ofertas_gondola import OfertasGondola
 from adaptadores.precios_sisap import PreciosSISAP
 from adaptadores.informe_weasyprint import InformeWeasyPrint
 from adaptadores.redactor_glm import RedactorGLM
@@ -145,6 +147,41 @@ catalogo = BusquedaLanceDB()
 descubrimiento = DescubrimientoSnapshot()
 # Precio de materia prima (MIDAGRI). Lee un snapshot local: sin red.
 precios = PreciosSISAP()
+# Precio de gondola de las cadenas peruanas (S8, etapa 2b). Va aqui y no dentro
+# de la cascada porque no es un nivel de descubrimiento: es una fuente
+# independiente, sin modelo y sin coste, que se lee en cada consulta.
+ofertas = OfertasGondola()
+
+# Interruptores de las gondolas que van por agente.
+#
+# Hacen falta porque el selector de fuentes todavia no filtra: hoy las cuatro
+# fuentes se lanzan en cada consulta marque el usuario lo que marque. Peru es
+# gratis y son segundos, pero Alemania y Suiza van por agente —ninguna cadena
+# de esos dos mercados publica precio abierto de forma utilizable— y eso son
+# minutos y coste por consulta.
+#
+# **Son dos y no uno, y esa es la diferencia que importa.** Desde que existe
+# Suiza, una consulta paga DOS runs de agente en serie: si el freno fuera
+# unico, apagar el gasto obligaria a renunciar tambien al mercado que si se
+# quiere mirar. Con uno por gondola se puede dejar Alemania y quitar Suiza, o
+# al reves, sin desplegar.
+#
+# Apagada, la gondola devuelve [] y el resto del informe no se entera, que es
+# el mismo modo en que degrada cuando el agente falla (ADR-001).
+#
+# Se quitan cuando el selector filtre de verdad: entonces la decision la toma
+# quien consulta, que es donde debe estar.
+_log_arranque = logging.getLogger(__name__)
+
+if os.getenv("AGROSCOUT_GONDOLA_DE", "1") != "1":
+    ofertas.de_alemania = lambda insumo, termino: []
+    _log_arranque.warning(
+        "Gondola alemana desactivada por AGROSCOUT_GONDOLA_DE=0")
+
+if os.getenv("AGROSCOUT_GONDOLA_CH", "1") != "1":
+    ofertas.de_suiza = lambda insumo, termino: []
+    _log_arranque.warning(
+        "Gondola suiza desactivada por AGROSCOUT_GONDOLA_CH=0")
 
 if USA_SUPABASE:
     from adaptadores.auditoria_postgres import AuditoriaPostgres
@@ -190,6 +227,7 @@ dependencias = Dependencias(
     configuracion=configuracion,
     descubrimiento=descubrimiento,
     precios=precios,
+    ofertas=ofertas,
     snapshot_version=snapshot_version,
     offline_mode=offline_mode
 )

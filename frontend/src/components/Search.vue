@@ -77,8 +77,8 @@ import { ref } from 'vue'
 import { api, NoAutorizado } from '../api.js'
 
 /**
- * Dónde se busca. Tres fuentes con papeles distintos, no tres versiones de lo
- * mismo:
+ * Dónde se busca. Cuatro fuentes con papeles distintos, no cuatro versiones de
+ * lo mismo:
  *
  *   snapshot  → el catálogo global (OpenFoodFacts). Dice QUÉ productos existen
  *               y con qué composición. Instantáneo y sin coste.
@@ -87,6 +87,8 @@ import { api, NoAutorizado } from '../api.js'
  *   alemania  → el mercado de destino. Dice a qué precio se vende allí, que es
  *               la pregunta de un exportador y no la responde ni el catálogo
  *               global ni la góndola peruana.
+ *   suiza     → segundo mercado de destino. **Todavía no construido**, ver
+ *               abajo y `TIERSV3/S8_GONDOLA_SUIZA.md`.
  *
  * Perú y Alemania juntos son el mapa que interesa: lo que un producto cuesta
  * aquí y lo que cuesta en el primer destino europeo de la quinua y el cacao
@@ -101,6 +103,37 @@ import { api, NoAutorizado } from '../api.js'
  * siempre la mejor opción, y no lo es: las tiendas alemanas pasan por el
  * agente, que tarda minutos y gasta en un run lo que las otras dos no gastan
  * en un día.
+ *
+ * Que pasen por el agente no fue una suposición: se sondearon REWE, Edeka,
+ * Alnatura, Kaufland y Lidl el 2026-08-13 y ninguna publica precio sin
+ * credencial (tres devuelven 403; REWE sirve catálogo pero con el precio
+ * vacío). El detalle, en `adaptadores/catalogo_alemania.py`.
+ *
+ * OJO: la etiqueta «vista previa» de arriba tiene ahora consecuencia
+ * económica, y desde que Suiza está conectada vale el DOBLE. Como el selector
+ * no filtra, Alemania y Suiza se consultan SIEMPRE, estén marcadas o no, y son
+ * dos runs de agente en serie en cada consulta. Hay dos frenos de mano en el
+ * servidor —`AGROSCOUT_GONDOLA_DE=0` y `AGROSCOUT_GONDOLA_CH=0`— pero la
+ * solución de verdad es propagar esta selección hasta `mapear_comercio`.
+ *
+ * Suiza también va por agente, y eso fue una decisión, no una imposición.
+ * Medido el 2026-08-13 (ver `TIERSV3/S8_GONDOLA_SUIZA.md`): Piccantino publica
+ * JSON-LD con precio en CHF y el extractor del proyecto ya lo lee —o sea, HAY
+ * una vía gratis—; Migros y Coop devuelven 403; farmy.ch ni siquiera resuelve
+ * por DNS. Se descartó construir la tabla solo con Piccantino porque es una
+ * tienda gourmet de nicho y llamar «Suiza» a eso induce a error, mientras que
+ * Migros y Coop son ~70 % del mercado. De ahí «Minutos · con coste».
+ *
+ * Con la misma honestidad que la tarjeta alemana: el agente **tampoco** entra
+ * en Migros ni en Coop —el 403 es del servidor, no del método—, así que lo que
+ * llene esta tabla serán tiendas suizas menores y Piccantino. Lo que el agente
+ * aporta frente a Piccantino solo es alcance, no las dos cadenas grandes.
+ *
+ * El franco tiene además un matiz que el euro no tiene: **el BCRP no publica
+ * serie de CHF**, así que la columna en soles de la tabla suiza sale de un
+ * agregador comercial y no del banco central. La tabla lo marca fila a fila;
+ * aquí no se dice porque lo que se elige en esta pantalla es la fuente del
+ * precio, no la de la tasa.
  */
 const FUENTES = [
   {
@@ -120,7 +153,29 @@ const FUENTES = [
   {
     clave: 'alemania',
     nombre: 'Ecommerce de Alemania',
-    detalle: 'REWE, Edeka y Alnatura · precios en euros',
+    // NO dice «REWE, Edeka y Alnatura», que es lo que ponía. Esas tres
+    // devuelven 403 al agente, así que en una pasada real por 'Heidelbeeren'
+    // no salió ninguna: lo que aparece son tiendas alemanas más pequeñas de
+    // venta directa. Prometer las cadenas grandes y entregar granjas online es
+    // exactamente el tipo de hueco que este informe no se puede permitir.
+    detalle: 'Tiendas alemanas abiertas al rastreo · precios en euros',
+    coste: 'Minutos · con coste',
+    tono: 'caro',
+  },
+  {
+    clave: 'suiza',
+    nombre: 'Ecommerce de Suiza',
+    // Mismo criterio que la tarjeta de Alemania, y por el mismo motivo: Migros
+    // y Coop —las dos que serían el mercado de verdad— devuelven 403, así que
+    // no van a salir aquí por mucho que el agente las busque. Lo que aparece
+    // son tiendas suizas más pequeñas y Piccantino. Nombrar las cadenas
+    // grandes sería prometer lo que no llega.
+    detalle: 'Tiendas suizas abiertas al rastreo · precios en francos',
+    // Ya no es «en preparación»: `de_suiza` existe y la tabla se pinta. Y ya no
+    // es gratis: va por agente, igual que Alemania, así que su coste tiene que
+    // leerse igual que el de Alemania. Una etiqueta «sin coste» sobre una
+    // fuente que gasta modelo empuja a marcarla sin pensar, que es justo lo que
+    // esta columna existe para evitar.
     coste: 'Minutos · con coste',
     tono: 'caro',
   },
@@ -270,9 +325,12 @@ const submitSearch = async () => {
   cursor: help;
 }
 
+/* Dos columnas y no cuatro: con el ancho de 600 px de la tarjeta, cuatro
+   dejarían 140 px por fuente y «Wong, Metro, Plaza Vea y Makro» se partiría en
+   cuatro líneas. En 2x2 cada una tiene ~290 px y el detalle cabe entero. */
 .rejilla {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 

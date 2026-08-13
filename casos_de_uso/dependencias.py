@@ -27,6 +27,11 @@ class Dependencias:
     # Precio de MATERIA PRIMA (MIDAGRI). Sin el, la etapa 2b devuelve el mapa
     # igual y la lista de precios vacia: nada de esto es bloqueante.
     precios: Any = None
+    # Precio de GONDOLA del producto terminado, tienda por tienda. Es otra
+    # fuente independiente: no pasa por la cascada ni por ningun modelo, son
+    # peticiones a un API publico de catalogo. Sin el, la tabla de ofertas sale
+    # vacia y el resto del informe no se entera.
+    ofertas: Any = None
     # Corpus regulatorio (S4). Sin el, etapa 5 degrada a sin_dato.
     # Permite búsquedas de regulaciones: eCFR, EFSA, Codex, INACAL, DIGESA.
     # Con él, citas en dossier regulatorio son verificables (URLs vivas).

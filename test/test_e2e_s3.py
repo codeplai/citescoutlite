@@ -364,6 +364,24 @@ print("PLAN_B_OK", informe.ejecucion_id)
 '''
     proceso = subprocess.run([sys.executable, "-c", guion], cwd=RAIZ,
                              capture_output=True, text=True, timeout=600)
+
+    # Si falla con un error de litellm/instructor, la causa casi siempre es la
+    # misma y no es la red: el cache local quedo obsoleto. La clave de cache
+    # incluye la lista de campos del modelo de salida de cada etapa (ver
+    # `_huella_de_esquema` en casos_de_uso/etapas/ejecutor.py), asi que **anadir
+    # un campo a un esquema invalida lo sembrado** y este run, que corre sin
+    # api_key a proposito, se queda sin nada que servir.
+    #
+    # Es el precio de que un cambio de esquema no se sirva en silencio con los
+    # campos nuevos vacios, que fue justo lo que escondio la gondola alemana.
+    # Se arregla resembrando: `uv run python scripts/sembrar_cache_local.py`.
+    pista = ""
+    if "litellm" in proceso.stdout.lower() or "instructor" in proceso.stdout.lower():
+        pista = ("\n\nPISTA: intento llamar al modelo, o sea que NO hubo acierto "
+                 "de cache. Si acabas de anadir o quitar un campo de un esquema "
+                 "de etapa, la clave de cache cambio y hay que resembrar:\n"
+                 "  uv run python scripts/sembrar_cache_local.py")
+
     assert "PLAN_B_OK" in proceso.stdout, (
         f"el plan B no completo el run.\nstdout: {proceso.stdout[-2000:]}\n"
-        f"stderr: {proceso.stderr[-2000:]}")
+        f"stderr: {proceso.stderr[-2000:]}{pista}")

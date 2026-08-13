@@ -151,6 +151,59 @@ def _precio_de(oferta: dict) -> float | None:
     return None
 
 
+# De mas especifico a menos. `gtin13` es el EAN europeo y el que traen las
+# fichas peruanas y suizas; `gtin` a secas es el campo generico y puede venir
+# con cualquiera de las longitudes, por eso va el ultimo.
+_CLAVES_GTIN = ("gtin13", "gtin14", "gtin12", "gtin8", "gtin")
+
+# Longitudes validas de un codigo de barras GS1: EAN-8, UPC-A, EAN-13 y GTIN-14.
+_LARGOS_GTIN = {8, 12, 13, 14}
+
+
+def _gtin(valor: Any) -> str | None:
+    """El codigo de barras, o None si lo que hay no lo parece.
+
+    Se descarta lo que no sea un GTIN bien formado en vez de guardarlo tal
+    cual. No es remilgo: la tabla de gondola marca como "el mismo producto en
+    otra tienda" las filas que comparten EAN, asi que un valor basura repetido
+    —un '0', un 'N/A', un SKU interno de la plataforma— emparejaria productos
+    distintos y la comparacion, que es el entregable, diria algo falso. Sin
+    EAN la fila sigue saliendo; solo no se empareja con nada.
+    """
+    if valor is None or isinstance(valor, bool):
+        return None
+    if isinstance(valor, float):
+        # Un gtin numerico en JSON llega como float y str() lo dejaria en
+        # '4001234567890.0'; ademas los 13 digitos no caben exactos en un
+        # double. Se rechaza antes que arriesgar un codigo mal redondeado.
+        return None
+    if isinstance(valor, list):
+        valor = valor[0] if valor else None
+
+    digitos = re.sub(r"\D", "", str(valor or ""))
+    return digitos if len(digitos) in _LARGOS_GTIN else None
+
+
+def _ean_de(nodo: dict, ofertas: list[dict]) -> str | None:
+    """El codigo de barras de la ficha, mire donde lo ponga la plataforma.
+
+    Lo normal es que cuelgue del `Product`, pero Shopify y algunos temas de
+    WooCommerce lo declaran dentro de la `Offer`, asi que se miran los dos.
+
+    Esto se leia y se tiraba: el nodo traia `gtin13` y `ProductoSchema.ean`
+    salia siempre a None por la via de JSON-LD. Era la perdida mas cara del
+    extractor, porque el EAN es lo unico que identifica el MISMO producto en
+    dos tiendas —el nombre cambia de una a otra— y sin el la tabla de gondola
+    es una lista, no una comparacion.
+    """
+    for fuente in [nodo, *ofertas]:
+        for clave in _CLAVES_GTIN:
+            ean = _gtin(fuente.get(clave))
+            if ean:
+                return ean
+    return None
+
+
 def _texto(valor: Any) -> str | None:
     """schema.org admite un objeto donde se espera texto: brand puede ser
     `"Tottus"` o `{"@type": "Brand", "name": "Tottus"}`."""
@@ -166,11 +219,17 @@ def _texto(valor: Any) -> str | None:
     return texto or None
 
 
-def _a_producto(nodo: dict) -> ProductoSchema | None:
+def _a_producto(nodo: dict, exigir_precio: bool = True) -> ProductoSchema | None:
     """Traduce un nodo Product de schema.org a ProductoSchema.
 
-    Devuelve None si falta el nombre o el precio: sin uno de los dos no es una
-    oferta, y el validador de S7 la rechazaria igualmente.
+    Sin nombre nunca hay oferta: es lo unico que identifica la fila.
+
+    Sin precio depende de para que se pida. Con `exigir_precio` —el valor por
+    defecto, y el camino de la cuarentena— se descarta, porque una fila sin
+    precio ocupa un hueco de revision manual sin aportar el dato que motiva la
+    revision. Para las tablas de gondola se pide lo contrario: alli una fila
+    con "sin dato" en el precio sigue diciendo que ese producto se vende en esa
+    tienda, y eso es mas que no enseñar nada.
     """
     nombre = _texto(nodo.get("name"))
     if not nombre:
@@ -178,7 +237,7 @@ def _a_producto(nodo: dict) -> ProductoSchema | None:
 
     ofertas = [n for n in _nodos(nodo.get("offers", {})) if isinstance(n, dict)]
     precio = next((p for p in (_precio_de(o) for o in ofertas) if p is not None), None)
-    if precio is None:
+    if precio is None and exigir_precio:
         return None
 
     moneda = next((_texto(o.get("priceCurrency")) for o in ofertas
@@ -192,6 +251,7 @@ def _a_producto(nodo: dict) -> ProductoSchema | None:
         precio_local=f"{moneda} {precio}" if moneda else None,
         moneda=moneda,
         marca=_texto(nodo.get("brand")),
+        ean=_ean_de(nodo, ofertas),
         # stock se queda a null aposta: availability es 'InStock', no unidades.
         stock=None,
         descripcion=_texto(nodo.get("description")),
@@ -202,12 +262,16 @@ def _a_producto(nodo: dict) -> ProductoSchema | None:
     )
 
 
-def extraer_productos(html: str) -> list[OfertaEstructurada]:
+def extraer_productos(html: str,
+                      exigir_precio: bool = True) -> list[OfertaEstructurada]:
     """Ofertas publicadas como datos estructurados en el HTML crudo.
 
     Lista vacia si la pagina no trae JSON-LD utilizable: quien llama debe
     entonces recurrir al modelo. Nunca lanza — una pagina con JSON roto es
     normal y no es motivo para tumbar el barrido.
+
+    `exigir_precio=False` deja pasar las fichas con nombre pero sin precio. Lo
+    piden las gondolas del informe; la cuarentena usa el valor por defecto.
     """
     if not html:
         return []
@@ -224,7 +288,7 @@ def extraer_productos(html: str) -> list[OfertaEstructurada]:
         for nodo in _nodos(dato):
             if not _es_producto(nodo):
                 continue
-            producto = _a_producto(nodo)
+            producto = _a_producto(nodo, exigir_precio)
             if producto is None:
                 continue
             # Una misma ficha suele aparecer en dos bloques (uno del tema y

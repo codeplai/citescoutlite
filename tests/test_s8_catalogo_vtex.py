@@ -17,7 +17,8 @@ import pytest
 
 from adaptadores import catalogo_vtex
 from adaptadores.catalogo_vtex import (CatalogoVTEX, _a_producto, _categoria_de,
-                                       _es_departamento_excluido, _evidencia_de)
+                                       _es_departamento_excluido, _evidencia_de,
+                                       _nutricion_de)
 from casos_de_uso.agente.grounding_check import GroundingChecker
 
 _NODO_REAL = {
@@ -246,6 +247,86 @@ async def test_lo_que_no_es_el_insumo_se_descarta(monkeypatch):
              "categories": ["/Tecnología/Telefonía/"]}
     _servir(monkeypatch, {"www.metro.pe": httpx.Response(206, json=[movil])})
     assert await CatalogoVTEX(tiendas={"www.metro.pe": ("Metro", "PEN")}).buscar("arandano") == []
+
+
+# ---------------------------------------------------------------------------
+# Especificaciones nutricionales
+#
+# Las publica la tienda en la ficha. Cobertura medida sobre 5 productos de
+# 'quinua' por cadena (2026-08-13): Makro 4/5, Plaza Vea 1/5, Wong 0/5,
+# Metro 0/5. Este bloque de datos es el literal de un producto de Makro.
+# ---------------------------------------------------------------------------
+
+_CON_NUTRICION = {
+    **_NODO_REAL,
+    "allSpecifications": ["Porción Sugerida", "Calorías Por Porción",
+                          "Proteínas Por Porción", "Carbohidratos Por Porción",
+                          "Azúcares Por Porción", "Sodio Por Porción",
+                          "Alérgenos Declarados", "Descripción Nutricional",
+                          "Tipo de Producto"],
+    "Porción Sugerida": ["60 g"],
+    "Calorías Por Porción": ["210.6 kcal"],
+    "Proteínas Por Porción": ["8.16 g"],
+    "Carbohidratos Por Porción": ["39.96 g"],
+    "Azúcares Por Porción": ["0 g"],
+    "Sodio Por Porción": ["0 mg"],
+    "Alérgenos Declarados": ["Producto NO ES ALÉRGENO"],
+    "Descripción Nutricional": ["Valores Nutricionales Teóricos."],
+    "Tipo de Producto": ["Quinua"],
+}
+
+
+class TestNutricion:
+    def test_lee_la_tabla_de_la_ficha(self):
+        n = _nutricion_de(_CON_NUTRICION)
+        assert n["porcion"] == "60 g"
+        assert n["calorias"] == "210.6 kcal"
+        assert n["proteinas"] == "8.16 g"
+        assert n["carbohidratos"] == "39.96 g"
+
+    def test_conserva_la_advertencia_de_la_tienda(self):
+        """«Valores Nutricionales Teóricos» lo declara la ficha. Esconderlo
+        presentaría como medido algo que la propia tienda marca como estimado."""
+        assert _nutricion_de(_CON_NUTRICION)["nota"] == "Valores Nutricionales Teóricos."
+
+    def test_una_ficha_sin_tabla_da_none(self):
+        """Lo normal: de las cuatro cadenas solo Makro la trae."""
+        assert _nutricion_de(_NODO_REAL) is None
+
+    def test_solo_la_porcion_no_es_una_tabla(self):
+        """Sin ninguna cifra al lado, «60 g» no dice nada. La columna no debe
+        prometer un dato que al abrirlo está vacío."""
+        nodo = {**_NODO_REAL,
+                "allSpecifications": ["Porción Sugerida", "Porciones Por Envase"],
+                "Porción Sugerida": ["60 g"], "Porciones Por Envase": ["8"]}
+        assert _nutricion_de(nodo) is None
+
+    def test_un_campo_por_porcion_no_previsto_no_se_tira(self):
+        """Una etiqueta desconocida sigue siendo un dato."""
+        nodo = {**_CON_NUTRICION,
+                "allSpecifications": _CON_NUTRICION["allSpecifications"] + ["Fibra Por Porción"],
+                "Fibra Por Porción": ["5.2 g"]}
+        assert _nutricion_de(nodo)["otros"] == {"Fibra Por Porción": "5.2 g"}
+
+    def test_lo_que_no_es_nutricion_no_entra(self):
+        n = _nutricion_de(_CON_NUTRICION)
+        assert "Tipo de Producto" not in str(n)
+
+    def test_un_campo_vacio_no_ocupa_sitio(self):
+        nodo = {**_CON_NUTRICION, "Sodio Por Porción": [""]}
+        assert "sodio" not in _nutricion_de(nodo)
+
+    def test_viaja_en_la_oferta(self):
+        item = _CON_NUTRICION["items"][0]
+        oferta = item["sellers"][0]["commertialOffer"]
+        assert "210.6 kcal" in _evidencia_de(_CON_NUTRICION, item, oferta)
+
+
+@pytest.mark.asyncio
+async def test_la_oferta_llega_con_su_nutricion(monkeypatch):
+    _servir(monkeypatch, {"www.metro.pe": httpx.Response(206, json=[_CON_NUTRICION])})
+    ofertas = await CatalogoVTEX(tiendas={"www.metro.pe": ("Metro", "PEN")}).buscar("kiwicha")
+    assert ofertas[0].nutricion["calorias"] == "210.6 kcal"
 
 
 @pytest.mark.asyncio

@@ -57,7 +57,18 @@ class RedactorGLM(RedactorLLM):
             "Eres un experto tecnólogo de alimentos. Tu objetivo es interpretar un "
             "insumo agrícola y devolver variaciones y traducciones precisas al inglés, "
             "listas para buscar en bases de datos como USDA FoodData Central y Open "
-            "Food Facts. Identifica claramente la materia prima.",
+            "Food Facts. Identifica claramente la materia prima.\n\n"
+            # El término alemán no es una traducción de diccionario: es la
+            # palabra con la que la etiqueta del producto sale en el lineal, y
+            # con ella se filtran después los resultados de la tienda. 'Beere'
+            # (baya) encontraría media frutería; 'Heidelbeeren' encuentra
+            # arándanos. Y se pide explícitamente poder dejarlo vacío porque un
+            # término inventado no da cero resultados: da los equivocados, y
+            # esos sí llegan al informe.
+            "Para 'terminos_aleman', da el nombre con el que ese insumo aparece "
+            "etiquetado en un supermercado alemán (REWE, Edeka, Alnatura), no una "
+            "traducción literal ni una categoría amplia. Si no lo sabes con "
+            "certeza, devuelve la lista vacía: es preferible a inventarlo.",
             texto)
 
     @retry(**_REINTENTOS)

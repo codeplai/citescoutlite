@@ -50,6 +50,7 @@ en el codigo que mapea los campos.
 import asyncio
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -93,12 +94,85 @@ DEPARTAMENTOS_EXCLUIDOS = ("tecnologia", "telefonia", "electrohogar",
                            "vestuario", "calzado")
 
 
+# Especificaciones nutricionales, tal como las nombra VTEX.
+#
+# Las publica la tienda en su propia ficha, asi que no hay que deducir nada ni
+# pasar por un modelo: o esta el campo o no esta.
+#
+# Cobertura medida sobre 5 productos de 'quinua' por cadena (2026-08-13):
+# Makro 4/5 con la tabla completa, Plaza Vea 1/5 y solo la porcion, Wong 0/5,
+# Metro 0/5. Es poco y desigual, y por eso la columna dice "sin dato" sin
+# rodeos en el resto: un hueco honesto vale mas que un valor deducido.
+NUTRICION_VTEX = {
+    "porcion sugerida": "porcion",
+    "porciones por envase": "porciones_envase",
+    "calorias por porcion": "calorias",
+    "proteinas por porcion": "proteinas",
+    "carbohidratos por porcion": "carbohidratos",
+    "grasas por porcion": "grasas",
+    "azucares por porcion": "azucares",
+    "sodio por porcion": "sodio",
+    "alergenos declarados": "alergenos",
+    # Lo que la tienda avisa sobre sus propias cifras, del tipo "Valores
+    # Nutricionales Teoricos". Se conserva porque esconderlo seria presentar
+    # como medido algo que la propia tienda marca como estimado.
+    "descripcion nutricional": "nota",
+}
+
+
+def _valor_especificacion(nodo: dict, clave: str) -> str | None:
+    """VTEX devuelve las especificaciones como listas de un elemento."""
+    valor = nodo.get(clave)
+    if isinstance(valor, list):
+        valor = valor[0] if valor else None
+    texto = str(valor).strip() if valor is not None else ""
+    return texto or None
+
+
+def _nutricion_de(nodo: dict) -> dict | None:
+    """Los campos nutricionales que publique la ficha, o None si no hay.
+
+    Se recorre `allSpecifications` y se compara sin tildes ni mayusculas: las
+    cadenas no escriben igual la misma etiqueta, y casar por el literal exacto
+    dejaria fuera datos que si estan.
+
+    Lo que no reconozca pero acabe en 'por porcion' se guarda en `otros`. Es
+    preferible enseñar un campo con su nombre original a tirarlo en silencio
+    porque no estaba en la lista.
+    """
+    encontrado: dict = {}
+    otros: dict = {}
+
+    for clave in (nodo.get("allSpecifications") or []):
+        normalizada = _sin_tildes(clave)
+        campo = NUTRICION_VTEX.get(normalizada)
+        valor = _valor_especificacion(nodo, clave)
+        if valor is None:
+            continue
+        if campo:
+            encontrado[campo] = valor
+        elif normalizada.endswith("por porcion"):
+            otros[clave] = valor
+
+    if otros:
+        encontrado["otros"] = otros
+
+    # Solo la porcion no es una tabla nutricional: es el tamaño de la ración y
+    # sin ninguna cifra al lado no dice nada. Se descarta para que la columna
+    # no prometa un dato que al abrirlo esta vacio.
+    sustancia = set(encontrado) - {"porcion", "porciones_envase", "nota"}
+    return encontrado if sustancia else None
+
+
 @dataclass(frozen=True)
 class OfertaVTEX:
     producto: ProductoSchema
     fuente_url: str
     evidencia: str
     tienda: str
+    #: Especificaciones nutricionales de la ficha. None = la tienda no las
+    #: publica para este producto.
+    nutricion: dict | None = None
 
 
 def _evidencia_de(nodo: dict, item: dict, oferta: dict) -> str:
@@ -129,6 +203,10 @@ def _evidencia_de(nodo: dict, item: dict, oferta: dict) -> str:
         "PriceWithoutDiscount": oferta.get("PriceWithoutDiscount"),
         "AvailableQuantity": oferta.get("AvailableQuantity"),
         "IsAvailable": oferta.get("IsAvailable"),
+        # La tabla nutricional forma parte de lo que la tienda publica, asi que
+        # va en la evidencia por el mismo motivo que el precio: si se enseña en
+        # el informe, tiene que poder comprobarse contra lo que se leyo.
+        "nutricion": _nutricion_de(nodo),
         "consultado_en": datetime.now(timezone.utc).isoformat(),
     }, ensure_ascii=False)
 
@@ -219,6 +297,30 @@ class CatalogoVTEX:
             ofertas.extend(tanda)
         return ofertas
 
+    def buscar_sync(self, insumo: str,
+                    limite_por_tienda: int = 5) -> list[OfertaVTEX]:
+        """Lo mismo, desde codigo sincrono.
+
+        Existe porque la etapa 2b es sincrona a proposito (`etapa_sync`: sin
+        LLM, sin cache, `modelo='sync'` en la auditoria) y se ejecuta dentro
+        del bucle de eventos de la peticion. Un `asyncio.run` ahi dentro lanza
+        'cannot be called from a running event loop'.
+
+        Se resuelve corriendo la corrutina en un hilo aparte, con su propio
+        bucle. La alternativa —escribir una segunda version del conector con
+        `httpx.Client`— duplicaria el filtrado por insumo, la exclusion de
+        departamentos y el mapeo de campos, y dos copias de eso acaban
+        discrepando sobre que oferta es valida.
+
+        El hilo que llama se queda esperando, que es lo que ya hace cualquier
+        etapa sincrona; no cambia el modelo de concurrencia, solo evita el
+        choque de bucles.
+        """
+        with ThreadPoolExecutor(max_workers=1) as ejecutor:
+            futuro = ejecutor.submit(
+                lambda: asyncio.run(self.buscar(insumo, limite_por_tienda)))
+            return futuro.result()
+
     async def _de_una_tienda(self, cliente: httpx.AsyncClient, host: str,
                              insumo: str, limite: int) -> list[OfertaVTEX]:
         nombre_tienda, moneda = self._tiendas[host]
@@ -264,6 +366,7 @@ class CatalogoVTEX:
                 fuente_url=nodo.get("link") or f"https://{host}",
                 evidencia=_evidencia_de(nodo, item, oferta),
                 tienda=nombre_tienda,
+                nutricion=_nutricion_de(nodo),
             ))
 
         logger.info(f"VTEX {nombre_tienda}: {len(ofertas)} oferta(s) de '{insumo}'"

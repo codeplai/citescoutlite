@@ -73,12 +73,52 @@ def mapear_comercio(d: Dependencias,
     # haya adaptador de descubrimiento, porque son fuentes independientes.
     precios = d.precios.para_insumo(insumo) if d.precios is not None else []
 
+    # Precio de gondola en las cadenas peruanas. Tambien es una fuente
+    # independiente: no pasa por la cascada ni por ningun modelo, son cuatro
+    # peticiones a un API publico. Por eso se lee aunque no haya adaptador de
+    # descubrimiento, igual que los precios de materia prima.
+    #
+    # Sin adaptador de ofertas la etapa corre igual y la tabla sale vacia; es
+    # el modo en que corren los tests deterministas de S2.
+    ofertas_peru = d.ofertas.de_peru(insumo) if d.ofertas is not None else []
+
+    # Gondola alemana. Misma etapa y mismo patron defensivo, pero **no es la
+    # misma clase de fuente**: ninguna cadena alemana publica precio sin
+    # credencial (sondeadas las cinco), asi que esto va por agente y cuesta
+    # minutos y dinero, frente a los ~2 s gratis de Peru.
+    #
+    # Se busca con el termino aleman que dio la etapa 1, no con el insumo
+    # normalizado: 'arandano' no encuentra 'Heidelbeeren 200g' ni en el buscador
+    # ni en el filtro posterior. Sin termino, `de_alemania` devuelve [] sin
+    # gastar la busqueda, que es lo correcto: una consulta que garantiza cero
+    # resultados no merece pagarse.
+    termino_de = (interpretado.terminos_aleman or [""])[0]
+    ofertas_alemania = (d.ofertas.de_alemania(insumo, termino_de)
+                        if d.ofertas is not None else [])
+
+    # Gondola suiza. Tambien por agente, y con el **mismo termino aleman**: las
+    # tiendas suizas que importan —Migros, Coop, Piccantino— publican en
+    # aleman, y es la region linguistica mas grande del pais. Lo que queda
+    # fuera son las fichas en frances e italiano de Migros y Coop, que pediran
+    # un `terminos_frances`/`terminos_italiano` en la etapa 1; es una decision
+    # aparte y esta escrita en `adaptadores/catalogo_suiza.py`.
+    #
+    # Va **detras** de Alemania y en serie, no en paralelo: son dos runs de
+    # agente, uno tras otro, dentro de una peticion sincrona. Es lo que cuesta
+    # la decision de llevar Suiza por agente, y por eso cada gondola cara tiene
+    # su interruptor propio en api/main.py.
+    ofertas_suiza = (d.ofertas.de_suiza(insumo, termino_de)
+                     if d.ofertas is not None else [])
+
     if d.descubrimiento is None:
         return MapaComercial(
             insumo=insumo,
             nivel_alcanzado=0,
             niveles_no_disponibles=[int(n) for n in NivelDescubrimiento],
             precios_materia_prima=precios,
+            ofertas_peru=ofertas_peru,
+            ofertas_alemania=ofertas_alemania,
+            ofertas_suiza=ofertas_suiza,
         )
 
     # Ejecutar cascada
@@ -100,6 +140,9 @@ def mapear_comercio(d: Dependencias,
         niveles_no_disponibles=d.descubrimiento.niveles_no_disponibles(NIVEL_PEDIDO),
         descartadas=dict(getattr(d.descubrimiento, "descartadas", {}) or {}),
         precios_materia_prima=precios,
+        ofertas_peru=ofertas_peru,
+        ofertas_alemania=ofertas_alemania,
+        ofertas_suiza=ofertas_suiza,
     )
 
     # Agregar metadata de cascada si está disponible

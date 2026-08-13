@@ -36,20 +36,50 @@ def _tarifa_de(d: Dependencias, modelo: str) -> dict:
         return {}
     return tarifa
 
-def _generar_clave_cache(entrada: Any, etapa: str, snapshot_version: str, modelo: str = "", kwargs: dict = None) -> str:
+def _huella_de_esquema(tipo_retorno: Any) -> str:
+    """Huella de los campos que produce una etapa.
+
+    Entra en la clave de cache porque **la salida de una etapa no depende solo
+    de su entrada, sino tambien de la forma que se le pidio al modelo**. Sin
+    esto, anadir un campo al esquema no invalida nada: `model_validate` rellena
+    el campo nuevo con su valor por defecto y la etapa devuelve para siempre un
+    resultado al que le falta justo lo que se acaba de anadir.
+
+    Paso de verdad al anadir `terminos_aleman` a `InsumoInterpretado`: los
+    insumos ya consultados —'arandano', 'cascara de cacao'— seguian sirviendo
+    una interpretacion sin termino aleman, con lo que la gondola alemana no se
+    consultaba nunca. Y en silencio: [] es tambien la respuesta legitima de "no
+    hay ofertas", asi que desde fuera no se distinguia de una busqueda vacia.
+
+    Se usan solo los nombres de campo, ordenados. Cambiar una descripcion no
+    cambia la forma del dato y no merece tirar la cache; anadir o quitar un
+    campo, si.
+    """
+    if not (isinstance(tipo_retorno, type) and issubclass(tipo_retorno, BaseModel)):
+        return ""
+    return ",".join(sorted(tipo_retorno.model_fields))
+
+
+def _generar_clave_cache(entrada: Any, etapa: str, snapshot_version: str, modelo: str = "", kwargs: dict = None, tipo_retorno: Any = None) -> str:
     entrada_str = entrada.model_dump_json() if isinstance(entrada, BaseModel) else json.dumps(entrada)
     kwargs_str = json.dumps(kwargs or {}, sort_keys=True)
-    base = f"{entrada_str}|{modelo}|{kwargs_str}|{etapa}|{snapshot_version}".encode('utf-8')
+    esquema = _huella_de_esquema(tipo_retorno)
+    base = (f"{entrada_str}|{modelo}|{kwargs_str}|{etapa}|{snapshot_version}"
+            f"|{esquema}").encode('utf-8')
     return hashlib.sha256(base).hexdigest()
 
 async def etapa(d: Dependencias, ejecucion: Ejecucion, num_etapa: str, func: Callable[..., Awaitable[T]], entrada: Any, **kwargs) -> T:
     inicio_total = time.time()
     modelo = d.redactor.modelo_por_etapa.get(num_etapa, "glm-5.2") if hasattr(d.redactor, 'modelo_por_etapa') else ""
-    clave = _generar_clave_cache(entrada, num_etapa, ejecucion.snapshot_version, modelo, kwargs)
-    cacheado = d.cache.obtener(clave)
-    
+
+    # El tipo de retorno se resuelve ANTES de construir la clave: su lista de
+    # campos entra en el hash, para que un cambio de esquema invalide lo
+    # cacheado en vez de servirlo con los campos nuevos vacios.
     tipo_retorno = get_type_hints(func).get('return')
-    
+    clave = _generar_clave_cache(entrada, num_etapa, ejecucion.snapshot_version,
+                                 modelo, kwargs, tipo_retorno)
+    cacheado = d.cache.obtener(clave)
+
     if cacheado and tipo_retorno:
         # Una etapa servida por cache tambien se audita. Antes se devolvia aqui
         # sin registrar nada, asi que un run con cache caliente dejaba menos

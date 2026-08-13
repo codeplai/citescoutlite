@@ -19,6 +19,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from dominio.oferta_comercial import OfertaComercial
 from dominio.precio_materia_prima import PrecioMateriaPrima
 from dominio.producto_en_mercado import ProductoEnMercado
 
@@ -68,6 +69,60 @@ class MapaComercial(BaseModel):
         default_factory=list,
         description="Observaciones de precio mayorista (MIDAGRI). [] = el "
                     "boletín no publica precio para este insumo",
+    )
+
+    #: Precio de GÓNDOLA del producto terminado, tienda por tienda.
+    #:
+    #: Va en su propia lista y no dentro de `productos` porque responde otra
+    #: pregunta. `productos` viene de OpenFoodFacts y dice qué existe y con qué
+    #: composición; esto dice a cuánto se vende hoy y dónde. Fundirlas dejaría
+    #: la mitad de las columnas vacías en cada fila y, peor, haría creer que
+    #: son comparables entre sí.
+    #:
+    #: Una lista por mercado, no una sola con una columna `pais`: las tablas se
+    #: leen por separado —cuánto cuesta aquí frente a cuánto cuesta allá— y
+    #: mezclarlas obligaría a filtrar para leer cualquiera de ellas.
+    ofertas_peru: list[OfertaComercial] = Field(
+        default_factory=list,
+        description="Ofertas de las cadenas peruanas (VTEX). [] = no se "
+                    "consultaron o ninguna tenía el insumo",
+    )
+
+    #: Lo mismo para el mercado de destino. Ojo: **no salen de la misma clase de
+    #: fuente**, y por eso no se pueden juntar aunque el modelo sea el mismo.
+    #:
+    #: Perú se lee de un API público de catálogo: segundos, gratis, exacto.
+    #: Alemania va por agente —búsqueda web más extracción con modelo— porque
+    #: ninguna cadena alemana publica precio sin credencial (medido; ver
+    #: `adaptadores/catalogo_alemania.py`). Eso significa minutos, coste por
+    #: consulta y cobertura irregular. La columna `procedencia` de cada fila lo
+    #: dice ('vtex:Metro' frente a 'agente:REWE') precisamente para que quien
+    #: lea el informe no trate las dos mitades como si valieran lo mismo.
+    ofertas_alemania: list[OfertaComercial] = Field(
+        default_factory=list,
+        description="Ofertas de tiendas alemanas (agente). [] = no se "
+                    "consultaron, no había término alemán, o no se encontró nada",
+    )
+
+    #: Segundo mercado de destino, y también por agente. Se sondearon Migros,
+    #: Coop, Farmy, Rappn y Piccantino el 2026-08-13: solo la última publica
+    #: precio de forma abierta, y es una tienda gourmet de nicho, así que
+    #: construir «Suiza» sobre ella sola habría rotulado como precio del país
+    #: el precio de una tienda. Ver `adaptadores/catalogo_suiza.py`.
+    #:
+    #: Su lista propia por el mismo motivo que Alemania: son tres preguntas
+    #: —cuánto cuesta aquí, cuánto en el primer destino europeo, cuánto en el
+    #: segundo— y una sola tabla con columna `pais` obligaría a filtrar para
+    #: leer cualquiera de las tres.
+    #:
+    #: Ojo con la moneda: **el BCRP no publica serie de franco suizo** (barridas
+    #: PD04630PD-PD04680PD). El precio en soles de estas filas sale del respaldo
+    #: no oficial de `tipo_cambio.py`, no del banco central, y la tabla lo dice
+    #: fila a fila a través de `OfertaComercial.conversion.fuente`.
+    ofertas_suiza: list[OfertaComercial] = Field(
+        default_factory=list,
+        description="Ofertas de tiendas suizas (agente). [] = no se "
+                    "consultaron, no había término alemán, o no se encontró nada",
     )
 
     # -- lecturas para el informe y el prompt -------------------------------
