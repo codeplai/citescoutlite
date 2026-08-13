@@ -78,6 +78,52 @@ Debajo del resultado aparece lo que ha costado esa consulta en tokens.
 Si te vas a otra pantalla y vuelves, **el resultado sigue ahí**. Si recargas la
 página, se pierde: el informe vive en memoria, no guardado.
 
+#### Dónde buscar
+
+Encima del cuadro de búsqueda hay tres fuentes que se pueden marcar y
+desmarcar. No son tres versiones de lo mismo: **responden preguntas distintas**.
+
+| Fuente | Qué responde | Qué cuesta |
+|---|---|---|
+| **OpenFoodFacts** | *Qué* productos existen y con qué composición. Catálogo global | Instantáneo, sin coste |
+| **Ecommerce del Perú** | A cuánto se vende **aquí**. Wong, Metro, Plaza Vea y Makro | Segundos, sin coste |
+| **Ecommerce de Alemania** | A cuánto se vende **allá**. REWE, Edeka, Alnatura | Minutos, **con coste** |
+
+**Perú y Alemania juntos son el mapa que interesa**: lo que un producto cuesta
+aquí y lo que cuesta en el primer destino europeo de la quinua y el cacao
+peruanos. Por separado, cada mitad es solo una lista de precios; juntas
+responden a dónde conviene exportar.
+
+**Las dos gratuitas vienen marcadas; Alemania no.** Es deliberado: es la única
+que gasta dinero, y una opción cara activada por defecto se acaba pagando sin
+que nadie haya decidido pagarla.
+
+No se pueden desmarcar las tres: al menos una tiene que quedar.
+
+> **Los precios alemanes llegan en euros y se convierten a soles solos**, con
+> la serie oficial del BCRP (TC Euro venta). Junto a cada oferta se guarda la
+> tasa usada, su fecha y su fuente, así que las dos columnas del mapa son
+> comparables y la cifra sigue siendo auditable meses después. Ver §4.3.
+
+> ### ⚠️ El selector todavía no filtra
+>
+> Lleva la etiqueta **«vista previa»** al lado por eso. Hoy la consulta se
+> ejecuta igual marques lo que marques, y el grado de avance de cada fuente es
+> muy distinto:
+>
+> | Fuente | Estado real |
+> |---|---|
+> | OpenFoodFacts | **Conectada al informe.** Es lo único que ves hoy en una consulta |
+> | Ecommerce del Perú | **Funciona, pero no llega al informe.** Alimenta la cuarentena que se revisa en Promociones |
+> | Ecommerce de Alemania | **Nada construido.** REWE, Edeka y Alnatura son el objetivo, no una integración |
+>
+> Consecuencia práctica: **marcar Alemania todavía no trae precios alemanes**, y
+> marcar Perú tampoco los mete en el informe. No saques conclusiones de comparar
+> una búsqueda con unas casillas puestas y otra con otras; hoy dan lo mismo.
+>
+> Lo que ya funciona es la pantalla: qué fuentes hay, qué responde cada una,
+> qué cuesta y cuáles quedan marcadas.
+
 ### 3.2 Alertas de retiro
 
 Retiradas de producto publicadas por openFDA y RASFF, filtrables por severidad
@@ -241,6 +287,8 @@ Con nombre y apellidos, para que nadie lo busque:
 
 | | Por qué |
 |---|---|
+| **Elegir dónde buscar** | El selector de §3.1 está construido pero **no filtra todavía**: la consulta se ejecuta igual marques lo que marques |
+| **Precios de Alemania** | Ninguna tienda alemana está conectada aún. REWE, Edeka y Alnatura son el objetivo, no una integración hecha |
 | **Trabajos en vivo** (8.1) | Aplazado a S9: hoy solo hay dos trabajos periódicos y no habría gran cosa que enseñar |
 | **Semáforo de SLO** (8.8) | Aplazado a S9: hace falta instrumentar primero, y un semáforo sin medición es decorativo |
 | **Editor de reglas de promoción** | Nunca se construyó. Las reglas se cambian por SQL (ver PROMOTION_PROCEDURES.md §6) |
