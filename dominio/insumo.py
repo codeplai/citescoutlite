@@ -1,8 +1,37 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 class InsumoInterpretado(BaseModel):
     insumo_normalizado: str
     reconocible: bool
+    #: La forma de PRODUCTO TERMINADO que pidió quien consulta, si pidió una.
+    #:
+    #: `insumo_normalizado` reduce a la materia prima, y eso es correcto para
+    #: casi todo el informe: el snapshot, la taxonomía de CITE y el precio
+    #: mayorista de MIDAGRI se indexan por el insumo, no por el producto.
+    #:
+    #: Pero la góndola pregunta otra cosa. Quien escribe «barras de quinua»
+    #: quiere barras, y buscando «quinua» en un supermercado sale el grano a
+    #: granel. Medido: `'barras de quinua'` → `insumo_normalizado='quinua'`, y
+    #: la tabla salía llena de quinua suelta.
+    #:
+    #: No se resuelve con `sinonimos_busqueda`. En una consulta real —`'barra
+    #: quinua'`— la lista fue `['quinua', 'quinoa', 'quinoa grano',
+    #: 'chenopodium quinoa']`: la forma de producto se había perdido y el
+    #: término más largo era el nombre botánico, que en un supermercado no
+    #: encuentra nada.
+    #:
+    #: None es el estado normal y correcto: significa que se preguntó por el
+    #: insumo a secas y la góndola busca por él.
+    forma_producto: Optional[str] = Field(
+        None,
+        description="Si la consulta pide una FORMA DE PRODUCTO TERMINADO y no "
+                    "el insumo a secas, el término tal como se buscaría en un "
+                    "supermercado: 'barras de quinua', 'galletas de quinua', "
+                    "'harina de maca', 'aceite de palta'. Deja None si se "
+                    "preguntó por el insumo sin forma ('quinua', 'cacao')",
+    )
     sinonimos_busqueda: list[str] = Field(min_length=1, max_length=8)
     terminos_ingles: list[str] = Field(default_factory=list, description="Traducciones exactas al inglés del insumo (ej. 'mango peel')")
     #: Cómo se llama el insumo en una tienda alemana.

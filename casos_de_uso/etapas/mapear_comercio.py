@@ -80,7 +80,12 @@ def mapear_comercio(d: Dependencias,
     #
     # Sin adaptador de ofertas la etapa corre igual y la tabla sale vacia; es
     # el modo en que corren los tests deterministas de S2.
-    ofertas_peru = d.ofertas.de_peru(insumo) if d.ofertas is not None else []
+    # Se busca por la forma de producto si la consulta pidio una —«barras de
+    # quinua»— y se filtra por el insumo. `insumo_normalizado` reduce a la
+    # materia prima, que es lo correcto para el resto del informe pero llenaba
+    # esta tabla de grano suelto cuando lo que se pedia eran barras.
+    ofertas_peru = (d.ofertas.de_peru(insumo, interpretado.forma_producto)
+                    if d.ofertas is not None else [])
 
     # Gondola alemana. Misma etapa y mismo patron defensivo, pero **no es la
     # misma clase de fuente**: ninguna cadena alemana publica precio sin
@@ -129,8 +134,15 @@ def mapear_comercio(d: Dependencias,
             insumo, pais, NIVEL_PEDIDO
         )
     else:
-        # Fallback: adaptador antiguo (DescubrimientoSnapshot)
-        productos = d.descubrimiento.descubrir(insumo, NIVEL_PEDIDO)
+        # Fallback: adaptador antiguo (DescubrimientoSnapshot).
+        #
+        # Se le pasa la forma de producto por el mismo motivo que a la gondola
+        # peruana unas lineas mas arriba: `insumo_normalizado` reduce a la
+        # materia prima, y esta tabla salia llena de grano suelto cuando lo que
+        # se pedia eran barras. Medido: de 200 filas devueltas por «quinua»,
+        # 11 eran barras y ninguna entraba entre las diez primeras.
+        productos = d.descubrimiento.descubrir(
+            insumo, NIVEL_PEDIDO, interpretado.forma_producto)
 
     # Construir mapa comercial con metadata de cascada si disponible
     mapa = MapaComercial(

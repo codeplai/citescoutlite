@@ -53,6 +53,7 @@
           <tr>
             <th>Producto</th><th>Tienda</th><th class="num">Precio</th>
             <th class="num">Stock</th><th>EAN</th>
+            <th>Ingredientes</th>
             <th>Especificaciones nutricionales</th>
           </tr>
         </thead>
@@ -127,6 +128,34 @@
             </td>
 
             <!--
+              Ingredientes y alérgenos: de qué está hecho.
+
+              La lista de ingredientes NO la publica ninguna cadena peruana. Se
+              buscó por cinco vías —especificaciones del API, el grupo
+              «Componentes del Producto», la descripción, el HTML de la ficha y
+              OpenFoodFacts por EAN— y el dato vive en el envase físico, no en
+              la web. La columna dice «sin dato» y eso es la respuesta correcta,
+              no un fallo del extractor.
+
+              Lo que sí llega es el alérgeno declarado, que Makro publica. Se
+              enseña aquí y no dentro de la ficha nutricional porque es una
+              advertencia de seguridad alimentaria: hay que verla sin tener que
+              abrir nada.
+            -->
+            <td class="composicion">
+              <button v-if="o.ingredientes" class="btn-ficha"
+                      @click="composicionAbierta = o">
+                Ver lista
+              </button>
+              <button v-else-if="o.alergenos" class="btn-ficha alergeno"
+                      @click="composicionAbierta = o"
+                      title="La tienda no publica los ingredientes, pero sí el alérgeno declarado">
+                ⚠ alérgenos
+              </button>
+              <span v-else class="sin-dato">sin dato</span>
+            </td>
+
+            <!--
               Dos estados, no tres: o la tienda publica la tabla o no. Aquí no
               cabe el "ninguno" que sí tiene la columna de aditivos del mapa,
               porque una ficha sin tabla nutricional no significa que el
@@ -141,6 +170,57 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!--
+      Ficha de composición. Mismo anclaje que la nutricional: solo sobre esta
+      sección.
+    -->
+    <div v-if="composicionAbierta" class="modal-fondo modal-fondo-gondola"
+         @click.self="composicionAbierta = null">
+      <div class="modal" role="dialog" aria-modal="true">
+        <header class="modal-cabecera">
+          <div>
+            <h4>{{ composicionAbierta.nombre }}</h4>
+            <p class="modal-sub">
+              {{ composicionAbierta.tienda }} ·
+              <a :href="composicionAbierta.fuente_url" target="_blank" rel="noopener">
+                ver ficha en la tienda
+              </a>
+            </p>
+          </div>
+          <button class="modal-cerrar" @click="composicionAbierta = null"
+                  aria-label="Cerrar">×</button>
+        </header>
+
+        <div class="modal-cuerpo">
+          <section v-if="composicionAbierta.ingredientes">
+            <h5>Ingredientes</h5>
+            <p class="composicion-texto">{{ composicionAbierta.ingredientes }}</p>
+          </section>
+
+          <!-- Se dice que faltan, en vez de omitir la sección. Un apartado
+               ausente se lee como «no se miró»; esto declara que se miró. -->
+          <section v-else>
+            <h5>Ingredientes</h5>
+            <p class="composicion-ausente">
+              La tienda no publica la lista de ingredientes en su ficha. No se
+              completa desde otra fuente: el dato está en el envase, y atribuir
+              a este producto los ingredientes de otro parecido sería inventar.
+            </p>
+          </section>
+
+          <section v-if="composicionAbierta.alergenos">
+            <h5>Alérgenos declarados</h5>
+            <p class="composicion-alergenos">{{ composicionAbierta.alergenos }}</p>
+          </section>
+
+          <p class="nutri-origen">
+            Leído de la ficha de {{ composicionAbierta.tienda }} en el momento
+            de la consulta.
+          </p>
+        </div>
+      </div>
     </div>
 
     <!--
@@ -247,6 +327,11 @@ const MONEDA_LOCAL = 'PEN'
 const SIMBOLOS = { PEN: 'S/', EUR: '€', USD: 'US$', GBP: '£' }
 
 const nutriAbierta = ref(null)
+// Estado propio y no reutilizando `nutriAbierta`: son dos fichas distintas
+// —composición y nutrición— y compartir la variable obligaría a preguntar de
+// cuál se trata en cada uso. Además pueden abrirse desde columnas distintas de
+// la misma fila.
+const composicionAbierta = ref(null)
 
 const tiendas = computed(() =>
   [...new Set(props.ofertas.map(o => o.tienda))].sort()
@@ -640,6 +725,42 @@ const filasNutri = computed(() => {
   background: rgba(217, 119, 6, 0.1);
   color: #92400E;
   font-size: 0.84rem;
+}
+
+/* --- Composición: ingredientes y alérgenos ------------------------------- */
+
+.composicion { white-space: nowrap; }
+
+/* Ámbar y no verde: el botón no ofrece la lista de ingredientes —esa no
+   existe— sino una advertencia de alérgenos. Que se distinga del «Ver lista»
+   evita que quien recorra la columna crea que están enseñando lo mismo. */
+.btn-ficha.alergeno {
+  border-color: rgba(217, 119, 6, 0.45);
+  color: #92400E;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.composicion-texto {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.composicion-ausente {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.composicion-alergenos {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(217, 119, 6, 0.1);
+  color: #92400E;
+  font-size: 0.86rem;
+  line-height: 1.5;
 }
 
 .nutri-origen {

@@ -114,6 +114,28 @@ class OfertaComercial(BaseModel):
     #: trae de forma consistente.
     nutricion: Optional[EspecificacionNutricional] = None
 
+    #: Lista de ingredientes, tal como la publique la tienda.
+    #:
+    #: Hoy es None SIEMPRE en las cadenas peruanas, y no por un fallo del
+    #: extractor: se buscó por cinco vías —especificaciones del API, grupo
+    #: 'Componentes del Producto', descripción, HTML de la ficha y
+    #: OpenFoodFacts por EAN— y ninguna la publica. El dato vive en el envase
+    #: físico. Ver `adaptadores/catalogo_vtex.py`, `COMPOSICION_VTEX`.
+    #:
+    #: El campo existe igualmente porque el mapeo reconoce varias formas de
+    #: nombrarlo: si una cadena empieza a publicarlo, aparece sin tocar código.
+    #: Y porque la góndola alemana y la suiza leen JSON-LD, donde
+    #: `schema.org/Product` sí tiene un lugar para esto.
+    ingredientes: Optional[str] = None
+
+    #: Alérgenos declarados. Este SÍ llega hoy: Makro lo publica.
+    #:
+    #: Va aquí y no dentro de `nutricion` porque es composición —de qué está
+    #: hecho— y no una cifra por porción. Que estuviera ahí dentro obligaba a
+    #: abrir la tabla nutricional para leer una advertencia de seguridad
+    #: alimentaria, que es justo lo que hay que ver sin buscarlo.
+    alergenos: Optional[str] = None
+
     capturado_en: Optional[str] = Field(
         None, description="Cuando se leyo. Un precio sin fecha no dice nada")
 

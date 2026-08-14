@@ -40,8 +40,11 @@ class CatalogoFalso:
         self.revienta = revienta
         self.llamadas = []
 
-    def buscar_sync(self, insumo, limite=5):
-        self.llamadas.append((insumo, limite))
+    # Tres parámetros, como el conector real: `termino` es lo que se busca e
+    # `insumo` contra lo que se filtra. Quien pregunta por «barras de quinua»
+    # quiere barras, y buscando «quinua» sale el grano a granel.
+    def buscar_sync(self, termino, limite=5, insumo=None):
+        self.llamadas.append((termino, limite, insumo))
         if self.revienta:
             raise RuntimeError("las cuatro tiendas dieron timeout")
         return self._ofertas
@@ -199,7 +202,7 @@ class TestOrden:
 class CatalogoAsincronoFalso:
     """Imita a CatalogoVTEX: sólo tiene `buscar` asíncrono."""
 
-    async def buscar(self, insumo, limite=5):
+    async def buscar(self, termino, limite=5, insumo=None):
         await asyncio.sleep(0)
         return [OfertaCruda("Quinua", 8.5, "Wong", ean="1")]
 

@@ -37,8 +37,16 @@ class DescubrimientoComercial(Protocol):
         self,
         insumo: str,
         nivel_maximo: NivelDescubrimiento = NivelDescubrimiento.SNAPSHOT,
+        forma_producto: str | None = None,
     ) -> list[ProductoEnMercado]:
-        """Productos hasta `nivel_maximo`, sin lanzar si un nivel no existe."""
+        """Productos hasta `nivel_maximo`, sin lanzar si un nivel no existe.
+
+        `forma_producto` es la forma de producto terminado que pidió la
+        consulta («barras de quinua»), cuando pidió una. Opcional y con default
+        para que un adaptador que no sepa afinar por forma siga cumpliendo el
+        puerto: ignorarlo es una degradación aceptable, devolver el insumo a
+        secas sigue siendo una respuesta correcta.
+        """
         ...
 
     def niveles_no_disponibles(

@@ -85,6 +85,71 @@ def _sinonimos_de(insumo: str) -> list[str]:
     return _SINONIMOS.get(_plegar(insumo), [insumo])
 
 
+# Formas de producto terminado, con cómo se escriben en la góndola.
+#
+# Hace falta traducir porque `forma_producto` llega en castellano —lo escribió
+# quien consulta— y el snapshot es mayoritariamente anglosajón: buscar «barras»
+# contra «Quinoa Bars» no encuentra nada, y cero resultados se lee igual que
+# «no existe el producto».
+#
+# Es una lista corta y deliberada, no un diccionario general: cubre las formas
+# con las que de verdad se pregunta por un insumo agrícola. Una forma que no
+# esté aquí no rompe nada — se cae al comportamiento de siempre, que es buscar
+# por el insumo. El día que la etapa 1 devuelva la forma ya traducida, esto
+# sobra.
+_FORMAS: dict[str, tuple[str, ...]] = {
+    "barra": ("barra", "bar", "riegel"),
+    "galleta": ("galleta", "cookie", "biscuit"),
+    "harina": ("harina", "flour", "mehl"),
+    "aceite": ("aceite", "oil"),
+    "bebida": ("bebida", "drink", "beverage"),
+    "leche": ("leche", "milk"),
+    "yogur": ("yogur", "yogurt", "yoghurt"),
+    "snack": ("snack",),
+    "cereal": ("cereal", "granola", "muesli"),
+    "pasta": ("pasta", "noodle", "fideo"),
+    "polvo": ("polvo", "powder"),
+    "extracto": ("extracto", "extract"),
+    "mermelada": ("mermelada", "jam", "preserve"),
+    "chocolate": ("chocolate",),
+    "capsula": ("capsula", "capsule", "tablet"),
+    "infusion": ("infusion", "tea", "te"),
+}
+
+
+def _terminos_de_forma(forma_producto: str | None) -> list[str]:
+    """Términos de góndola de la forma pedida. [] si no se pidió ninguna.
+
+    Se busca la forma DENTRO del texto ('barras de quinua' contiene 'barra')
+    en vez de partir por palabras, que es lo que hace que el plural funcione
+    sin mantener una lista de plurales.
+    """
+    if not forma_producto:
+        return []
+
+    plegado = _plegar(forma_producto)
+    for clave, terminos in _FORMAS.items():
+        if clave in plegado:
+            return list(terminos)
+    return []
+
+
+def _casa_forma(nombre: str | None, terminos: list[str]) -> bool:
+    """True si el nombre contiene alguno de los términos como PALABRA.
+
+    El filtro de LanceDB es un LIKE '%bar%', que además de «Quinoa Bars» trae
+    «White Quinoa & Barley»: cebada, no barra. La consulta se deja generosa —es
+    la que sabe usar el índice— y el recorte fino se hace aquí, donde se puede
+    exigir límite de palabra. El sufijo opcional cubre el plural sin mantener
+    una lista de plurales.
+    """
+    if not nombre:
+        return False
+    plegado = _plegar(nombre)
+    return any(re.search(rf"\b{re.escape(t)}(s|es)?\b", plegado)
+               for t in terminos)
+
+
 def _escapar(termino: str) -> str:
     """Deja solo lo que puede ir dentro de un LIKE sin romper la consulta.
 
@@ -136,8 +201,23 @@ class DescubrimientoSnapshot:
         self,
         insumo: str,
         nivel_maximo: NivelDescubrimiento = NivelDescubrimiento.SNAPSHOT,
+        forma_producto: str | None = None,
     ) -> list[ProductoEnMercado]:
-        """Productos del insumo. Pedir un nivel que no existe **no lanza**."""
+        """Productos del insumo. Pedir un nivel que no existe **no lanza**.
+
+        `forma_producto` es lo que se pidió de verdad cuando la consulta no era
+        el insumo a secas: «barras de quinua» y no «quinua». Cuando viene, se
+        antepone una pasada que exige insumo Y forma en el nombre.
+
+        No basta con reordenar lo ya encontrado: buscando solo «quinua» el cupo
+        se llena con grano suelto y las barras quedan fuera del corte antes de
+        poder subirlas. Medido sobre el snapshot: de las 200 filas que devolvía
+        «quinua», 11 eran barras y ninguna estaba entre las diez primeras.
+
+        Las demás pasadas se conservan detrás, así que una forma con pocos
+        productos no deja la tabla en tres filas: primero lo que se pidió,
+        después el resto del insumo.
+        """
         self.descartadas = {}
         tabla = _get_tabla(self.db_path)
         if tabla is None:
@@ -147,11 +227,22 @@ class DescubrimientoSnapshot:
         vistos: set[str] = set()
         filas: list[dict] = []
 
-        # Primero los que SON del insumo, después los que lo CONTIENEN.
-        for campos in (("nombre", "categoria"), ("ingredientes",)):
+        por_insumo = _clausula(sinonimos, ("nombre", "categoria"))
+        consultas: list[tuple[str, str]] = []
+
+        terminos_forma = _terminos_de_forma(forma_producto)
+        if terminos_forma:
+            por_forma = _clausula(terminos_forma, ("nombre",))
+            if por_insumo and por_forma:
+                consultas.append(("insumo+forma", f"({por_insumo}) AND ({por_forma})"))
+
+        # Después los que SON del insumo, y al final los que lo CONTIENEN.
+        consultas.append(("es", por_insumo))
+        consultas.append(("contiene", _clausula(sinonimos, ("ingredientes",))))
+
+        for etiqueta, donde in consultas:
             if len(filas) >= self.limite:
                 break
-            donde = _clausula(sinonimos, campos)
             if not donde:
                 continue
             try:
@@ -163,10 +254,16 @@ class DescubrimientoSnapshot:
                     .to_list()
                 )
             except Exception as e:  # índice ausente o filtro rechazado
-                print(f"[2b] Consulta fallida ({campos}): {e}")
+                print(f"[2b] Consulta fallida ({etiqueta}): {e}")
                 continue
 
             for fila in encontradas:
+                # El LIKE de la pasada de forma es generoso a proposito; aqui
+                # se exige que el termino aparezca como palabra.
+                if etiqueta == "insumo+forma" and not _casa_forma(
+                        fila.get("nombre"), terminos_forma):
+                    continue
+
                 clave = fila.get("id")
                 if clave and clave not in vistos:
                     vistos.add(clave)

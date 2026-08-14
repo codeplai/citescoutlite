@@ -51,8 +51,9 @@ import asyncio
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from urllib.parse import quote, urlencode
 
 import httpx
 
@@ -120,6 +121,56 @@ NUTRICION_VTEX = {
 }
 
 
+# Composicion del producto: de que esta hecho.
+#
+# ## Lo que se midio antes de escribir esto (2026-08-13)
+#
+# **Ninguna de las cuatro cadenas publica la lista de ingredientes.** Se buscó
+# por cinco vias, y ninguna la tiene:
+#
+# | Via | Resultado |
+# |---|---|
+# | `allSpecifications` del API | 18 etiquetas distintas vistas; ninguna es ingredientes |
+# | Grupo 'Componentes del Producto' | contiene 'Tipo de Producto' y 'Vendido por' |
+# | `description` / 'Descripcion del producto' | texto de marketing IDENTICO en tres productos distintos |
+# | HTML de la ficha del producto | 0 apariciones reales (los aciertos eran recetas y un sello vegano) |
+# | OpenFoodFacts por EAN | 1 de 15 codigos existe, y ese sin ingredientes |
+#
+# El dato esta en el envase fisico, no en la web. Recuperarlo pediria OCR de la
+# imagen de la etiqueta, que es otro proyecto.
+#
+# Aun asi el mapeo se escribe, con varias formas de nombrarlo: **si alguna
+# cadena empieza a publicarlo, aparece solo**, sin tocar codigo. Y `alergenos`
+# —que Makro SI publica— es composicion, no nutricion, y se saca aqui.
+COMPOSICION_VTEX = {
+    "ingredientes": "ingredientes",
+    "lista de ingredientes": "ingredientes",
+    "ingredientes del producto": "ingredientes",
+    "composicion": "ingredientes",
+    "alergenos declarados": "alergenos",
+    "alergenos": "alergenos",
+    "contiene alergenos": "alergenos",
+}
+
+
+def _composicion_de(nodo: dict) -> dict:
+    """De que esta hecho el producto, segun lo que publique la ficha.
+
+    Devuelve `{}` cuando no hay nada, que hoy es el caso de los ingredientes en
+    las cuatro cadenas. Un diccionario vacio y no None porque las dos claves
+    son independientes: `alergenos` suele venir sin `ingredientes`.
+    """
+    encontrado: dict = {}
+    for clave in (nodo.get("allSpecifications") or []):
+        campo = COMPOSICION_VTEX.get(_sin_tildes(clave))
+        if not campo:
+            continue
+        valor = _valor_especificacion(nodo, clave)
+        if valor:
+            encontrado[campo] = valor
+    return encontrado
+
+
 def _valor_especificacion(nodo: dict, clave: str) -> str | None:
     """VTEX devuelve las especificaciones como listas de un elemento."""
     valor = nodo.get(clave)
@@ -173,6 +224,9 @@ class OfertaVTEX:
     #: Especificaciones nutricionales de la ficha. None = la tienda no las
     #: publica para este producto.
     nutricion: dict | None = None
+    #: Composicion: `ingredientes` y `alergenos`. Diccionario vacio cuando la
+    #: ficha no trae ninguno de los dos, que es lo habitual para ingredientes.
+    composicion: dict = field(default_factory=dict)
 
 
 def _evidencia_de(nodo: dict, item: dict, oferta: dict) -> str:
@@ -270,22 +324,37 @@ class CatalogoVTEX:
         self._tiendas = tiendas if tiendas is not None else TIENDAS_VTEX
         self._timeout = timeout
 
-    async def buscar(self, insumo: str,
-                     limite_por_tienda: int = 5) -> list[OfertaVTEX]:
-        """Ofertas del insumo en todas las tiendas, consultadas en paralelo.
+    async def buscar(self, termino: str, limite_por_tienda: int = 5,
+                     insumo: str | None = None) -> list[OfertaVTEX]:
+        """Ofertas en todas las tiendas, consultadas en paralelo.
+
+        **`termino` es lo que se busca; `insumo` es contra lo que se filtra**, y
+        no siempre son lo mismo. Quien pregunta por «barras de quinua» quiere
+        eso, no quinua a granel: se busca la frase entera —el buscador de la
+        tienda ya sabe ordenar por relevancia— pero se filtra por «quinua»,
+        porque el filtro es literal y la tienda devuelve variantes que no
+        repiten la frase palabra por palabra («Barra energetica de quinua»).
+
+        Filtrar por la frase entera descartaria esas variantes; buscar solo el
+        insumo devuelve el grano suelto. Cada uno hace lo que sabe hacer.
 
         Una tienda que falle no cancela a las demas: son fuentes
         independientes, y quedarse sin Metro porque Wong dio un 500 seria
         perder datos por nada.
         """
-        if not insumo:
+        if not termino:
             return []
+
+        # Por defecto se filtra por lo mismo que se busca, que es el caso de
+        # una consulta de una sola palabra.
+        insumo = insumo or termino
 
         async with httpx.AsyncClient(
                 timeout=self._timeout, follow_redirects=True,
                 headers={"User-Agent": "AgroScoutIA/1.0 (+https://agroscout.ai/bot)"}
         ) as cliente:
-            tareas = [self._de_una_tienda(cliente, host, insumo, limite_por_tienda)
+            tareas = [self._de_una_tienda(cliente, host, termino, limite_por_tienda,
+                                          insumo)
                       for host in self._tiendas]
             tandas = await asyncio.gather(*tareas, return_exceptions=True)
 
@@ -297,8 +366,8 @@ class CatalogoVTEX:
             ofertas.extend(tanda)
         return ofertas
 
-    def buscar_sync(self, insumo: str,
-                    limite_por_tienda: int = 5) -> list[OfertaVTEX]:
+    def buscar_sync(self, termino: str, limite_por_tienda: int = 5,
+                    insumo: str | None = None) -> list[OfertaVTEX]:
         """Lo mismo, desde codigo sincrono.
 
         Existe porque la etapa 2b es sincrona a proposito (`etapa_sync`: sin
@@ -318,16 +387,27 @@ class CatalogoVTEX:
         """
         with ThreadPoolExecutor(max_workers=1) as ejecutor:
             futuro = ejecutor.submit(
-                lambda: asyncio.run(self.buscar(insumo, limite_por_tienda)))
+                lambda: asyncio.run(self.buscar(termino, limite_por_tienda, insumo)))
             return futuro.result()
 
     async def _de_una_tienda(self, cliente: httpx.AsyncClient, host: str,
-                             insumo: str, limite: int) -> list[OfertaVTEX]:
+                             termino: str, limite: int,
+                             insumo: str) -> list[OfertaVTEX]:
         nombre_tienda, moneda = self._tiendas[host]
-        url = f"https://{host}{_RUTA}"
 
-        respuesta = await cliente.get(
-            url, params={"ft": insumo, "_from": 0, "_to": max(limite - 1, 0)})
+        # La URL se arma a mano en vez de pasar `params=`, y no es manía.
+        #
+        # httpx codifica los parametros con `quote_plus`, que convierte el
+        # espacio en '+'. **Las cuatro cadenas responden 400 a un '+'** —"Bad
+        # Request! Scripts are not allowed!", una regla de su cortafuegos— y
+        # 200 al mismo termino con '%20'. Medido en las cuatro el 2026-08-13.
+        #
+        # Con `params=`, cualquier busqueda de mas de una palabra fallaba
+        # entera. Y fallaba en silencio: el 400 se registraba como un aviso mas
+        # y la tabla salia vacia, que se lee igual que "la tienda no lo tiene".
+        consulta = urlencode({"ft": termino, "_from": 0, "_to": max(limite - 1, 0)},
+                             quote_via=quote)
+        respuesta = await cliente.get(f"https://{host}{_RUTA}?{consulta}")
 
         # 206 es lo normal: VTEX pagina y devuelve Partial Content.
         if respuesta.status_code not in (200, 206):
@@ -367,6 +447,7 @@ class CatalogoVTEX:
                 evidencia=_evidencia_de(nodo, item, oferta),
                 tienda=nombre_tienda,
                 nutricion=_nutricion_de(nodo),
+                composicion=_composicion_de(nodo),
             ))
 
         logger.info(f"VTEX {nombre_tienda}: {len(ofertas)} oferta(s) de '{insumo}'"

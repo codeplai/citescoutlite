@@ -68,7 +68,27 @@ class RedactorGLM(RedactorLLM):
             "Para 'terminos_aleman', da el nombre con el que ese insumo aparece "
             "etiquetado en un supermercado alemán (REWE, Edeka, Alnatura), no una "
             "traducción literal ni una categoría amplia. Si no lo sabes con "
-            "certeza, devuelve la lista vacía: es preferible a inventarlo.",
+            "certeza, devuelve la lista vacía: es preferible a inventarlo.\n\n"
+            # `insumo_normalizado` reduce a la materia prima, y eso es correcto
+            # para el resto del informe. Pero la tabla de góndola busca con lo
+            # que se le dé, y con 'quinua' devuelve grano a granel a quien
+            # preguntó por barras. Medido: 'barras de quinua' salía como
+            # 'quinua' y la tabla se llenaba de bolsas de 500 g.
+            #
+            # Se pide explícitamente que se deje vacío en el caso normal: si el
+            # modelo rellena 'forma_producto' con 'quinua en grano' cuando se
+            # preguntó 'quinua', la búsqueda se estrecha sin que nadie lo haya
+            # pedido y desaparecen ofertas buenas.
+            # 'forma_producto' NO se pide aquí, aunque esté en el esquema: lo
+            # calcula `casos_de_uso/etapas/interpretar_insumo.py` comparando el
+            # texto con el insumo normalizado, y sobrescribe lo que devuelva el
+            # modelo.
+            #
+            # Se intentó pedirlo, primero con la regla en abstracto y luego con
+            # seis ejemplos literales: 1 de 4 y 4 de 6, fallando en casos
+            # distintos cada vez. Una comparación de cadenas responde siempre
+            # igual y no cuesta tokens.
+            "",
             texto)
 
     @retry(**_REINTENTOS)

@@ -84,6 +84,16 @@ def _conversion_de(precio: Optional[float], moneda: Optional[str],
         fecha_tasa=resultado.fecha_tasa, fuente=resultado.fuente)
 
 
+def _composicion(cruda: Any) -> dict:
+    """La composicion de una oferta cruda, venga del conector que venga.
+
+    Con `getattr` y no accediendo al atributo: los conectores de Alemania y
+    Suiza construyen sus propias ofertas y pueden no declararlo. Un adaptador
+    que no conozca el campo no debe reventar el mapeo de los que si.
+    """
+    return getattr(cruda, "composicion", None) or {}
+
+
 def _ordenadas(ofertas: list[OfertaComercial]) -> list[OfertaComercial]:
     """Por EAN y luego por precio.
 
@@ -152,18 +162,29 @@ class OfertasGondola:
             self._cambio = tipo_cambio()
         return self._cambio
 
-    def de_peru(self, insumo: str) -> list[OfertaComercial]:
+    def de_peru(self, insumo: str,
+                termino: str | None = None) -> list[OfertaComercial]:
         """Wong, Metro, Plaza Vea y Makro, por su API publico de catalogo.
 
         Sin anti-bot, sin credencial y sin coste: son segundos y no pasa por
         ningun modelo, que es lo que permite ponerlo en el camino de una
         consulta sincrona sin cambiar su latencia de forma apreciable.
+
+        `termino` es lo que se busca y `insumo` contra lo que se filtra. Quien
+        pregunta por «barras de quinua» quiere barras, y buscando «quinua» sale
+        el grano a granel; pero filtrar por la frase entera descartaria una
+        «Barra energetica de quinua» que si es lo que pidio. Se busca especifico
+        y se filtra ancho.
+
+        Sin `termino` se busca por el insumo, que es el caso de una consulta de
+        una sola palabra.
         """
         if not insumo:
             return []
 
         try:
-            crudas = self._catalogo_vtex().buscar_sync(insumo, POR_TIENDA)
+            crudas = self._catalogo_vtex().buscar_sync(
+                termino or insumo, POR_TIENDA, insumo)
         except Exception as e:
             logger.error(f"No se pudieron leer las tiendas peruanas para "
                          f"{insumo!r}: {type(e).__name__}: {e}")
@@ -282,6 +303,18 @@ class OfertasGondola:
             # deduce de productos parecidos.
             nutricion=(EspecificacionNutricional(**getattr(cruda, "nutricion", None))
                        if getattr(cruda, "nutricion", None) else None),
+            # Composicion. `alergenos` llega hoy —Makro lo publica—;
+            # `ingredientes` no lo publica ninguna cadena peruana, y el campo
+            # existe para que aparezca solo si alguna empieza a hacerlo o si lo
+            # trae el JSON-LD de una tienda europea.
+            #
+            # `alergenos` puede venir tambien dentro de `nutricion`, porque el
+            # mapa nutricional de VTEX lo lista: se prefiere el de composicion
+            # y se cae al otro. Asi la columna no queda vacia por el orden en
+            # que la tienda etiquete el campo.
+            ingredientes=_composicion(cruda).get("ingredientes"),
+            alergenos=(_composicion(cruda).get("alergenos")
+                       or (getattr(cruda, "nutricion", None) or {}).get("alergenos")),
             capturado_en=capturado_en,
             # El prefijo lo pone quien llama, no este metodo. Estaba fijado a
             # 'vtex:' y con eso una oferta de REWE —que llega por agente,
