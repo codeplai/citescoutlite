@@ -34,6 +34,7 @@ from casos_de_uso.politica_suscripcion import entitlement_de
 from api.health import router as health_router
 from api.websocket_jobs import router as websocket_router
 from api.webhooks import router as webhooks_router
+from api.analisis import router as analisis_router
 from api.discovery import router as discovery_router
 from api.admin import router as admin_router
 from api.alertas import router as alertas_router
@@ -62,6 +63,10 @@ app.include_router(health_router)
 app.include_router(websocket_router)
 app.include_router(webhooks_router)
 app.include_router(discovery_router)
+# T5. Va fuera del `if USA_SUPABASE` a propósito: lee `etapas_ejecucion`, que
+# existe en las dos ramas, y el corpus regulatorio son ficheros locales. La
+# pestaña de análisis tiene que funcionar también en la demo del plan B.
+app.include_router(analisis_router)
 # S6.7. Solo tiene sentido contra Postgres: las tablas de alertas no existen en
 # el SQLite del plan B, y sus consultas usan el pool de adaptadores/db.py.
 if USA_SUPABASE:
@@ -86,7 +91,14 @@ if USA_SUPABASE:
 # llamadas mueren en el preflight. Va por entorno y no en esta lista para que
 # una direccion de red concreta no acabe en el repositorio.
 _ORIGENES = ["http://localhost:3000", "http://localhost:8001",
-             "http://127.0.0.1:3000", "http://127.0.0.1:8001"]
+             "http://127.0.0.1:3000", "http://127.0.0.1:8001",
+             # 5173 es el puerto por defecto de Vite, y `frontend/vite.config.js`
+             # NO fija ninguno: cualquiera que arranque la SPA con `npm run dev`
+             # —lo que dice el README— acaba sirviendo en 5173 y el navegador le
+             # mata todas las peticiones en el preflight. El fallo se ve como
+             # «no se pudo contactar con el servidor», sin nada en el log del
+             # backend, porque el servidor ni se entera.
+             "http://localhost:5173", "http://127.0.0.1:5173"]
 _ORIGENES += [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 
 app.add_middleware(

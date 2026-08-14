@@ -104,6 +104,7 @@
               <th>Producto</th><th>País</th><th>Marca</th>
               <th>Precio</th><th>Aditivos</th><th>Ingredientes</th>
               <!-- Aditivos e Ingredientes abren la misma ficha, cada uno en su sección. -->
+              <th>Análisis</th>
             </tr>
           </thead>
           <tbody>
@@ -147,6 +148,31 @@
                 >
                   Ver {{ fila.producto.n_ingredientes }} ingredientes
                 </button>
+                <span v-else class="sin-dato">sin dato</span>
+              </td>
+
+              <!--
+                Análisis regulatorio (T6). Los mismos tres estados que la
+                columna de aditivos, y por el mismo motivo: **sin aditivos no
+                hay nada que analizar**, así que un botón ahí sería un botón
+                muerto que abre una pestaña vacía. Es el 49,8 % de las filas.
+
+                Va como <a> y no como <button>: abre pestaña de verdad, así que
+                tiene que poder abrirse también con el botón central del ratón
+                o con Ctrl+clic, y eso solo lo da un enlace real con href.
+              -->
+              <td>
+                <a
+                  v-if="fila.producto.aditivos.length && result.ejecucion_id"
+                  class="btn-analisis"
+                  :href="urlAnalisis(fila.id)"
+                  target="_blank"
+                  rel="noopener"
+                  :title="`Autorización de ${fila.producto.aditivos.length} aditivo(s) en EE. UU., Codex y UE`"
+                >Analizar ↗</a>
+                <span v-else-if="fila.producto.ingredientes" class="ninguno">
+                  sin aditivos
+                </span>
                 <span v-else class="sin-dato">sin dato</span>
               </td>
             </tr>
@@ -312,10 +338,13 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { api, NoAutorizado } from '../api.js'
 import TablaGondola from './TablaGondola.vue'
+
+const router = useRouter()
 
 const props = defineProps({
   result: {
@@ -451,6 +480,17 @@ const filas = computed(() =>
       ]
     }))
 )
+
+/* --- Análisis regulatorio (T6) ------------------------------------------- */
+
+// La URL de la pestaña de análisis, resuelta por el router y no construida a
+// mano: si la ruta cambia de forma, esto la sigue. `resolve().href` respeta
+// además la base de la SPA, que un literal se saltaría, y codifica el id —que
+// viene como `OFF:00000036`— sin que haya que acordarse.
+const urlAnalisis = (productoId) => router.resolve({
+  name: 'analisis',
+  params: { ejecucionId: props.result.ejecucion_id, productoId },
+}).href
 
 /* --- Ficha de formulación ------------------------------------------------ */
 
@@ -880,6 +920,28 @@ const descargar = async () => {
 
 .btn-ficha:hover {
   background: rgba(56, 189, 248, 0.24);
+}
+
+/*
+  El enlace a la pestaña de análisis. Se pinta como acción y no como enlace de
+  texto porque compite con el nombre del producto, que también es un enlace: sin
+  peso visual propio, la columna entera parecía decoración de la primera.
+*/
+.btn-analisis {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-analisis:hover {
+  background: var(--primary-color);
+  color: #fff;
 }
 
 /*

@@ -65,3 +65,9 @@ asyncio_mode = "strict"
 # Sin esto, cada test async avisa de que el scope por defecto del event loop
 # es implicito y va a cambiar en una version futura.
 asyncio_default_fixture_loop_scope = "function"
+markers = [
+    # Tests que salen a la red o llaman al modelo, y por tanto cuestan dinero y
+    # dependen de que la fuente este en pie. Se excluyen con `-m "not
+    # integracion"`; el gate de T1 los ejecuta a proposito.
+    "integracion: usa red o modelo (lento y con coste)",
+]

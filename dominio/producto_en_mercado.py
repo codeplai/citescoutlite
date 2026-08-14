@@ -34,6 +34,21 @@ class ProductoEnMercado(BaseModel):
         description="ISO-3166 alpha-2 normalizado (T2.1); [] si no se pudo mapear",
     )
 
+    categoria: str | None = Field(
+        default=None,
+        description="La categoría tal cual la publica OFF, sin normalizar: "
+                    "82,7 % de cobertura y 8.322 valores distintos. Es texto "
+                    "libre, no un código",
+    )
+    # Se añade en T5 y es lo que hace posible el análisis regulatorio.
+    #
+    # El adaptador del snapshot ya la leía —está en `_COLUMNAS` y se usa para
+    # filtrar por insumo— pero no la pasaba al contrato, así que se perdía al
+    # salir de la consulta. Sin ella, `etl.mapear_categoria` no tiene entrada y
+    # **las tres tarjetas de la pestaña saldrían condicionadas o sin dato**: el
+    # veredicto depende del par (aditivo × categoría), y de la categoría no
+    # llegaba nada.
+
     # --- Formulación. Todo sale del texto de ingredientes del snapshot. ---
     ingredientes: str | None = Field(
         default=None,

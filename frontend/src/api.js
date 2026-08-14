@@ -9,12 +9,33 @@
  * Un solo sitio adjunta el token, y un solo sitio decide qué hacer con un 401.
  */
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001'
+// Exportada: cuando una petición no llega a salir, la pantalla tiene que poder
+// decir **a qué dirección** estaba llamando. Sin eso, «no se pudo contactar con
+// el servidor» no distingue un backend caído de un VITE_API_URL mal puesto.
+export const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001'
 
 export const CLAVE_TOKEN = 'agroscout_token'
 export const CLAVE_USUARIO = 'agroscout_user'
 
 export class NoAutorizado extends Error {}
+
+/**
+ * Un error del backend con su código a mano.
+ *
+ * Antes se lanzaba `new Error(\`${status}: ${detalle}\`)` y quien lo recogía
+ * tenía que buscar el número dentro de la cadena con `includes('404')` — que
+ * además casa con un 404 que aparezca en el cuerpo del mensaje. Con el código
+ * en un campo, la interfaz puede decir cosas distintas para «no existe», «no
+ * tienes permiso» y «el servidor se rompió», que es justo lo que hace falta
+ * cuando algo falla y hay que averiguar por qué.
+ */
+export class ErrorHttp extends Error {
+  constructor(status, detalle) {
+    super(`${status}: ${detalle}`)
+    this.status = status
+    this.detalle = detalle
+  }
+}
 
 function cabeceras(extra = {}) {
   const token = localStorage.getItem(CLAVE_TOKEN)
@@ -41,8 +62,14 @@ async function pedir(ruta, opciones = {}) {
   }
 
   if (!respuesta.ok) {
-    const detalle = await respuesta.text()
-    throw new Error(`${respuesta.status}: ${detalle.slice(0, 200)}`)
+    const crudo = await respuesta.text()
+    // El backend responde `{"detail": "..."}`; se saca el texto para no
+    // enseñar el JSON en bruto a quien lea la pantalla.
+    let detalle = crudo.slice(0, 300)
+    try {
+      detalle = JSON.parse(crudo).detail ?? detalle
+    } catch { /* no era JSON: se deja el cuerpo tal cual */ }
+    throw new ErrorHttp(respuesta.status, detalle)
   }
 
   return respuesta.json()
@@ -109,6 +136,21 @@ export const api = {
    * porque un enlace emitido al principio puede caducar antes de usarse.
    */
   urlInforme: (ejecucionId) => pedir(`/informes/${ejecucionId}`),
+
+  /**
+   * T6 - Análisis regulatorio de los aditivos de un producto.
+   *
+   * Solo van los dos identificadores. La lista de aditivos NO se manda: el
+   * backend la relee del informe, porque quien manda la lista decide el
+   * resultado y entonces el análisis dejaría de describir el snapshot para
+   * describir lo que le mandó la interfaz.
+   *
+   * `encodeURIComponent` sobre el id no es adorno: son de la forma
+   * `OFF:00000036` y los dos puntos hay que escaparlos en la ruta.
+   */
+  analisisAditivos: (ejecucionId, productoId) =>
+    pedir(`/api/analisis-aditivos/${encodeURIComponent(ejecucionId)}`
+          + `/${encodeURIComponent(productoId)}`),
 
   // S6.7 - Alertas de retiro (openFDA + RASFF).
   alertasActivas: ({ limite = 50, dias = 90, severidad = '' } = {}) => {

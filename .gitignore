@@ -18,6 +18,14 @@ __pycache__/
 # Bases de datos y almacenamiento local
 data/*.duckdb
 data/*.db
+
+# Corpus del eCFR: 21,7 MB que se regeneran con `python -m etl.ingerir_ecfr`.
+# Es una copia de la distribucion oficial del GPO, no fuente de este repo.
+data/ecfr/
+
+# Anexo II de la UE: 3,4 MB de HTML de EUR-Lex mas 5,8 MB de JSON derivado.
+# Se regeneran con `python -m etl.ingerir_anexo_ii`.
+data/ue/
 logs/
 *.db
 *.db-wal

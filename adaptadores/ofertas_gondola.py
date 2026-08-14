@@ -118,7 +118,7 @@ class OfertasGondola:
     """Ofertas de las tiendas conocidas, para el informe."""
 
     def __init__(self, catalogo=None, cambio=None, catalogo_de=None,
-                 catalogo_ch=None):
+                 catalogo_ch=None, ficha_cencosud=None):
         # Se inyectan para poder probar sin red. Por defecto, los de verdad.
         #
         # Son TRES ranuras de catalogo y no una compartida: si `de_alemania`
@@ -137,6 +137,10 @@ class OfertasGondola:
         self._cambio = cambio
         self._catalogo_de = catalogo_de
         self._catalogo_ch = catalogo_ch
+        # No es un catalogo: es la ficha por codigo de barras de Wong y Metro,
+        # que enriquece ofertas ya encontradas. Ranura propia porque tiene su
+        # propia cache y su propio ciclo de vida.
+        self._ficha_cencosud = ficha_cencosud
 
     def _catalogo_vtex(self):
         if self._catalogo is None:
@@ -194,7 +198,62 @@ class OfertasGondola:
         ahora = datetime.now(timezone.utc).isoformat()
 
         ofertas = [self._a_dominio(o, cambio, ahora, "vtex") for o in crudas]
-        return _ordenadas(ofertas)
+        return _ordenadas(self._con_ficha(ofertas))
+
+    def _con_ficha(self, ofertas: list[OfertaComercial]) -> list[OfertaComercial]:
+        """Añade ingredientes y nutricion de Wong y Metro, por codigo de barras.
+
+        El catalogo de VTEX no los trae —se comprobaron siete vias— pero
+        Cencosud tiene un API propio en `/v1/api/productinformations/{EAN}`.
+        Ver `adaptadores/ficha_cencosud.py`.
+
+        Solo enriquece; nunca sustituye. Lo que ya venia de las
+        especificaciones de Plaza Vea y Makro se respeta: son cuatro cadenas y
+        cada una publica lo que quiere, asi que el criterio es no pisar un dato
+        existente con otro.
+
+        Fallar aqui deja la tabla como estaba. La ficha es un extra sobre un
+        precio y un stock que ya se tienen.
+        """
+        if not ofertas:
+            return ofertas
+
+        try:
+            fichas = self._fichas().de_varias(
+                [(o.tienda, o.ean) for o in ofertas])
+        except Exception as e:
+            logger.warning(f"No se pudieron leer las fichas de producto: "
+                           f"{type(e).__name__}: {e}")
+            return ofertas
+
+        enriquecidas = []
+        for oferta in ofertas:
+            ficha = fichas.get((oferta.tienda, oferta.ean))
+            if not ficha:
+                enriquecidas.append(oferta)
+                continue
+
+            cambios: dict = {}
+            if ficha.get("ingredientes") and not oferta.ingredientes:
+                cambios["ingredientes"] = ficha["ingredientes"]
+            # Las trazas son una advertencia de alergenos por otro nombre, y
+            # solo se usan si la tienda no declaro alergenos: son informacion
+            # de segunda mano frente a una declaracion explicita.
+            if ficha.get("trazas") and not oferta.alergenos:
+                cambios["alergenos"] = f"Trazas: {ficha['trazas']}"
+            if ficha.get("nutricion") and not oferta.nutricion:
+                cambios["nutricion"] = EspecificacionNutricional(**ficha["nutricion"])
+
+            enriquecidas.append(oferta.model_copy(update=cambios)
+                                if cambios else oferta)
+
+        return enriquecidas
+
+    def _fichas(self):
+        if self._ficha_cencosud is None:
+            from adaptadores.ficha_cencosud import FichaCencosud
+            self._ficha_cencosud = FichaCencosud()
+        return self._ficha_cencosud
 
     def de_alemania(self, insumo: str, termino: str) -> list[OfertaComercial]:
         """REWE, Edeka, Alnatura y quien mas aparezca, **por agente**.

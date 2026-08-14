@@ -80,6 +80,20 @@ export const rutas = [
     meta: { titulo: 'Presupuestos y control', grupo: 'Administración',
             icono: '⏻', admin: true },
   },
+  {
+    // T6. Sin `titulo` en `meta`, y por eso **no sale en el menú lateral**:
+    // aquí no se llega navegando, se llega desde una fila concreta del mapa
+    // comercial. Una entrada de menú abriría la pantalla sin producto que
+    // analizar.
+    //
+    // El id del producto va como parámetro de ruta y no como query porque es
+    // parte de la identidad de la página: esta URL se pega en un correo para
+    // que otra persona vea exactamente el mismo análisis.
+    path: '/analisis/:ejecucionId/:productoId',
+    name: 'analisis',
+    component: () => import('../vistas/AnalisisIngredientes.vue'),
+    props: true,
+  },
   { path: '/', redirect: { name: 'consulta' } },
   { path: '/:resto(.*)*', redirect: { name: 'consulta' } },
 ]

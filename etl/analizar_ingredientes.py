@@ -60,6 +60,24 @@ ADITIVOS: dict[str, tuple[str, str]] = {
     "gellan": ("Goma gellan", "E418"),
     "potassium sorbate": ("Sorbato de potasio", "E202"),
     "sorbato de potasio": ("Sorbato de potasio", "E202"),
+    # El acido sorbico y el EDTA entran en T6, y su ausencia era un agujero
+    # real: son los dos aditivos de `acido1.pptx` y `acido2.pptx`, o sea los
+    # casos de referencia del proyecto entero, y **una etiqueta que los
+    # declarara salia sin aditivos**. No aparecian porque esta tabla se
+    # construyo por frecuencia en el snapshot y ninguno de los dos es frecuente
+    # ahi; eso mide lo que vende OpenFoodFacts, no lo que le interesa a quien
+    # exporta.
+    "sorbic acid": ("Ácido sórbico", "E200"),
+    "acido sorbico": ("Ácido sórbico", "E200"),
+    "calcium sorbate": ("Sorbato de calcio", "E203"),
+    # Los dos EDTA van separados y con su numero propio: el calcico disodico
+    # (E385) y el disodico (E386) no son el mismo aditivo ni tienen las mismas
+    # autorizaciones. Un patron generico 'edta' casaria con los dos y elegiria
+    # uno al azar, que en una tabla regulatoria es peor que no reconocer nada.
+    "calcium disodium edta": ("EDTA cálcico disódico", "E385"),
+    "edta calcico disodico": ("EDTA cálcico disódico", "E385"),
+    "disodium edta": ("EDTA disódico", "E386"),
+    "edta disodico": ("EDTA disódico", "E386"),
     "sodium benzoate": ("Benzoato de sodio", "E211"),
     "benzoato de sodio": ("Benzoato de sodio", "E211"),
     "calcium propionate": ("Propionato de calcio", "E282"),

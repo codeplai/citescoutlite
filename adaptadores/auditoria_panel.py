@@ -47,6 +47,11 @@ EVENTOS = (
     "rule_updated",         # 7.2, el editor de reglas
     "login",                # entrada al panel
     "export",               # 8.7
+    # T5. Es el unico evento del panel que **cuesta dinero al ocurrir**: cada
+    # consulta que no salga de cache lanza al agente del eCFR contra el modelo.
+    # Por eso el detalle lleva `llamadas_agente` y no solo el veredicto: sin esa
+    # cifra, el cost-meter no puede atribuir el gasto a esta pantalla.
+    "analisis_aditivos_consultado",
 )
 
 _INSERTAR = """

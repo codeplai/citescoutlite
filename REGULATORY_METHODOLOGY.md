@@ -1,471 +1,200 @@
-# REGULATORY METHODOLOGY - Corpus Regulatorio CITE MVP
+# Metodología regulatoria — qué se consulta, cómo y hasta dónde llega
 
-**Versión:** 2.0  
-**Última actualización:** 2026-08-10  
-**Próxima actualización:** 2026-08-17 (cada lunes 02:00 UTC)  
-**Mantenedor:** CITE MVP Team  
-
----
-
-## 📋 RESUMEN EJECUTIVO
-
-CITE MVP incluye un **corpus regulatorio verificable** de 4100+ regulaciones de 5 fuentes autorizadas:
-
-| Fuente | Jurisdicción | Entradas | Última Actualización | Status |
-|--------|--------------|----------|----------------------|--------|
-| **eCFR** | USA (FDA) | 3500+ | 2026-08-10 | ✅ |
-| **EFSA** | EU (aditivos alimentarios) | 400+ | 2026-08-10 | ✅ |
-| **Codex Alimentarius** | Internacional | 200+ | 2026-08-10 | ✅ |
-| **INACAL** | Perú (normas técnicas) | 10+ | 2026-08-10 | ✅ |
-| **DIGESA** | Perú (directivas sanitarias) | 6+ | 2026-08-10 | ✅ |
-| **TOTAL** | **Múltiple** | **4100+** | **2026-08-10** | **✅** |
+**Versión:** 3.0 · **Actualizado:** 2026-08-14
+**Sustituye a la v2.0**, que declaraba un corpus de «4100+ regulaciones de 5 fuentes»
+que **no existía**. Ver §7.
 
 ---
 
-## 🌍 FUENTES REGULATORIAS
+## 1. Resumen
 
-### 1. eCFR (FDA USA)
+CiteScout responde una pregunta concreta: **¿está autorizado este aditivo, en este
+alimento, en este mercado?** Y responde con la cifra, la referencia y el fragmento de norma
+que la sostiene, o dice que no lo sabe.
 
-**Autoridad:** Food and Drug Administration (FDA)  
-**Jurisdicción:** United States  
-**Títulos cubiertos:** 21 (Food), 7 (Agriculture)  
-**Partes principales:** 101 (Food Labeling), 182 (Food Additives)  
-**Acceso:** https://www.ecfr.gov/current/title-21/  
-**Actualización:** Semanal (cambios en regulaciones federales)
+Los tres mercados **no se consultan igual**, porque las tres fuentes no se parecen. Esa
+asimetría es el diseño, no una carencia.
 
-**Cobertura:**
-- Etiquetado de alimentos
-- Aditivos alimentarios permitidos
-- Límites de residuos
-- Requisitos de declaración
-- E-numbers equivalentes (eCFR mapping)
-
-**Ejemplo:**
-```
-21 CFR 101.2 - Information on principal display panel
-https://www.ecfr.gov/current/title-21/part-101/section-101.2
-
-"The following principal display panel information shall appear on a principal display panel 
-as defined in §101.1 of this part. Any label in the plural form of the term..."
-```
+| Mercado | Fuente | Mecanismo | Estado (2026-08-14) |
+|---|---|---|---|
+| 🇺🇸 **Estados Unidos** | eCFR, título 21 | Búsqueda **en vivo** + corpus local | ✅ 8.406 secciones |
+| 🇪🇺 **Unión Europea** | Anexo II del Reg. (CE) 1333/2008 | Ingesta única, consulta local | ✅ 14.590 usos, 116 categorías |
+| 🌍 **Codex** | GSFA (CXS 192-1995) | **Curación manual** | 🟡 2 de 34 filas |
 
 ---
 
-### 2. EFSA (Aditivos Alimentarios EU)
+## 2. Estados Unidos — búsqueda en vivo
 
-**Autoridad:** European Food Safety Authority (EFSA)  
-**Jurisdicción:** European Union  
-**Registro:** E-numbers (E100 - E1521)  
-**Acceso:** https://www.efsa.europa.eu/en/topics/topic/food-additives  
-**Actualización:** Mensual (nuevos aditivos aprobados)
+**Ranking:** `https://www.ecfr.gov/api/search/v1/results`, permitido por el `robots.txt` del
+eCFR. Es lo que localiza la sección aplicable: para `"calcium disodium EDTA"` devuelve
+§172.120 como primer resultado de 29.
 
-**Cobertura:**
-- E100-E199: Colorantes
-- E200-E299: Conservantes
-- E300-E399: Antioxidantes
-- E400-E499: Estabilizadores, emulsionantes
-- E500-E599: Reguladores de acidez
-- E600-E699: Potenciadores de sabor
-- E1100-E1521: Otros aditivos
+**Texto:** distribución oficial del GPO en `govinfo.gov/bulkdata/ECFR/title-21/`
+(21,7 MB, 8.406 secciones), reingerible con `python -m etl.ingerir_ecfr`.
 
-**Ejemplo:**
-```
-E100 (Curcumina / Turmeric)
-Nombre: Turmeric, curcumin
-Autorizado en: UE
-Estado: Aprobado ✅
-Límite máximo: 50 mg/kg (en algunas categorías)
-```
+> **Por qué no se usa la API que sirve el texto.** El `robots.txt` de `ecfr.gov` trae
+> `Disallow: /api/versioner/v1/full/`, que es justo ese endpoint. Y la página que ve una
+> persona (`/current/title-21/...`) es una SPA: devuelve un shell de 10.595 bytes sin el
+> texto de la norma. La ruta de govinfo no está restringida y trae el título entero.
 
----
+**Cobertura por parte del título 21:** 184 (215 secciones) · 172 (153) · 101 (50) · 146 (20)
+· 145 (13) · 169 (11) · 150 (3), entre otras.
 
-### 3. Codex Alimentarius (Global)
+**Extracción:** el modelo lee la sección y devuelve una *lectura* (qué cobertura da, qué
+alimento nombra, qué cifra); **el veredicto lo decide el código**, no el prompt. Y la cita
+—`referencia_texto` y `referencia_url`— se construye desde el identificador de sección con
+el que se pidió el documento: **citar una norma inexistente es imposible por
+construcción**, no por comprobación.
 
-**Autoridad:** FAO/WHO Codex Alimentarius Commission  
-**Jurisdicción:** Internacional (base para armonización global)  
-**Estándares:** STAN 50-1991 (Quinoa), STAN 152-1985 (Meat), etc.  
-**Acceso:** http://www.fao.org/fao-who-codexalimentarius/  
-**Actualización:** Anual (nuevos estándares adoptados)
-
-**Cobertura:**
-- Estándares de productos (granos, carnes, etc.)
-- Prácticas de higiene general
-- Límites de contaminantes
-- Requisitos de etiquetado
-
-**Ejemplo:**
-```
-STAN 50-1991 - Quinoa Grain
-Nombre: Standard for Quinoa Grain
-
-Composición mínima:
-- Proteína: > 8%
-- Fibra: > 6%
-- Humedad: < 11%
-
-Contaminantes máximos:
-- Arsénico: 0.2 mg/kg
-- Plomo: 0.2 mg/kg
-```
+**Latencia medida:** 14,5–35,9 s por aditivo en frío (p95 ≈ 36 s); < 10 ms en caliente.
 
 ---
 
-### 4. INACAL (Perú - Normas Técnicas)
+## 3. Unión Europea — ingesta única
 
-**Autoridad:** Instituto Nacional de Calidad (INACAL)  
-**Jurisdicción:** Perú  
-**Normas:** NTS (Normas Técnicas Peruanas)  
-**Acceso:** https://www.inacal.gob.pe/  
-**Actualización:** Trimestral (nuevas normas, revisiones)
+**Fuente:** `CELEX:32011R1129`, el Reglamento (UE) 1129/2011, que es el que **rellenó** el
+Anexo II. Un documento de 3,4 MB con 602 tablas.
 
-**Cobertura:**
-- NTS 201.041: Quinua (Chenopodium quinoa Willd)
-- NTS 201.053: Carnes y productos cárnicos
-- NTS 201.060: Harina de trigo
-- NTS 201.070: Aceites vegetales
+**Lo que se extrae:** 2.177 filas de la Parte E → 14.590 usos, sobre 116 categorías de
+alimento, más los cuatro grupos de la Parte C (Grupo I: 137 aditivos, II: 15, III: 16,
+IV: 7) y los 321 pares E→nombre de la Parte B.
 
-**Ejemplo:**
-```
-NTS 201.041 (Quinua)
-Nombre oficial: "Norma Técnica Peruana para Quinua"
-Requisitos:
-- Humedad máxima: 11.5%
-- Proteína mínima: 8%
-- Contaminantes: máximos permitidos por Codex
-- Equivalencia: STAN 50-1991
-```
+**La sexta columna es la que decide.** De las 14.590 filas: 52,0 % sin restricción ·
+31,1 % «solo …» · 6,2 % «… excepto …» · 1,2 % ambas · 9,4 % otras. **Casi el 40 % restringe
+por alimento**, y ahí está el veredicto — no en que la fila exista.
 
----
+> **Ejemplo, y es el caso de referencia del proyecto.** El E 200 aparece en la categoría
+> 04.2.4.1 con 1.000 mg/kg. Parece un sí. La restricción completa dice: *«solo preparados
+> de fruta y verdura […] **excepto el puré**, la mousse, la compota, las ensaladas y los
+> productos similares en conserva»*. Para una pulpa, un parser que se quedara en la fila
+> daría la respuesta contraria a la correcta.
 
-### 5. DIGESA (Perú - Dirección General de Salud)
+**Designaciones colectivas.** 444 filas traen rangos (`E 200-203`, `E 338-452`) que **no
+son intervalos aritméticos**: expandir `E 338-452` como `range(338,453)` metería el E 400
+(ácido algínico) dentro de «fosfatos». Se derivan del propio documento cruzando la Parte B
+por consistencia de nombre. Fallos conocidos de esa derivación, todos **por defecto**
+(sale `SIN_DATO`, nunca autorizado de más): siglas (`TBHQ`), familias sin raíz común
+(`Ribonucleótidos`/`Ácido guanílico`) y dos erratas del propio Diario Oficial
+(`E 341 "Fostatos"`, `E 355-228` con inicio > fin).
 
-**Autoridad:** Dirección General de Salud Ambiental (DIGESA)  
-**Jurisdicción:** Perú (directivas sanitarias)  
-**Tipo:** Resoluciones, directivas, prohibiciones  
-**Acceso:** https://www.digesa.minsa.gob.pe/  
-**Actualización:** Ad-hoc (cuando se identifican riesgos)
-
-**Cobertura:**
-- Prohibiciones de ingredientes
-- Restricciones por riesgo sanitario
-- Alertas de contaminación
-- Derivados específicos de aditivos
-
-**Ejemplo:**
-```
-DIGESA - Resolución 2023-001
-Asunto: Restricción de colorantes azo (Tartrazine)
-Restricción: Máximo 100 mg/kg en productos dirigidos a niños
-Vigencia: 2023-01-15 a indefinido
-```
+**Latencia:** < 8 ms. Es un diccionario en memoria.
 
 ---
 
-## 🔄 ESTRATEGIA DE BÚSQUEDA POR PAÍS
+## 4. Codex — curación manual, y por qué
 
-### Perú (PE) - Prioridad cascada
+El GSFA **no es consultable por máquina**. Sondeadas las cuatro rutas (2026-08-13 y 14):
 
-```
-Búsqueda: "quinua" en Perú
+| Ruta | Resultado |
+|---|---|
+| `fao.org/gsfaonline/*` | 403 de Cloudflare; las fichas usan `?id=`, vetado por `Disallow: /*?id=*` |
+| Web Unlocker de Bright Data | **rechaza**: «not available … in accordance with robots.txt» |
+| Enlace `sh-proxy` al PDF de la CXS 192 | 403 |
+| `workspace.fao.org/.../CXS_192e.pdf` | 200, pero es una página de login de SharePoint |
 
-1️⃣ INACAL (máxima prioridad local)
-   └─ NTS 201.041: Quinua ✅
+Un proveedor de pago negándose a saltarse ese `robots.txt` zanja el asunto. La tabla la
+rellena **una persona**, en [data/codex/gsfa_aditivos.csv](data/codex/gsfa_aditivos.csv).
 
-2️⃣ DIGESA (si no encontrado)
-   └─ (Sin directivas específicas para quinua)
+Cada fila declara su `estado`, y el cargador **falla ruidosamente** si una fila dice estar
+resuelta sin URL, sin cita, sin responsable o sin fecha:
 
-3️⃣ Codex (fallback internacional)
-   └─ STAN 50-1991: Quinoa ✅
+- `VERIFICADO` — alguien abrió el GSFA y lo anotó. Es el único que da un `SI` limpio.
+- `SECUNDARIA` — el dato viene de un documento interno. **Nunca da `SI` a secas**: se
+  degrada a `SI_CONDICIONADO` y la nota dice de dónde salió.
+- `PENDIENTE` — nadie lo ha mirado. Devuelve `SIN_DATO`, **jamás «no autorizado»**.
 
-RESULTADO: NTS 201.041 + Codex STAN 50-1991
-```
+**Estado hoy: 2 de 34 filas resueltas**, y las dos como `SECUNDARIA` (proceden de
+`acido1.pptx` y `acido2.pptx`, no del GSFA).
 
-### Unión Europea (EU) - Prioridad cascada
+---
 
-```
-Búsqueda: "curcumin" en EU
+## 5. El asterisco
 
-1️⃣ EFSA (máxima prioridad EU)
-   └─ E100 (Turmeric, curcumin) ✅
+`SÍ*` y `NO*` no son adorno: significan **«el aditivo sí, pero de tu categoría no tenemos
+confirmación»**. Es el estado más frecuente del sistema, y hay tres motivos para llegar a él:
 
-2️⃣ Codex (fallback internacional)
-   └─ Aprobado en estándares globales ✅
+1. **La categoría se dedujo.** El campo `categoria` de OpenFoodFacts es texto libre con
+   8.322 valores distintos; se mapea por segmentos de la ruta de taxonomía y se acierta en
+   el **61,0 %** de las filas con aditivo (techo real: 79,5 %, porque el 20,5 % no trae
+   categoría). Una categoría deducida **nunca sostiene un `SI` limpio**.
+2. **La restricción no se pudo resolver leyendo.** La cláusula dice «puré» y el producto es
+   «pulpa». Que una pulpa sea un «producto similar» es un juicio de tecnólogo de alimentos;
+   **el sistema no lo firma**: enseña la cláusula entera y condiciona el veredicto.
+3. **La cobertura es por designación colectiva** (`E 200-203`, `Grupo I`) y no por una fila
+   con el número del aditivo.
 
-RESULTADO: E100 EFSA + Codex reference
-```
+---
 
-### Estados Unidos (US) - Prioridad cascada
+## 6. Verificabilidad
 
-```
-Búsqueda: "sodium" en US
+**P-ADI** ([casos_de_uso/validar_analisis.py](casos_de_uso/validar_analisis.py)) valida
+cada respuesta contra los corpus **de hoy**, no contra los de cuando se extrajo:
 
-1️⃣ eCFR (máxima prioridad USA)
-   └─ 21 CFR 101.2 (Labeling) ✅
+| Regla | Qué exige |
+|---|---|
+| P-ADI-1 | Todo veredicto ≠ `SIN_DATO` trae URL y cita literal |
+| P-ADI-2 | Esa cita **aparece en la fuente que dice citar** |
+| P-ADI-3 | Cada aditivo trae los tres mercados, en orden |
+| P-ADI-4 | `SIN_DATO` no arrastra cifras |
+| P-ADI-5 | El límite interno sale de un mercado que autoriza |
 
-2️⃣ Codex (fallback internacional)
-   └─ Estándar global ✅
+**P-ADI distingue tres resultados por celda, no dos:** comprobada, fallida y **no
+verificable**. Las del Codex son no verificables por definición —su fuente es una persona—
+y darlas por buenas sería dar por auditado lo que nadie auditó.
 
-RESULTADO: 21 CFR + Codex reference
+**Sonda de URLs** (`python -m etl.sondar_urls_regulatorias`), también con tres estados:
+viva, muerta y **opaca**. Una URL de la FAO devuelve 403 a una máquina y se abre sin
+problema en un navegador: marcarla «muerta» haría borrar una cita buena.
+
+---
+
+## 7. Lo que esta versión corrige de la v2.0
+
+> La versión anterior de este documento declaraba:
+>
+> | Fuente | Entradas |
+> |---|---|
+> | eCFR | 3500+ |
+> | EFSA | 400+ |
+> | Codex | 200+ |
+> | INACAL | 10+ |
+> | DIGESA | 6+ |
+> | **TOTAL** | **4100+** |
+>
+> **Ninguna de esas cifras era real.** Contadas contra el Postgres el 2026-08-13, las seis
+> tablas del corpus (`ecfr_regulations`, `efsa_regulations`, `codex_standards`,
+> `inacal_nts`, `digesa_directivas`, `regulacion_cita`) estaban **a cero**. Lo único con
+> contenido era el índice RAG `vectores/regulatorio.lance`: 734 pasajes, 702 de eCFR y 32
+> de DIGESA, **sin una sola entrada de Codex ni de la UE**, y sin la parte 172 del CFR —
+> donde vive medio catálogo de aditivos, incluido el EDTA.
+>
+> También declaraba un job semanal `corpus_ingest` con historial de actualizaciones y un
+> apartado de «estadísticas de uso» con búsquedas por fuente. Nada de eso existía.
+
+Las cifras de este documento se pueden reproducir:
+
+```bash
+python -m etl.ingerir_ecfr          # imprime secciones y partes
+python -m etl.ingerir_anexo_ii      # imprime filas, categorías y grupos
+python -m etl.sondar_urls_regulatorias
 ```
 
 ---
 
-## 📊 COBERTURA ACTUAL
+## 8. Lo que este sistema NO hace
 
-### Por tipo de ingrediente
-
-| Tipo | eCFR | EFSA | Codex | INACAL | DIGESA | Total |
-|------|------|------|-------|--------|--------|-------|
-| **Granos** | 150 | 20 | 50 | 5 | 0 | 225 |
-| **Carnes** | 200 | 30 | 40 | 2 | 0 | 272 |
-| **Aditivos** | 1000 | 250 | 100 | 0 | 3 | 1353 |
-| **Lácteos** | 180 | 60 | 30 | 0 | 0 | 270 |
-| **Frutas/Verduras** | 200 | 50 | 80 | 3 | 1 | 334 |
-| **Bebidas** | 250 | 40 | 30 | 0 | 2 | 322 |
-| **Otros** | 520 | 0 | 0 | 0 | 0 | 520 |
-| **TOTAL** | **3500** | **400** | **200** | **10** | **6** | **4116** |
-
-### Cobertura por país
-
-| País | Cobertura | Fuentes |
-|------|-----------|---------|
-| 🇵🇪 **Perú** | ~50% | INACAL, DIGESA, Codex |
-| 🇪🇺 **EU** | ~90% | EFSA, Codex |
-| 🇺🇸 **USA** | ~95% | eCFR, Codex |
-| 🌍 **Global** | ~40% | Codex |
+- **No cubre Perú.** INACAL y DIGESA quedan fuera del alcance de esta función, que son
+  tres mercados de exportación. Los 32 pasajes de DIGESA del índice RAG siguen ahí, sin
+  mecanismo propio.
+- **No está al día con la UE.** El 1129/2011 es la foto de 2011. El E 960 (glucósidos de
+  esteviol), autorizado meses después por el 1131/2011, sale `SIN_DATO`.
+- **No contabiliza el coste por tokens.** El agente llama a litellm directamente; se
+  registra `llamadas_agente`, no el gasto.
+- **No interpreta.** Enseña la norma, la cifra y la cláusula. La decisión de si un producto
+  concreto cae dentro de una categoría es de quien exporta.
+- **No es asesoría regulatoria.** Verificar siempre en la fuente oficial y confirmar la
+  clasificación del producto antes de cada envío.
 
 ---
 
-## ⏰ CADENCIA DE ACTUALIZACIÓN
-
-### Job corpus_ingest
-
-**Frecuencia:** Cada lunes 02:00 UTC  
-**Duración:** 5-10 minutos (< 10 min SLA)  
-**Proceso:**
-1. Descargar eCFR, EFSA, Codex (paralelo)
-2. Detectar cambios (SHA256 hash)
-3. Actualizar si cambió
-4. Registrar en audit_regulaciones
-
-### Historial de actualizaciones
-
-```
-2026-08-10 02:00 UTC - eCFR actualizado (+2 entradas)
-2026-08-10 02:00 UTC - EFSA sin cambios
-2026-08-10 02:00 UTC - Codex sin cambios
-
-2026-08-03 02:00 UTC - Codex actualizado (+1 estándar)
-2026-07-27 02:00 UTC - eCFR actualizado (+5 entradas)
-...
-```
-
----
-
-## ⚠️ LIMITACIONES
-
-### 1. **Corpus no es exhaustivo**
-
-**Importante:** Si un ingrediente NO está en el corpus, **NO significa que es ilegal o no está regulado**.
-
-Simplemente significa:
-- No tenemos acceso a esa fuente específica
-- La fuente no cubre ese ingrediente
-- Nuestro crawler no encontró esa sección
-
-**Acción:** Si no encontrado en corpus:
-1. Búsqueda fallback a openFDA + RAG
-2. Retorna `sin_dato=True` (no inventar)
-3. Usuario debe revisar manualmente
-
-### 2. **eCFR limitado a Títulos 21 y 7**
-
-eCFR es extenso. Cubrimos:
-- Título 21: Food and Drugs (FDA)
-- Título 7: Agriculture
-
-Excluimos: Cosmetics (no food), Pharma (no scope MVP)
-
-### 3. **EFSA limitado a E-numbers**
-
-Cubrimos 300+ E-numbers (aditivos).  
-NO cubrimos: Pesticidas (EFSA tiene otros registros), contaminantes
-
-### 4. **INACAL y DIGESA limitados a Perú**
-
-- INACAL: Productos peruanos (no cubre imports)
-- DIGESA: Directivas sanitarias Perú (no cubre internacional)
-
-### 5. **OCR para DIGESA con ~70% accuracy**
-
-DIGESA publica PDFs. Usamos Tesseract OCR (~70-80% accuracy).  
-Algunos textos pueden tener errores OCR.
-
-### 6. **No cubrimos:**
-
-- ✗ Legislación provincial/municipal
-- ✗ Regulaciones de retailers específicos
-- ✗ Estándares privados (ej: BRC, IFS)
-- ✗ Cambios muy recientes (< 1 semana)
-
----
-
-## 🔍 VERIFICABILIDAD
-
-### Cada cita incluye:
-
-```json
-{
-  "tipo_regulacion": "INACAL",
-  "seccion_exacta": "NTS 201.041",
-  "texto_cita": "Norma Técnica Peruana para Quinua...",
-  "url_oficial": "https://www.inacal.gob.pe/nts/201.041",
-  "fecha_descarga": "2026-08-10",
-  "hash_contenido": "sha256:abc123..."
-}
-```
-
-### Validaciones P08:
-
-Cada cita pasa:
-1. ✅ **URL viva** (GET 200 OK)
-2. ✅ **Sección presente** en página
-3. ✅ **Formato válido** (regex: "21 CFR", "E100", "STAN 50", "NTS 201", "DIGESA")
-4. ✅ **No inventada** (validación de patrones)
-
----
-
-## 📝 CHANGELOG
-
-### v2.0 (2026-08-10) - MVP Launch
-
-**Agregado:**
-- eCFR corpus: 3500+ entradas
-- EFSA corpus: 400+ E-numbers
-- Codex corpus: 200+ estándares
-- INACAL corpus: 10+ normas técnicas
-- DIGESA corpus: 6+ directivas
-- Job corpus_ingest automático (lunes 02:00 UTC)
-- Test P08 (URLs verificables)
-
-**Cambios:**
-- Etapa 5 integrada (búsqueda: corpus → fallback → sin_dato)
-- Auditoría completa (regulacion_busqueda_*, cambios)
-- SLA: < 10 minutos por actualización
-
-**Conocidos:**
-- DIGESA OCR ~70% accuracy (mejora planeada con Cloud Vision)
-- Falsos negativos: algunos ingredientes no en corpus
-
----
-
-## 🚀 ROADMAP FUTURO
-
-### Corto plazo (próximas 2 semanas)
-
-- [ ] Cloud Vision para DIGESA (95% OCR accuracy)
-- [ ] Alertas PagerDuty si no actualiza 2 semanas
-- [ ] Dashboard de auditoría en tiempo real
-
-### Mediano plazo (próximo mes)
-
-- [ ] Agregar regulaciones de cosméticos (EPA, FDA Cosmetics)
-- [ ] RAG improvements (LLM better query understanding)
-- [ ] Multilingual support (español ↔ inglés automático)
-
-### Largo plazo
-
-- [ ] ANMAT (Argentina)
-- [ ] INVIMA (Colombia)
-- [ ] RUSIA (Rusia)
-- [ ] Estándares privados (BRC, IFS, SQF)
-
----
-
-## 📞 SOPORTE Y REPORTES
-
-### Reporte de información faltante
-
-Si crees que falta una regulación importante:
-
-1. **Verifica en fuente oficial** (eCFR, EFSA, Codex, INACAL, DIGESA)
-2. **Abre issue** con:
-   - Ingrediente
-   - Fuente esperada
-   - URL oficial
-   - Párrafo relevante
-
-### Reporte de información incorrecta
-
-Si encuentras un error en el corpus:
-
-1. **Verifica en fuente oficial** (get URL vivo)
-2. **Abre issue** con:
-   - Cita actual vs. correcta
-   - URL con prueba
-   - Screenshot si aplica
-
----
-
-## 🔐 CONFIANZA Y TRANSPARENCIA
-
-### Garantías
-
-✅ Todas las citas tienen URLs verificables  
-✅ Cada cita validada contra página viva (P08)  
-✅ Auditoría completa de cambios  
-✅ Actualización automática semanal  
-✅ No hay citas inventadas (validación regex + manual)  
-
-### No garantías
-
-❌ No cubrimos TODA la regulación global (imposible)  
-❌ No cubrimos cambios < 1 semana (lag de actualización)  
-❌ No interpretamos regulaciones (LLM para eso)  
-❌ No somos abogados (asesoramiento legal fuera de scope)  
-
----
-
-## 📊 ESTADÍSTICAS DE USO
-
-```
-Búsquedas por fuente (ultimas 7 días):
-  eCFR    : 245 búsquedas (60% de total)
-  EFSA    : 80 búsquedas (20%)
-  Codex   : 50 búsquedas (12%)
-  INACAL  : 15 búsquedas (4%)
-  DIGESA  : 10 búsquedas (2%)
-  Fallback: 8 búsquedas (sin resultado en corpus)
-  Sin dato: 2 búsquedas (fallback también vacío)
-
-Búsquedas por país:
-  US      : 200 búsquedas (49%)
-  EU      : 100 búsquedas (24%)
-  PE      : 80 búsquedas (20%)
-  Global  : 30 búsquedas (7%)
-```
-
----
-
-## 🎯 CONCLUSIÓN
-
-El **corpus regulatorio de CITE MVP** es:
-
-- ✅ **Verificable:** Cada cita tiene URL viva
-- ✅ **Auditable:** Historial completo de cambios
-- ✅ **Actualizado:** Job automático cada lunes
-- ✅ **Multisoporte:** eCFR, EFSA, Codex, INACAL, DIGESA
-- ✅ **Transparente:** Documentación clara de limitaciones
-
-Para **producción o uso regulatorio crítico**, recomendamos:
-1. Verificar siempre en fuente oficial
-2. Complementar con búsquedas manuales
-3. Consultar con abogados/expertos regulatorios
-
----
-
-**Documento actualizado:** 2026-08-10  
-**Próxima revisión:** 2026-08-17 (cada semana)  
-**Mantenedor:** CITE MVP Team  
-**Email:** codeplaigamessac@gmail.com
-
+**Mantenedor:** CITE MVP Team · **Email:** codeplaigamessac@gmail.com

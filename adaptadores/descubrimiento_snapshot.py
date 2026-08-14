@@ -324,6 +324,11 @@ class DescubrimientoSnapshot:
                     # escritas como si fueran dato (T1.1 midió 17 en `marca`).
                     marca=valor_o_none(fila.get("marca")),
                     paises_iso=normalizar(limpiar(fila.get("pais"))),
+                    # Sin normalizar a propósito: es la entrada de
+                    # `etl.mapear_categoria`, que necesita la ruta de taxonomía
+                    # entera («Snacks, Sweet snacks, Biscuits») para quedarse
+                    # con el segmento más específico que sepa mapear.
+                    categoria=valor_o_none(fila.get("categoria")),
                     ingredientes=texto_ingredientes,
                     lista_ingredientes=separar(texto_ingredientes),
                     n_ingredientes=contar(texto_ingredientes),
