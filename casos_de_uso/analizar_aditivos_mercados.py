@@ -46,6 +46,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
@@ -59,6 +60,7 @@ from etl.analizar_ingredientes import (
     ADITIVOS,
     _plegar,
     aditivos as leer_aditivos,
+    codigos_aditivos as leer_codigos,
     separar,
 )
 from etl.mapear_categoria import Categoria, mapear
@@ -113,6 +115,16 @@ _NUMERO_E: dict[str, str] = {nombre: numero
                              for nombre, numero in ADITIVOS.values()}
 
 
+def _clave(codigo: str) -> str:
+    """El número E sin subforma, para no evaluar dos veces el mismo aditivo.
+
+    «Lecitina (E322)» leído por nombre y «INS 322(i)» leído por código son el
+    mismo aditivo escrito de dos maneras en la misma etiqueta. Sin esta clave
+    saldrían dos tarjetas idénticas, y se pagarían dos consultas al agente.
+    """
+    return re.sub(r"[^A-Za-z0-9]", "", codigo.split("(")[0]).upper()
+
+
 class Cache(Protocol):
     """La forma de `puertos.cache_llm.CacheLLM`, que es la que ya existe."""
 
@@ -149,11 +161,12 @@ class AnalizadorAditivos:
         Un producto sin aditivos reconocidos devuelve `aditivos=[]`, que es el
         **49,8 % del snapshot** y no es un error: es una etiqueta limpia.
         """
-        etiquetas = leer_aditivos(ingredientes)
         cat = mapear(categoria)
+        aditivos = self._leer_etiqueta(ingredientes)
 
         evaluados = await asyncio.gather(*(
-            self._evaluar_aditivo(e, cat) for e in etiquetas))
+            self._evaluar_aditivo(nombre, numero_e, cat)
+            for nombre, numero_e in aditivos))
 
         return AnalisisIngredientes(
             producto_id=producto_id,
@@ -161,8 +174,63 @@ class AnalizadorAditivos:
             matriz=categoria,
             matriz_ue=cat.codigo_ue,
             aditivos=list(evaluados),
-            no_reconocidos=self._no_reconocidos(ingredientes, etiquetas),
+            no_reconocidos=self._no_reconocidos(
+                ingredientes, [n for n, _ in aditivos]),
         )
+
+    def _leer_etiqueta(self, ingredientes: str | None) -> list[tuple[str, str | None]]:
+        """Los aditivos de la etiqueta como `(nombre, número E)`, sin repetir.
+
+        Se lee de **las dos formas**, porque las etiquetas no escriben igual
+        según de dónde vengan:
+
+        - **Por nombre** — «potassium sorbate». Es como escribe el snapshot de
+          OpenFoodFacts, que es anglosajón.
+        - **Por código** — «Conservante sin 202». Es como escriben las
+          etiquetas peruanas, y medido el 2026-08-14 sobre la góndola de las
+          cadenas de Perú: **21 de 30 fichas con ingredientes usan códigos INS**
+          y ninguna salía con el lector de nombres.
+
+        El nombre de un aditivo que solo viene por código se resuelve contra la
+        **Parte B del Anexo II** (321 pares número→nombre), que ya está
+        ingerida. No se escribe una tabla nueva a mano: la que hace falta ya
+        está, y sale del documento oficial.
+        """
+        por_nombre: list[tuple[str, str | None]] = []
+        vistos: set[str] = set()
+
+        for etiqueta in leer_aditivos(ingredientes):
+            nombre = etiqueta.rsplit(" (", 1)[0]
+            numero = _NUMERO_E.get(nombre)
+            por_nombre.append((nombre, numero))
+            if numero:
+                vistos.add(_clave(numero))
+
+        for codigo in leer_codigos(ingredientes):
+            if _clave(codigo) in vistos:
+                # Ya venía por nombre. Se queda esa lectura, que trae el nombre
+                # en castellano y la subforma no aporta nada al veredicto.
+                continue
+            vistos.add(_clave(codigo))
+            por_nombre.append((self._nombre_de(codigo), codigo))
+
+        return por_nombre
+
+    def _nombre_de(self, codigo: str) -> str:
+        """El nombre oficial del aditivo, o el propio código si no se sabe.
+
+        Devolver el código como nombre no es rendirse: es lo que dice la
+        etiqueta. Enseñar «INS 471» es correcto y comprobable; inventarle un
+        nombre bonito que la norma no usa, no.
+        """
+        try:
+            from adaptadores.corpus_anexo_ii import corpus as corpus_ue
+            nombre = corpus_ue().nombre_de(codigo)
+            if nombre:
+                return nombre
+        except Exception as e:
+            logger.debug("Sin nombre para %s: %s", codigo, e)
+        return codigo.replace("E", "INS ", 1)
 
     @staticmethod
     def _no_reconocidos(ingredientes: str | None,
@@ -187,11 +255,8 @@ class AnalizadorAditivos:
 
     # -- un aditivo, los tres mercados --------------------------------------
 
-    async def _evaluar_aditivo(self, etiqueta: str,
+    async def _evaluar_aditivo(self, nombre: str, numero_e: str | None,
                                cat: Categoria) -> AditivoEvaluado:
-        nombre = etiqueta.rsplit(" (", 1)[0]
-        numero_e = _NUMERO_E.get(nombre)
-
         # Los tres a la vez. Dos son síncronos e instantáneos, así que el coste
         # real es el del agente; lanzarlos juntos evita encadenar esperas.
         us, ue, codex = await asyncio.gather(

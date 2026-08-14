@@ -140,6 +140,50 @@ _DECLARACION = re.compile(
 
 _ABREN, _CIERRAN = "([{", ")]}"
 
+# Aditivos declarados por CODIGO en vez de por nombre.
+#
+# La tabla ADITIVOS de arriba lee nombres, que es como escriben las etiquetas
+# anglosajonas del snapshot. **Las peruanas no.** Medido el 2026-08-14 sobre las
+# ofertas de gondola de las cadenas peruanas: de 30 fichas con lista de
+# ingredientes, **21 declaran sus aditivos por codigo INS** y el lector por
+# nombre no encontraba ni uno.
+#
+#     "Leudante sin 500(ii), Regulador de la acidez sin 341(i), sin 450(i)..."
+#     -> aditivos() devolvia []
+#
+# El codigo INS del Codex y el numero E de la UE son **la misma numeracion**:
+# INS 500 es E500. Lo que cambia es el prefijo y que la UE no autoriza todo lo
+# que el Codex lista. Aqui solo se lee el numero; que ese aditivo este o no
+# autorizado lo responden los tres evaluadores, que es su trabajo.
+#
+# `SIN` es como se escribe INS en castellano en muchas etiquetas peruanas
+# ("Sistema Internacional de Numeracion"). Se acepta, y por eso el patron exige
+# un numero detras: sin esa condicion, la palabra "sin" de "sin azucar" casaria.
+_CODIGO_ADITIVO = re.compile(
+    r"\b(?:INS|SIN|E)\s*\.?\s*(\d{3})\s*(?:\(\s*([a-z]{1,4})\s*\)|([a-z]{1,4})\b)?",
+    re.IGNORECASE)
+
+# Numeros que NO son aditivos aunque aparezcan tras un prefijo valido. Se dejan
+# fuera porque el rango de aditivos del Codex empieza en 100.
+_RANGO_VALIDO = range(100, 1600)
+
+# Los dos sufijos de un codigo de aditivo NO significan lo mismo, y tratarlos
+# igual rompe la busqueda en el corpus:
+#
+#   LETRA   E150a, E150b, E150c, E150d son **cuatro aditivos distintos** (cuatro
+#           caramelos, obtenidos por procesos distintos). E553a y E553b, igual.
+#           La letra es parte del identificador y se queda.
+#
+#   ROMANO  E500(i) es carbonato de sodio y E500(ii) bicarbonato: son
+#           especificaciones del MISMO aditivo, y el Anexo II las agrupa bajo
+#           «E 500». El corpus normaliza quitandolas, asi que emitirlas pegadas
+#           —«E500i»— produce una clave que no casa con nada.
+#
+# La etiqueta escribe las dos formas sin parentesis ("INS 322i", "INS 150d") y
+# hay que decidir cual es cual. No hay ambiguedad real: los romanos de aditivos
+# solo usan i/v/x y las variantes por letra solo a-h.
+_ROMANOS = re.compile(r"^[ivx]+$")
+
 
 def _plegar(texto: str) -> str:
     """Minúsculas y sin tildes, para que 'Ácido Cítrico' case con la tabla."""
@@ -204,6 +248,53 @@ def aditivos(texto: str | None) -> list[str]:
         if re.search(rf"\b{re.escape(patron)}", plegado):
             encontrados[nombre] = numero
     return sorted(f"{n} ({e})" for n, e in encontrados.items())
+
+
+def codigos_aditivos(texto: str | None) -> list[str]:
+    """Aditivos declarados por **código**, normalizados a número E: `['E500', ...]`.
+
+    Complementa a `aditivos()`, que lee nombres. Las dos hacen falta porque las
+    etiquetas no escriben igual en todas partes: el snapshot de OpenFoodFacts es
+    anglosajón y pone «potassium sorbate»; una galleta peruana pone
+    «Conservante sin 202». Leer solo una de las dos formas deja fuera media
+    góndola.
+
+    Las letras se conservan y los romanos van entre paréntesis: ver `_ROMANOS`
+    para por qué esa distinción no es cosmética. `INS 322i`, `INS 322(i)` y
+    `E 322 (i)` salen los tres como `E322(i)`.
+
+    **No devuelve nombres**: este módulo es puro y no consulta corpus. Quien
+    quiera el nombre del E500 lo resuelve contra la Parte B del Anexo II, que
+    para eso trae 321 pares número→nombre.
+    """
+    if not texto:
+        return []
+
+    encontrados: list[str] = []
+    for numero, entre_parentesis, pegado in _CODIGO_ADITIVO.findall(texto):
+        if int(numero) not in _RANGO_VALIDO:
+            continue
+
+        sufijo = (entre_parentesis or pegado or "").lower()
+        if not sufijo:
+            codigo = f"E{numero}"
+        elif _ROMANOS.match(sufijo):
+            codigo = f"E{numero}({sufijo})"
+        elif sufijo in "abcdefgh" and len(sufijo) == 1:
+            # Las variantes por letra del Codex no pasan de la 'h' (E150a-d,
+            # E160a-f, E161a-g, E553a-b, E960a-d). Aceptar cualquier letra
+            # convertía «E 330 y E 202» en «E330y»: la conjunción castellana
+            # se pegaba al código y producía un aditivo que no existe.
+            codigo = f"E{numero}{sufijo}"
+        else:
+            # Ni romano ni variante: es la palabra siguiente pegada al número
+            # («500 mg», «160 gramos», «330 y»). Se toma el número a secas.
+            codigo = f"E{numero}"
+
+        if codigo not in encontrados:
+            encontrados.append(codigo)
+
+    return sorted(encontrados)
 
 
 def alergenos_declarados(texto: str | None) -> list[str]:

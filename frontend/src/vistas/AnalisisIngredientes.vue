@@ -236,9 +236,16 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api, BASE } from '../api.js'
 
+/**
+ * La misma pantalla sirve a las dos procedencias, y solo cambia de dónde saca
+ * los datos: un producto del snapshot (`productoId`) o una oferta de góndola
+ * (`ofertaUrl`). Todo lo que se pinta —las tres tarjetas, el asterisco, las
+ * conclusiones— es idéntico, porque la pregunta regulatoria es la misma.
+ */
 const props = defineProps({
   ejecucionId: { type: String, required: true },
-  productoId: { type: String, required: true },
+  productoId: { type: String, default: '' },
+  ofertaUrl: { type: String, default: '' },
 })
 
 // El asterisco de los PPTX, tal cual. `SÍ*` no es un `SÍ` con adorno: es un
@@ -303,10 +310,12 @@ function describir(e) {
   }
   if (status === 404) {
     return {
-      titulo: 'Ese producto no está en este informe',
-      explicacion: 'El informe no existe, no es tuyo, o el producto no forma '
-        + 'parte de su mapa comercial.',
-      quehacer: 'Vuelve a la consulta y abre el análisis desde la fila del producto.',
+      titulo: props.ofertaUrl
+        ? 'Esa oferta no está en este informe'
+        : 'Ese producto no está en este informe',
+      explicacion: 'El informe no existe, no es tuyo, o la fila no forma parte '
+        + 'de su mapa comercial.',
+      quehacer: 'Vuelve a la consulta y abre el análisis desde la fila.',
       tecnico: detalle,
     }
   }
@@ -375,7 +384,9 @@ const cargar = async () => {
   cargando.value = true
   error.value = null
   try {
-    analisis.value = await api.analisisAditivos(props.ejecucionId, props.productoId)
+    analisis.value = props.ofertaUrl
+      ? await api.analisisOferta(props.ejecucionId, props.ofertaUrl)
+      : await api.analisisAditivos(props.ejecucionId, props.productoId)
   } catch (e) {
     // Al log del navegador va el error entero: la pantalla enseña lo legible,
     // pero quien tenga la consola abierta merece la traza completa.

@@ -220,6 +220,7 @@
       <TablaGondola
         titulo="Precio de góndola · Perú"
         :ofertas="ofertasPeru"
+        :ejecucion-id="result.ejecucion_id || ''"
         etiqueta-tiendas="Cadenas consultadas"
         subtitulo="Leído del catálogo de cada cadena en el momento de la consulta. Sin revisión humana: es lo que la tienda publica."
       />
@@ -227,6 +228,7 @@
       <TablaGondola
         titulo="Precio de góndola · Alemania"
         :ofertas="ofertasAlemania"
+        :ejecucion-id="result.ejecucion_id || ''"
         etiqueta-tiendas="Tiendas encontradas"
         subtitulo="Ninguna cadena alemana publica su precio de forma abierta, así que esto se ha buscado y leído ficha a ficha. Sin revisión humana, y la cobertura es irregular: que un producto no salga aquí no significa que no se venda en Alemania."
       />
@@ -234,6 +236,7 @@
       <TablaGondola
         titulo="Precio de góndola · Suiza"
         :ofertas="ofertasSuiza"
+        :ejecucion-id="result.ejecucion_id || ''"
         etiqueta-tiendas="Tiendas encontradas"
         subtitulo="Buscado y leído ficha a ficha, igual que Alemania. Migros y Coop bloquean el rastreo y no aparecen aquí, así que esto son tiendas suizas menores: es una referencia de precio, no una muestra del mercado. Se busca en alemán, de modo que las fichas en francés e italiano quedan fuera."
       />

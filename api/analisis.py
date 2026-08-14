@@ -130,6 +130,57 @@ def _mapa_del_run(ejecucion_id: str, usuario_id: str | None) -> dict | None:
     return json.loads(fila[0]) if fila and fila[0] else None
 
 
+#: Las tres listas de góndola del mapa comercial.
+LISTAS_GONDOLA = ("ofertas_peru", "ofertas_alemania", "ofertas_suiza")
+
+
+@router.get("/{ejecucion_id}/oferta")
+async def analizar_oferta(ejecucion_id: str, url: str,
+                          current_user: dict = Depends(get_current_user)):
+    """Lo mismo, pero para una fila de las tablas de góndola.
+
+    ## Por qué hace falta un endpoint aparte
+
+    Las ofertas **no están en `mapa.productos`**: viven en `ofertas_peru`,
+    `ofertas_alemania` y `ofertas_suiza`, y responden otra pregunta. Un producto
+    de OpenFoodFacts dice *qué existe y con qué composición*; una oferta dice *a
+    cuánto se vende hoy en esta tienda*. Son dos modelos distintos a propósito
+    (ver `dominio/oferta_comercial.py`), así que buscarlas por `producto_id`
+    no funcionaría: no tienen.
+
+    ## Se identifica por su URL de origen, y se busca en el servidor
+
+    `fuente_url` es lo único que distingue una oferta de otra —la misma tienda
+    puede tener dos presentaciones del mismo producto— y viene en la fila que
+    la SPA ya tiene delante. **Pero los ingredientes NO los manda el cliente:**
+    se releen del informe, igual que en el endpoint de productos. Si el cliente
+    mandara la lista, decidiría el resultado.
+
+    Va declarado **antes** que la ruta de producto a propósito: aquella captura
+    `{producto_id:path}`, que casaría también con «oferta». Starlette resuelve
+    por orden de registro, y hay un test que lo fija.
+    """
+    mapa = _mapa_del_run(ejecucion_id, usuario_actual_id(current_user))
+    if not mapa:
+        raise HTTPException(status_code=404, detail="Informe no encontrado")
+
+    oferta = next((o for lista in LISTAS_GONDOLA
+                   for o in (mapa.get(lista) or [])
+                   if o.get("fuente_url") == url), None)
+    if oferta is None:
+        raise HTTPException(
+            status_code=404, detail="Esa oferta no está en este informe")
+
+    return await _analizar_y_responder(
+        ejecucion_id=ejecucion_id,
+        identificador=url,
+        nombre=oferta.get("nombre") or "",
+        ingredientes=oferta.get("ingredientes"),
+        categoria=oferta.get("categoria"),
+        usuario=current_user,
+    )
+
+
 @router.get("/{ejecucion_id}/{producto_id:path}")
 async def analizar_producto(ejecucion_id: str, producto_id: str,
                             current_user: dict = Depends(get_current_user)):
@@ -149,17 +200,37 @@ async def analizar_producto(ejecucion_id: str, producto_id: str,
         raise HTTPException(
             status_code=404, detail="El producto no está en este informe")
 
+    return await _analizar_y_responder(
+        ejecucion_id=ejecucion_id,
+        identificador=producto_id,
+        nombre=producto.get("nombre") or "",
+        ingredientes=producto.get("ingredientes"),
+        categoria=producto.get("categoria"),
+        usuario=current_user,
+    )
+
+
+async def _analizar_y_responder(*, ejecucion_id: str, identificador: str,
+                                nombre: str, ingredientes: str | None,
+                                categoria: str | None, usuario: dict) -> dict:
+    """El cuerpo común de los dos endpoints.
+
+    Lo único que cambia entre analizar un producto del snapshot y analizar una
+    oferta de góndola es **de dónde se sacan el nombre, los ingredientes y la
+    categoría**. Todo lo demás —análisis, P-ADI, resumen, auditoría— es idéntico,
+    y duplicarlo garantizaría que las dos rutas se separaran con el tiempo.
+    """
     analizador = _analizador()
     try:
         analisis = await analizador.analizar(
-            producto_id=producto_id,
-            nombre=producto.get("nombre") or "",
-            ingredientes=producto.get("ingredientes"),
-            categoria=producto.get("categoria"),
+            producto_id=identificador,
+            nombre=nombre,
+            ingredientes=ingredientes,
+            categoria=categoria,
         )
     except Exception as e:
         logger.exception("Análisis de aditivos falló para %s/%s",
-                         ejecucion_id, producto_id)
+                         ejecucion_id, identificador)
         # El detalle lleva el tipo de excepción, no solo «no se pudo».
         #
         # La primera versión devolvía un texto genérico, y la pantalla lo
@@ -185,7 +256,7 @@ async def analizar_producto(ejecucion_id: str, producto_id: str,
     resumen["llamadas_agente"] = analizador.llamadas_agente
     respuesta["resumen"] = resumen
 
-    _auditar(ejecucion_id, producto_id, current_user, resumen)
+    _auditar(ejecucion_id, identificador, usuario, resumen)
     return respuesta
 
 

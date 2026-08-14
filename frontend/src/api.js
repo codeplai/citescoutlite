@@ -152,6 +152,18 @@ export const api = {
     pedir(`/api/analisis-aditivos/${encodeURIComponent(ejecucionId)}`
           + `/${encodeURIComponent(productoId)}`),
 
+  /**
+   * Lo mismo para una fila de las tablas de góndola.
+   *
+   * Va por endpoint aparte porque las ofertas no están en `mapa.productos`:
+   * viven en sus tres listas y se identifican por su URL de origen, no por un
+   * `producto_id` que no tienen. Los ingredientes tampoco se mandan: el backend
+   * los relee del informe.
+   */
+  analisisOferta: (ejecucionId, fuenteUrl) =>
+    pedir(`/api/analisis-aditivos/${encodeURIComponent(ejecucionId)}/oferta`
+          + `?url=${encodeURIComponent(fuenteUrl)}`),
+
   // S6.7 - Alertas de retiro (openFDA + RASFF).
   alertasActivas: ({ limite = 50, dias = 90, severidad = '' } = {}) => {
     const params = new URLSearchParams({ limite, dias })

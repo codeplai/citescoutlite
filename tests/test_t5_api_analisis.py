@@ -26,6 +26,23 @@ from api.auth import get_current_user
 
 MAPA = {
     "insumo": "fresa",
+    "ofertas_peru": [
+        {"fuente_url": "https://wong.pe/p/galletas-quinua", "tienda": "Wong",
+         "nombre": "Galletas de Quinua Qfoods 272g",
+         "categoria": "Snacks, Sweet snacks, Biscuits",
+         # Etiqueta peruana real: los aditivos van por código INS, no por nombre.
+         "ingredientes": "Harina de quinoa, Azucar, Leudante sin 500(ii), "
+                         "Estabilizante sin 415, Antioxidante sin 321"},
+        {"fuente_url": "https://metro.pe/p/agua", "tienda": "Metro",
+         "nombre": "Agua mineral", "categoria": "Beverages, Waters",
+         "ingredientes": None},
+    ],
+    "ofertas_alemania": [
+        {"fuente_url": "https://rewe.de/p/quinoa", "tienda": "REWE",
+         "nombre": "Quinoa Bio", "categoria": None,
+         "ingredientes": "Quinoa, Zitronensäure"},
+    ],
+    "ofertas_suiza": [],
     "productos": [
         {"producto_id": "OFF:1", "nombre": "Mermelada de fresa",
          "categoria": "Groceries, Jams",
@@ -161,6 +178,63 @@ class TestResumen:
         """
         cuerpo = cliente.get("/api/analisis-aditivos/run-1/OFF:1").json()
         assert "llamadas_agente" in cuerpo["resumen"]
+
+
+class TestOfertasDeGondola:
+    """El mismo análisis, partiendo de la lista de ingredientes de una oferta."""
+
+    def test_una_oferta_peruana_se_analiza(self, cliente):
+        r = cliente.get("/api/analisis-aditivos/run-1/oferta",
+                        params={"url": "https://wong.pe/p/galletas-quinua"})
+        assert r.status_code == 200
+        assert r.json()["producto_nombre"] == "Galletas de Quinua Qfoods 272g"
+
+    def test_los_codigos_ins_de_la_etiqueta_peruana_se_leen(self, cliente):
+        """El hallazgo que hizo falta para que esta columna sirva de algo.
+
+        21 de 30 fichas de góndola peruana declaran sus aditivos por código INS
+        y no por nombre. Con el lector de nombres a secas, este producto salía
+        con cero aditivos y el botón abría una pestaña vacía.
+        """
+        cuerpo = cliente.get("/api/analisis-aditivos/run-1/oferta",
+                             params={"url": "https://wong.pe/p/galletas-quinua"}).json()
+        numeros = {a["e_number"] for a in cuerpo["aditivos"]}
+        assert {"E500(ii)", "E415", "E321"} <= numeros
+
+    def test_la_oferta_alemana_tambien(self, cliente):
+        r = cliente.get("/api/analisis-aditivos/run-1/oferta",
+                        params={"url": "https://rewe.de/p/quinoa"})
+        assert r.status_code == 200
+
+    def test_una_oferta_sin_ingredientes_es_200_con_lista_vacia(self, cliente):
+        r = cliente.get("/api/analisis-aditivos/run-1/oferta",
+                        params={"url": "https://metro.pe/p/agua"})
+        assert r.status_code == 200
+        assert r.json()["aditivos"] == []
+
+    def test_una_url_que_no_esta_en_el_informe_es_404(self, cliente):
+        r = cliente.get("/api/analisis-aditivos/run-1/oferta",
+                        params={"url": "https://otra-tienda.com/p/x"})
+        assert r.status_code == 404
+
+    def test_la_ruta_oferta_no_se_la_traga_la_de_producto(self, cliente):
+        """`/{producto_id:path}` casa con «oferta»; gana la que se declara antes.
+
+        Sin este orden, pedir una oferta buscaría un producto llamado «oferta»
+        en el mapa y devolvería 404 siempre. Es un fallo silencioso: la ruta
+        existe, responde, y nunca encuentra nada.
+        """
+        r = cliente.get("/api/analisis-aditivos/run-1/oferta",
+                        params={"url": "https://wong.pe/p/galletas-quinua"})
+        assert r.status_code == 200, "la ruta de producto capturó /oferta"
+
+    def test_los_ingredientes_de_la_oferta_salen_del_informe(self, cliente):
+        """Tampoco aquí manda el cliente lo que se analiza."""
+        cliente.get("/api/analisis-aditivos/run-1/oferta",
+                    params={"url": "https://wong.pe/p/galletas-quinua",
+                            "ingredientes": "cianuro"})
+        visto = cliente.analizador.visto[-1]
+        assert visto["ingredientes"].startswith("Harina de quinoa")
 
 
 class TestFiltroPorDueno:

@@ -19,6 +19,7 @@ from casos_de_uso.analizar_aditivos_mercados import (
     AnalizadorAditivos,
 )
 from dominio.analisis_aditivos import MERCADOS, EvaluacionMercado
+from etl.analizar_ingredientes import codigos_aditivos
 from etl.mapear_categoria import MAPA, mapear, normalizar, segmentos
 
 URL = "https://www.ecfr.gov/current/title-21"
@@ -77,6 +78,81 @@ def _analizador(**cambios):
                 evaluador_ue=EvaluadorDoble("EU"),
                 evaluador_codex=EvaluadorDoble("CODEX"))
     return AnalizadorAditivos(**{**base, **cambios})
+
+
+class TestCodigosINS:
+    """Las etiquetas peruanas declaran por código, no por nombre.
+
+    Medido el 2026-08-14 sobre la góndola de las cadenas de Perú: **21 de 30
+    fichas con lista de ingredientes usan códigos INS**, y el lector de nombres
+    no encontraba ni uno. Sin esto, la columna de análisis de esas tablas sería
+    un botón que abre una pestaña vacía.
+    """
+
+    def test_lee_la_forma_peruana_con_parentesis(self):
+        assert codigos_aditivos("Leudante sin 500(ii), acidez sin 341(i)") == \
+               ["E341(i)", "E500(ii)"]
+
+    def test_lee_la_forma_peruana_sin_parentesis(self):
+        """«INS 322i» y «INS 322(i)» son lo mismo y tienen que salir igual."""
+        assert codigos_aditivos("INS 322i") == codigos_aditivos("INS 322(i)")
+
+    def test_acepta_ins_sin_y_e(self):
+        for prefijo in ("INS", "SIN", "E"):
+            assert codigos_aditivos(f"conservante {prefijo} 202") == ["E202"]
+
+    def test_los_romanos_van_entre_parentesis_y_las_letras_pegadas(self):
+        """No es cosmético: el corpus agrupa los romanos y separa las letras.
+
+        E500(i) y E500(ii) son especificaciones del mismo aditivo y el Anexo II
+        las junta bajo «E 500»; E150a-d son cuatro caramelos distintos. Emitir
+        «E500i» produciría una clave que no casa con nada.
+        """
+        assert codigos_aditivos("INS 500i") == ["E500(i)"]
+        assert codigos_aditivos("INS 150d") == ["E150d"]
+
+    def test_la_conjuncion_castellana_no_se_pega_al_codigo(self):
+        """«E 330 y E 202» daba «E330y», un aditivo que no existe."""
+        assert codigos_aditivos("Contiene E 330 y E 202") == ["E202", "E330"]
+
+    def test_sin_seguido_de_palabra_no_es_un_aditivo(self):
+        """«sin azúcares añadidos» y «sin gluten» aparecen en media góndola."""
+        assert codigos_aditivos("sin azucares anadidos, sin gluten") == []
+
+    def test_un_numero_con_unidad_no_es_un_aditivo(self):
+        assert codigos_aditivos("500 mg de sodio por porcion") == []
+
+    def test_los_numeros_fuera_del_rango_del_codex_se_ignoran(self):
+        """Los aditivos del Codex empiezan en 100."""
+        assert codigos_aditivos("INS 050") == []
+
+    def test_sin_texto_no_hay_codigos(self):
+        assert codigos_aditivos(None) == [] and codigos_aditivos("") == []
+
+    def test_no_repite(self):
+        assert codigos_aditivos("sin 500(ii) ... otra vez sin 500(ii)") == ["E500(ii)"]
+
+
+class TestLecturaMixta:
+    """Nombre y código son dos formas de escribir lo mismo, y pueden convivir."""
+
+    @pytest.mark.asyncio
+    async def test_el_mismo_aditivo_por_nombre_y_por_codigo_no_se_duplica(self):
+        """«Lecitina de soya (INS 322)» son dos lecturas de un solo aditivo.
+
+        Sin deduplicar saldrían dos tarjetas idénticas y se pagarían dos
+        consultas al agente por la misma pregunta.
+        """
+        r = await _analizador().analizar(
+            "OFF:1", "X", "Lecitina de soya (INS 322), azucar")
+        assert len(r.aditivos) == 1
+
+    @pytest.mark.asyncio
+    async def test_se_leen_los_dos_a_la_vez(self):
+        r = await _analizador().analizar(
+            "OFF:1", "X", "pectina, Antioxidante sin 321, acido citrico")
+        numeros = {a.e_number for a in r.aditivos}
+        assert numeros == {"E440", "E321", "E330"}
 
 
 # --- T4.4: el mapeo de categoría -----------------------------------------

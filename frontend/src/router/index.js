@@ -94,6 +94,21 @@ export const rutas = [
     component: () => import('../vistas/AnalisisIngredientes.vue'),
     props: true,
   },
+  {
+    // T8. La misma pantalla para una fila de las tablas de góndola.
+    //
+    // Ruta aparte y no un parámetro más porque la oferta se identifica por su
+    // **URL de origen**, y una URL dentro de un segmento de ruta obliga a
+    // codificar barras y dos puntos: acaba siendo ilegible y frágil. Como query
+    // sale limpia y se puede pegar en un correo igual de bien.
+    path: '/analisis-oferta/:ejecucionId',
+    name: 'analisis-oferta',
+    component: () => import('../vistas/AnalisisIngredientes.vue'),
+    props: (ruta) => ({
+      ejecucionId: ruta.params.ejecucionId,
+      ofertaUrl: ruta.query.url || '',
+    }),
+  },
   { path: '/', redirect: { name: 'consulta' } },
   { path: '/:resto(.*)*', redirect: { name: 'consulta' } },
 ]

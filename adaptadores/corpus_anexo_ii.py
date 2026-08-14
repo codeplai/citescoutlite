@@ -98,6 +98,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 import unicodedata
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -251,6 +252,7 @@ class CorpusAnexoII:
         self.celex: str = datos["celex"]
         self.ingerido_en: str = datos["ingerido_en"]
         self.categorias: dict[str, str] = datos["categorias"]
+        self.nombres: dict[str, str] = datos.get("nombres", {})
         self._por_e: dict[str, list[UsoUE]] = {
             e: [UsoUE(**u) for u in usos] for e, usos in datos["usos"].items()}
         logger.info("Anexo II (%s): %d aditivos, %d categorías",
@@ -285,6 +287,24 @@ class CorpusAnexoII:
         clave = categoria.rstrip(".")
         return [u for u in todos if u.categoria.rstrip(".").startswith(clave)]
 
+    def nombre_de(self, e_number: str) -> str | None:
+        """El nombre oficial del aditivo según la Parte B, o `None`.
+
+        Sirve para titular la tarjeta de un aditivo que la etiqueta solo
+        declara por código. `None` cuando el código no está en el Anexo II —lo
+        que pasa con los que la UE no ha autorizado nunca—, y entonces quien
+        llama enseña el código, que es lo que dice la etiqueta.
+        """
+        clave = _normaliza_e(e_number)
+        if clave in self.nombres:
+            return self.nombres[clave]
+        # Variantes por letra: la etiqueta pone «E150» y el Anexo II desglosa
+        # E150a-d. Se devuelve la primera, que da el nombre de familia.
+        for variante in sorted(self.nombres):
+            if re.fullmatch(rf"{re.escape(clave)}[a-z]", variante):
+                return self.nombres[variante]
+        return None
+
     def aditivos(self) -> list[str]:
         return sorted(self._por_e)
 
@@ -300,26 +320,80 @@ def _normaliza_e(e: str) -> str:
 
 # -- Ingesta ---------------------------------------------------------------
 
+# Tamaño mínimo creíble del documento. El real son 3,4 MB; cualquier cosa por
+# debajo de esto es una página de error o de espera, no el Anexo II.
+TAMANO_MINIMO = 1_000_000
+
+# Cuántas veces se reintenta ante un 202, y cuánto se espera.
+INTENTOS = 4
+ESPERA_ENTRE_INTENTOS = 15.0
+
+
 def descargar(destino: Path | str = RUTA_HTML, forzar: bool = False) -> Path:
-    """Trae el Reglamento 1129/2011 de EUR-Lex (3,4 MB)."""
+    """Trae el Reglamento 1129/2011 de EUR-Lex (3,4 MB).
+
+    ## Por qué esto valida el cuerpo antes de tocar el fichero de destino
+
+    **EUR-Lex responde 202 cuando aún está generando el documento**, y el cuerpo
+    llega vacío. `raise_for_status()` no salta —202 es 2xx— así que la primera
+    versión escribía cero bytes y hacía `replace()` sobre el corpus bueno.
+    Medido en carne propia el 2026-08-14: un `--forzar` dejó
+    `anexo_ii.html` en 0 bytes y el parseo murió con «Document is empty».
+
+    Un descargador que puede destruir el corpus que ya funcionaba es peor que no
+    tener descargador: el fallo aparece cuando alguien quiere *actualizar*, que
+    es justo cuando menos se espera perder lo que había.
+
+    Ahora se reintenta ante el 202 y **no se reemplaza el destino hasta haber
+    comprobado que lo descargado tiene tamaño creíble y contiene la Parte E**.
+    """
     destino = Path(destino)
-    if destino.exists() and not forzar:
+    if destino.exists() and destino.stat().st_size > TAMANO_MINIMO and not forzar:
         logger.info("Anexo II ya descargado en %s (%.1f MB)",
                     destino, destino.stat().st_size / 1e6)
         return destino
 
     destino.parent.mkdir(parents=True, exist_ok=True)
     parcial = destino.with_suffix(".parcial")
-    logger.info("Descargando %s ...", URL_FUENTE)
-    with httpx.stream("GET", URL_FUENTE, headers=CABECERAS,
-                      timeout=TIEMPO_ESPERA, follow_redirects=True) as r:
-        r.raise_for_status()
-        with parcial.open("wb") as f:
-            for trozo in r.iter_bytes(1 << 20):
-                f.write(trozo)
-    parcial.replace(destino)
-    logger.info("Anexo II descargado: %.1f MB", destino.stat().st_size / 1e6)
-    return destino
+
+    for intento in range(1, INTENTOS + 1):
+        logger.info("Descargando %s (intento %d/%d)...",
+                    URL_FUENTE, intento, INTENTOS)
+        with httpx.stream("GET", URL_FUENTE, headers=CABECERAS,
+                          timeout=TIEMPO_ESPERA, follow_redirects=True) as r:
+            r.raise_for_status()
+            codigo = r.status_code
+            with parcial.open("wb") as f:
+                for trozo in r.iter_bytes(1 << 20):
+                    f.write(trozo)
+
+        tamano = parcial.stat().st_size
+        if codigo == 202 or tamano < TAMANO_MINIMO:
+            logger.warning(
+                "EUR-Lex devolvió HTTP %d con %d bytes: aún está generando el "
+                "documento. Se reintenta en %.0f s.", codigo, tamano,
+                ESPERA_ENTRE_INTENTOS)
+            parcial.unlink(missing_ok=True)
+            if intento < INTENTOS:
+                time.sleep(ESPERA_ENTRE_INTENTOS)
+            continue
+
+        # Última comprobación antes de pisar lo que había: que sea el documento
+        # y no una página de error de 2 MB.
+        cabeza = parcial.read_text(encoding="utf-8", errors="replace")[:400_000]
+        if "PARTE E" not in cabeza and "PART E" not in cabeza:
+            parcial.unlink(missing_ok=True)
+            raise RuntimeError(
+                f"Lo descargado ({tamano} bytes) no contiene la Parte E del "
+                f"Anexo II. No se reemplaza {destino}.")
+
+        parcial.replace(destino)
+        logger.info("Anexo II descargado: %.1f MB", tamano / 1e6)
+        return destino
+
+    raise RuntimeError(
+        f"EUR-Lex no entregó el documento tras {INTENTOS} intentos. "
+        f"{destino} se ha dejado como estaba.")
 
 
 def _partes(html: str) -> dict[str, str]:
@@ -490,6 +564,15 @@ def parsear(html: str) -> dict:
         "ingerido_en": __import__("datetime").date.today().isoformat(),
         "categorias": categorias,
         "grupos": grupos,
+        # La Parte B entera, 321 pares número→nombre oficial.
+        #
+        # Se parseaba ya —hace falta para derivar los rangos— y se tiraba al
+        # terminar. Se guarda porque es lo único que permite ponerle nombre a un
+        # aditivo que la etiqueta declara **solo por código**: una galleta
+        # peruana pone «Leudante sin 500(ii)» y sin esto la tarjeta se titularía
+        # «E500». El nombre sale del documento oficial, no de una tabla escrita
+        # a mano.
+        "nombres": parte_b,
         "usos": usos,
         "resumen": {
             "filas_parte_e": filas_uso,

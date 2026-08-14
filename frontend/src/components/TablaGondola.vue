@@ -54,6 +54,7 @@
             <th>Producto</th><th>Tienda</th><th class="num">Precio</th>
             <th class="num">Stock</th><th>EAN</th>
             <th>Ingredientes</th>
+            <th>Análisis</th>
             <th>Especificaciones nutricionales</th>
           </tr>
         </thead>
@@ -153,6 +154,30 @@
                 ⚠ alérgenos
               </button>
               <span v-else class="sin-dato">sin dato</span>
+            </td>
+
+            <!--
+              Análisis regulatorio, **partiendo de la lista de ingredientes**.
+
+              Aquí no hay columna de aditivos previa de la que colgarse —el mapa
+              comercial sí la tiene—, así que la condición es tener
+              `ingredientes`: sin lista no hay nada que leer y el botón sería un
+              enlace a una pestaña vacía.
+
+              Que la lista exista no garantiza que traiga aditivos, y está bien:
+              la pestaña dirá «esta etiqueta no declara ninguno», que es
+              información. Lo que no puede pasar es ofrecer análisis donde no
+              hay ni etiqueta.
+            -->
+            <td>
+              <a v-if="o.ingredientes && ejecucionId"
+                 class="btn-analisis"
+                 :href="urlAnalisis(o)"
+                 target="_blank" rel="noopener"
+                 :title="`Autorización de los aditivos de ${o.nombre} en EE. UU., Codex y UE`"
+              >Analizar ↗</a>
+              <span v-else-if="o.ingredientes" class="sin-dato">sin informe</span>
+              <span v-else class="sin-dato">sin ingredientes</span>
             </td>
 
             <!--
@@ -308,6 +333,9 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
   titulo: { type: String, required: true },
@@ -320,7 +348,24 @@ const props = defineProps({
   // «Tiendas encontradas» en Alemania, donde el agente trae lo que halla. No es
   // cosmético: decir «consultadas» de una lista que no se eligió sería falso.
   etiquetaTiendas: { type: String, default: 'Tiendas' },
+  // El run del que salen estas ofertas. Sin él no se puede abrir el análisis:
+  // el backend relee los ingredientes del informe, no los recibe del cliente.
+  // Vacío = la columna de análisis se apaga en vez de dar enlaces rotos.
+  ejecucionId: { type: String, default: '' },
 })
+
+/**
+ * La URL de la pestaña de análisis de una oferta.
+ *
+ * La oferta se identifica por su `fuente_url` y no por un índice de la lista:
+ * un índice se rompe en cuanto la tabla se reordene o se filtre, y el enlace
+ * pasaría a abrir el análisis de otro producto sin que nada avise.
+ */
+const urlAnalisis = (oferta) => router.resolve({
+  name: 'analisis-oferta',
+  params: { ejecucionId: props.ejecucionId },
+  query: { url: oferta.fuente_url },
+}).href
 
 const MONEDA_LOCAL = 'PEN'
 
@@ -619,6 +664,29 @@ const filasNutri = computed(() => {
 
 .btn-ficha:hover {
   background: rgba(56, 189, 248, 0.24);
+}
+
+/*
+  El enlace al análisis. Se pinta con el borde del color principal y sin relleno
+  para distinguirlo de los `.btn-ficha` de al lado: aquellos abren una ficha
+  aquí mismo, este **se lleva a otra pestaña**, y esa diferencia tiene que verse
+  antes de pulsar.
+*/
+.btn-analisis {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-analisis:hover {
+  background: var(--primary-color);
+  color: #fff;
 }
 
 .modal-fondo {
