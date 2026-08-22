@@ -1,5 +1,5 @@
 <!--
-  T6 — La pestaña de análisis regulatorio.
+  T6 — La pantalla de análisis regulatorio.
 
   ## Copia la estructura de los PPTX a propósito
 
@@ -27,13 +27,33 @@
   La columna de EE. UU. va por agente en vivo contra el eCFR: 15-36 s medidos.
   La espera se cuenta al usuario mientras ocurre, con lo que se está haciendo,
   porque un spinner mudo de 30 segundos se lee como una pantalla rota.
+
+  ## Lo que cambia con el rediseño
+
+  **El veredicto deja de depender del color.** Antes `SÍ`, `SÍ*`, `NO` y
+  `SIN DATO` se distinguían por el verde, el ámbar, el rojo y el gris del
+  recuadro. Esta pantalla se imprime y se adjunta a un expediente, y en gris de
+  impresora los cuatro eran el mismo recuadro. Ahora cada uno lleva su icono
+  —tick, información, aspa— y `SIN DATO` lleva además borde discontinuo: la
+  forma llega antes que el color, y el color solo refuerza.
+
+  **Un resumen antes del detalle.** Con tres aditivos son nueve celdas, y la
+  pregunta que trae aquí a alguien —«¿puedo exportar esto?»— se responde con
+  cuatro cifras. Estaban al final, dentro de las conclusiones.
+
+  **Los aditivos se pliegan.** Tres bloques de tres tarjetas son tres pantallas
+  de scroll. El primero viene abierto y los demás cerrados, con sus tres
+  veredictos ya visibles en la cabecera plegada: para saber si hay que abrirlo
+  no hace falta abrirlo.
 -->
 <template>
   <div class="analisis">
     <!-- Portada: lo mismo que la diapositiva 1 de los PPTX. -->
-    <header class="portada glass-panel">
-      <p class="volver">
-        <RouterLink :to="{ name: 'consulta' }">‹ Volver a la consulta</RouterLink>
+    <header class="portada">
+      <p class="volver no-imprimir">
+        <RouterLink :to="{ name: 'consulta' }">
+          <Icono nombre="chevron-izq" :tamano="14" />Volver a la consulta
+        </RouterLink>
       </p>
       <p class="eyebrow">Análisis de ingredientes · Panorama regulatorio</p>
       <h1>{{ analisis?.producto_nombre || 'Análisis de ingredientes' }}</h1>
@@ -43,23 +63,25 @@
         <strong>Codex Alimentarius</strong> y <strong>Unión Europea</strong>.
       </p>
       <p v-if="analisis?.matriz" class="matriz">
-        <span class="etiqueta">Matriz alimentaria</span>
+        <span class="rotulo">Matriz alimentaria</span>
         {{ analisis.matriz }}
-        <span v-if="analisis.matriz_ue" class="codigo">
-          → categoría UE {{ analisis.matriz_ue }} (deducida)
+        <span v-if="analisis.matriz_ue" class="chip chip--codigo">
+          categoría UE {{ analisis.matriz_ue }} · deducida
         </span>
         <span v-else class="sin-dato">categoría no mapeada</span>
       </p>
     </header>
 
     <!-- Cargando. La espera se explica porque puede llegar a 45 s. -->
-    <div v-if="cargando" class="glass-panel estado">
-      <div class="hilandero" />
-      <p><strong>Consultando las tres fuentes…</strong></p>
-      <p class="matiz">
-        El eCFR de EE. UU. se consulta en vivo y tarda entre 15 y 40 segundos.
-        El Anexo II de la UE y la tabla del Codex son locales e instantáneos.
-      </p>
+    <div v-if="cargando" class="estado superficie" aria-live="polite" aria-busy="true">
+      <span class="barra"><span class="barra-barrido"></span></span>
+      <div>
+        <strong>Consultando las tres fuentes…</strong>
+        <p class="matiz">
+          El eCFR de EE. UU. se consulta en vivo y tarda entre 15 y 40 segundos.
+          El Anexo II de la UE y la tabla del Codex son locales e instantáneos.
+        </p>
+      </div>
     </div>
 
     <!--
@@ -71,115 +93,201 @@
       completar el análisis». La misma frase dos veces y ninguna pista: para
       diagnosticarlo había que entrar al servidor a leer el log.
     -->
-    <div v-else-if="error" class="glass-panel estado error">
-      <p><strong>{{ error.titulo }}</strong></p>
-      <p class="matiz">{{ error.explicacion }}</p>
-      <p v-if="error.quehacer" class="matiz quehacer">{{ error.quehacer }}</p>
-      <p v-if="error.tecnico" class="tecnico">{{ error.tecnico }}</p>
-      <button class="btn-primary" @click="cargar">Reintentar</button>
+    <div v-else-if="error" class="estado superficie estado--error" role="alert">
+      <Icono nombre="info" :tamano="19" />
+      <div>
+        <strong>{{ error.titulo }}</strong>
+        <p class="matiz">{{ error.explicacion }}</p>
+        <p v-if="error.quehacer" class="matiz quehacer">{{ error.quehacer }}</p>
+        <p v-if="error.tecnico" class="tecnico codigo">{{ error.tecnico }}</p>
+        <button class="btn btn--secundario btn--pequeno" @click="cargar">Reintentar</button>
+      </div>
     </div>
 
     <!--
       Sin aditivos NO es un error ni un hueco: es una etiqueta limpia, y para
       quien formula eso es información. Es el 49,8 % del snapshot.
     -->
-    <div v-else-if="!analisis.aditivos.length" class="glass-panel estado">
-      <p><strong>Esta etiqueta no declara ningún aditivo reconocible.</strong></p>
-      <p class="matiz">
-        No hay nada que autorizar, así que no hay veredicto que dar. Se reconocen
-        los aditivos por su nombre en el texto de la etiqueta; que no aparezca
-        ninguno no descarta que el producto lleve otros con nombres que este
-        sistema todavía no reconoce.
-      </p>
+    <div v-else-if="!analisis.aditivos.length" class="estado superficie estado--limpio">
+      <Icono nombre="check" :tamano="19" />
+      <div>
+        <strong>Esta etiqueta no declara ningún aditivo reconocible.</strong>
+        <p class="matiz">
+          No hay nada que autorizar, así que no hay veredicto que dar. Se
+          reconocen los aditivos por su nombre en el texto de la etiqueta; que
+          no aparezca ninguno no descarta que el producto lleve otros con
+          nombres que este sistema todavía no reconoce.
+        </p>
+      </div>
     </div>
 
     <template v-else>
+      <!--
+        El resumen, antes del detalle. Cuatro cifras que responden «¿puedo
+        exportar esto?» sin leer las nueve celdas.
+      -->
+      <div class="resumen">
+        <div class="resumen-tile">
+          <span class="resumen-n num">{{ resumen.aditivos }}</span>
+          <span class="resumen-que">aditivos</span>
+          <span class="resumen-det">declarados en la etiqueta</span>
+        </div>
+        <div class="resumen-tile es-si">
+          <span class="resumen-n num">{{ nAutorizadas }}</span>
+          <span class="resumen-que">autorizados</span>
+          <span class="resumen-det">con cifra o BPM</span>
+        </div>
+        <div class="resumen-tile es-cond">
+          <span class="resumen-n num">{{ resumen.condicionadas || 0 }}</span>
+          <span class="resumen-que">condicionados</span>
+          <span class="resumen-det">categoría sin confirmar</span>
+        </div>
+        <div class="resumen-tile es-sin">
+          <span class="resumen-n num">{{ resumen.sin_dato || 0 }}</span>
+          <span class="resumen-que">sin dato</span>
+          <span class="resumen-det">de {{ resumen.celdas }} celdas</span>
+        </div>
+      </div>
+
       <!-- Un bloque por aditivo, cada uno con sus tres tarjetas. -->
-      <section v-for="ad in analisis.aditivos" :key="ad.nombre" class="aditivo glass-panel">
-        <div class="cabecera-aditivo">
-          <p class="eyebrow">
-            <span v-if="ad.ins">INS {{ ad.ins }}</span>
-            <span v-if="ad.e_number">· {{ ad.e_number }}</span>
-            <span v-if="ad.funcion">· {{ ad.funcion }}</span>
-          </p>
-          <h2>{{ ad.nombre }}</h2>
-        </div>
-
-        <div class="tarjetas">
-          <article
-            v-for="ev in ad.evaluaciones"
-            :key="ev.mercado"
-            class="tarjeta"
-            :class="clase(ev.autorizado)"
-          >
-            <div class="veredicto">{{ VEREDICTO[ev.autorizado] }}</div>
-            <h3 class="mercado">{{ MERCADO[ev.mercado] }}</h3>
-
-            <div class="campo">
-              <span class="etiqueta">Límite máximo</span>
-              <strong>{{ limite(ev) }}</strong>
-            </div>
-
-            <div class="campo">
-              <span class="etiqueta">Referencia normativa</span>
-              <a :href="ev.referencia_url" target="_blank" rel="noopener">
-                {{ ev.referencia_texto }} ↗
-              </a>
-            </div>
-
-            <div v-if="ev.categoria_alimento" class="campo">
-              <span class="etiqueta">Categoría aplicada</span>
-              <span>{{ ev.categoria_alimento }}</span>
-            </div>
-
-            <!--
-              La cita literal. Es lo que separa esto de una opinión: el
-              fragmento de la norma del que sale el número, comprobado contra
-              el documento antes de publicarse.
-            -->
-            <blockquote v-if="ev.cita_literal" class="cita">
-              «{{ ev.cita_literal }}»
-            </blockquote>
-
-            <p v-if="ev.nota" class="nota">{{ ev.nota }}</p>
-
-            <!-- T6.4: de dónde salió y cuándo. -->
-            <p class="procedencia">
-              {{ ORIGEN[ev.origen] || ev.origen }} ·
-              {{ fecha(ev.verificado_en) }}
+      <section
+        v-for="(ad, i) in analisis.aditivos"
+        :key="ad.nombre"
+        class="aditivo superficie imprimible"
+      >
+        <!--
+          La cabecera es el control de plegado, y lleva los tres veredictos ya
+          resumidos: para decidir si hace falta abrirlo no hace falta abrirlo.
+        -->
+        <button
+          class="cabecera-aditivo"
+          type="button"
+          :aria-expanded="abierto(i)"
+          :aria-controls="`aditivo-${i}`"
+          @click="alternar(i)"
+        >
+          <div class="cabecera-texto">
+            <p class="eyebrow">
+              <span v-if="ad.ins" class="codigo">INS {{ ad.ins }}</span>
+              <span v-if="ad.e_number" class="codigo">· {{ ad.e_number }}</span>
+              <span v-if="ad.funcion">· {{ ad.funcion }}</span>
             </p>
-          </article>
-        </div>
+            <h2>{{ ad.nombre }}</h2>
+          </div>
 
-        <!-- Paso 6 de la metodología: el límite más estricto entre los que autorizan. -->
-        <p v-if="ad.limite_interno !== null" class="limite-interno">
-          <strong>Límite interno sugerido: {{ ad.limite_interno }} mg/kg.</strong>
-          Es el más estricto de los mercados que autorizan el aditivo; adoptarlo
-          permite una sola formulación para los tres destinos.
-        </p>
-        <p v-else class="limite-interno vacio">
-          Ningún mercado con cifra numérica: no hay límite interno que adoptar.
-        </p>
+          <div class="mini-veredictos" aria-hidden="true">
+            <span
+              v-for="ev in ad.evaluaciones"
+              :key="ev.mercado"
+              class="mini"
+              :class="clase(ev.autorizado)"
+              :title="`${MERCADO[ev.mercado]}: ${VEREDICTO[ev.autorizado]}`"
+            >{{ VEREDICTO[ev.autorizado] }}</span>
+          </div>
+
+          <span class="cabecera-accion no-imprimir">
+            {{ abierto(i) ? 'Plegar' : 'Desplegar' }}
+            <Icono :nombre="abierto(i) ? 'chevron-arriba' : 'chevron-abajo'" :tamano="15" />
+          </span>
+        </button>
+
+        <div v-show="abierto(i)" :id="`aditivo-${i}`" class="aditivo-cuerpo">
+          <div class="tarjetas">
+            <article
+              v-for="ev in ad.evaluaciones"
+              :key="ev.mercado"
+              class="tarjeta"
+              :class="clase(ev.autorizado)"
+            >
+              <!--
+                El veredicto, con forma antes que color. El icono y el borde
+                discontinuo del SIN DATO son lo que sobrevive a una impresora
+                en blanco y negro.
+              -->
+              <div class="veredicto" :class="`veredicto--${clase(ev.autorizado)}`">
+                <Icono
+                  v-if="ICONO_VEREDICTO[ev.autorizado]"
+                  :nombre="ICONO_VEREDICTO[ev.autorizado]"
+                  :tamano="14"
+                />
+                {{ VEREDICTO[ev.autorizado] }}
+              </div>
+
+              <h3 class="mercado">{{ MERCADO[ev.mercado] }}</h3>
+
+              <div class="campo">
+                <span class="rotulo">Límite máximo</span>
+                <strong>{{ limite(ev) }}</strong>
+              </div>
+
+              <div class="campo">
+                <span class="rotulo">Referencia normativa</span>
+                <a :href="ev.referencia_url" target="_blank" rel="noopener">
+                  {{ ev.referencia_texto }} <Icono nombre="externo" :tamano="12" />
+                </a>
+              </div>
+
+              <div v-if="ev.categoria_alimento" class="campo">
+                <span class="rotulo">Categoría aplicada</span>
+                <span>{{ ev.categoria_alimento }}</span>
+              </div>
+
+              <!--
+                La cita literal. Es lo que separa esto de una opinión: el
+                fragmento de la norma del que sale el número, comprobado contra
+                el documento antes de publicarse.
+
+                Va en serif y con `lang="en"`: es texto normativo para leer, no
+                interfaz, y está en inglés. Sin el `lang`, un lector de pantalla
+                en español lo pronuncia como si fuera castellano.
+              -->
+              <blockquote v-if="ev.cita_literal" class="cita" lang="en">
+                «{{ ev.cita_literal }}»
+              </blockquote>
+
+              <p v-if="ev.nota" class="nota">{{ ev.nota }}</p>
+
+              <!-- T6.4: de dónde salió y cuándo. -->
+              <p class="procedencia">
+                {{ ORIGEN[ev.origen] || ev.origen }} · {{ fecha(ev.verificado_en) }}
+              </p>
+            </article>
+          </div>
+
+          <!-- Paso 6 de la metodología: el límite más estricto entre los que autorizan. -->
+          <p v-if="ad.limite_interno !== null" class="limite-interno">
+            <strong>Límite interno sugerido: {{ ad.limite_interno }} mg/kg.</strong>
+            Es el más estricto de los mercados que autorizan el aditivo;
+            adoptarlo permite una sola formulación para los tres destinos.
+          </p>
+          <p v-else class="limite-interno vacio">
+            Ningún mercado con cifra numérica: no hay límite interno que adoptar.
+          </p>
+        </div>
       </section>
 
       <!-- Conclusiones: la diapositiva 3. -->
-      <section class="glass-panel conclusiones">
+      <section class="superficie conclusiones imprimible">
         <h2>Conclusiones y recomendaciones</h2>
         <ol>
           <li v-if="autorizan.length">
             <strong>Autorizan el uso:</strong>
-            {{ autorizan.map(m => MERCADO[m]).join(', ') }}. Revisar el límite de
-            cada uno en las tarjetas de arriba.
+            {{ autorizan.map((m) => MERCADO[m]).join(', ') }}. Revisar el límite
+            de cada uno en las tarjetas de arriba.
           </li>
           <li v-if="analisis.mercados_que_prohiben?.length" class="grave">
-            <strong>Reformulación obligatoria para
-            {{ analisis.mercados_que_prohiben.map(m => MERCADO[m]).join(', ') }}.</strong>
+            <strong>
+              Reformulación obligatoria para
+              {{ analisis.mercados_que_prohiben.map((m) => MERCADO[m]).join(', ') }}.
+            </strong>
             Alguno de los aditivos no está cubierto para este producto: hay que
             retirarlo o buscar alternativa antes de exportar a ese mercado.
           </li>
           <li v-if="resumen.condicionadas">
-            <strong>{{ resumen.condicionadas }} de {{ resumen.celdas }} celdas van
-            condicionadas (*).</strong>
+            <strong>
+              {{ resumen.condicionadas }} de {{ resumen.celdas }} celdas van
+              condicionadas (*).
+            </strong>
             La autorización existe, pero la cobertura de la categoría exacta de
             este producto no está confirmada. Es el punto donde más
             discrepancias aparecen entre mercados.
@@ -199,7 +307,7 @@
       </section>
 
       <!-- Honestidad del método (T7.1 adelantado: sin esto la pantalla miente por omisión). -->
-      <footer class="glass-panel alcance">
+      <footer class="superficie alcance imprimible">
         <h3>Hasta dónde llega esto</h3>
         <ul>
           <li>
@@ -219,10 +327,12 @@
             se rellena; lo que falta sale como «sin dato», nunca como prohibido.
           </li>
           <li v-if="analisis.no_reconocidos?.length">
-            <strong>{{ analisis.no_reconocidos.length }} ingredientes sin
-            clasificar</strong> en esta etiqueta: {{ analisis.no_reconocidos.slice(0, 12).join(', ') }}<span
-              v-if="analisis.no_reconocidos.length > 12">…</span>. No se han
-            analizado; que no aparezcan arriba no significa que no estén
+            <strong>
+              {{ analisis.no_reconocidos.length }} ingredientes sin clasificar
+            </strong>
+            en esta etiqueta: {{ analisis.no_reconocidos.slice(0, 12).join(', ')
+            }}<span v-if="analisis.no_reconocidos.length > 12">…</span>. No se
+            han analizado; que no aparezcan arriba no significa que no estén
             regulados.
           </li>
         </ul>
@@ -235,6 +345,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api, BASE } from '../api.js'
+import Icono from '../components/Icono.vue'
 
 /**
  * La misma pantalla sirve a las dos procedencias, y solo cambia de dónde saca
@@ -258,6 +369,25 @@ const VEREDICTO = {
   SIN_DATO: 'SIN DATO',
 }
 
+/**
+ * El icono de cada veredicto.
+ *
+ * No es adorno: es la mitad del mensaje. Esta pantalla se imprime y se adjunta
+ * a un expediente, y en gris de impresora el verde del SÍ y el ámbar del SÍ*
+ * son el mismo gris. Con el tick y el signo de información, no.
+ *
+ * `SIN_DATO` no lleva icono a propósito: cualquiera que se le ponga —un
+ * interrogante, un guion— añade una lectura que no está. Lo distingue el borde
+ * discontinuo, que dice «esto está por rellenar» sin afirmar nada.
+ */
+const ICONO_VEREDICTO = {
+  SI: 'check',
+  SI_CONDICIONADO: 'info',
+  NO: 'equis',
+  NO_CONDICIONADO: 'info',
+  SIN_DATO: '',
+}
+
 const MERCADO = {
   US: 'Estados Unidos',
   CODEX: 'Codex Alimentarius',
@@ -277,6 +407,27 @@ const cargando = ref(true)
 const error = ref(null)
 
 /**
+ * Qué aditivos están desplegados.
+ *
+ * El primero viene abierto y el resto cerrados: con uno abierto se ve de qué va
+ * la pantalla sin tener que pulsar nada, y con todos abiertos vuelven las tres
+ * pantallas de scroll que este plegado existe para evitar.
+ *
+ * Es un Set de índices y no un `abierto` por aditivo porque el nombre no es
+ * identificador estable: dos aditivos pueden compartirlo si el reconocedor
+ * duplica una entrada.
+ */
+const desplegados = ref(new Set([0]))
+const abierto = (i) => desplegados.value.has(i)
+
+const alternar = (i) => {
+  const s = new Set(desplegados.value)
+  if (s.has(i)) s.delete(i)
+  else s.add(i)
+  desplegados.value = s
+}
+
+/**
  * De un fallo a algo que se pueda leer y accionar.
  *
  * Cada caso tiene una causa distinta y una salida distinta, y meterlos todos
@@ -292,8 +443,9 @@ function describir(e) {
     return {
       titulo: 'No se pudo contactar con el servidor',
       explicacion: 'La petición no llegó a salir o no hubo respuesta.',
-      quehacer: `Comprueba que el backend está levantado y que responde en ${BASE}. `
-        + 'Si la SPA y la API están en máquinas distintas, revisa VITE_API_URL.',
+      quehacer:
+        `Comprueba que el backend está levantado y que responde en ${BASE}. ` +
+        'Si la SPA y la API están en máquinas distintas, revisa VITE_API_URL.',
       tecnico: detalle,
     }
   }
@@ -303,8 +455,9 @@ function describir(e) {
     return {
       titulo: 'El servidor no conoce este endpoint',
       explicacion: 'La ruta /api/analisis-aditivos no está montada en la API que responde.',
-      quehacer: 'Reinicia el backend: es la versión anterior, de antes de que '
-        + 'existiera esta pantalla.',
+      quehacer:
+        'Reinicia el backend: es la versión anterior, de antes de que ' +
+        'existiera esta pantalla.',
       tecnico: detalle,
     }
   }
@@ -313,8 +466,9 @@ function describir(e) {
       titulo: props.ofertaUrl
         ? 'Esa oferta no está en este informe'
         : 'Ese producto no está en este informe',
-      explicacion: 'El informe no existe, no es tuyo, o la fila no forma parte '
-        + 'de su mapa comercial.',
+      explicacion:
+        'El informe no existe, no es tuyo, o la fila no forma parte ' +
+        'de su mapa comercial.',
       quehacer: 'Vuelve a la consulta y abre el análisis desde la fila.',
       tecnico: detalle,
     }
@@ -330,14 +484,32 @@ function describir(e) {
   return {
     titulo: 'El análisis falló en el servidor',
     explicacion: detalle,
-    quehacer: 'El detalle completo está en el log del backend. Si se repite '
-      + 'con todos los productos, probablemente falte algún corpus: '
-      + '`python -m etl.ingerir_ecfr` y `python -m etl.ingerir_anexo_ii`.',
+    quehacer:
+      'El detalle completo está en el log del backend. Si se repite ' +
+      'con todos los productos, probablemente falte algún corpus: ' +
+      '`python -m etl.ingerir_ecfr` y `python -m etl.ingerir_anexo_ii`.',
     tecnico: `HTTP ${status}`,
   }
 }
 
 const resumen = computed(() => analisis.value?.resumen ?? {})
+
+/**
+ * Celdas autorizadas.
+ *
+ * Se cuentan aquí y no se derivan de `celdas - sin_dato - prohibiciones`: esa
+ * resta da el número correcto hoy, pero se rompería en silencio el día que
+ * aparezca un sexto veredicto. Contar lo que se quiere contar no se rompe.
+ */
+const nAutorizadas = computed(() => {
+  let n = 0
+  for (const ad of analisis.value?.aditivos ?? []) {
+    for (const ev of ad.evaluaciones) {
+      if (ev.autorizado === 'SI' || ev.autorizado === 'SI_CONDICIONADO') n += 1
+    }
+  }
+  return n
+})
 
 const autorizan = computed(() => {
   const mercados = new Set()
@@ -351,13 +523,14 @@ const autorizan = computed(() => {
   return [...mercados]
 })
 
-const clase = (veredicto) => ({
-  SI: 'si',
-  SI_CONDICIONADO: 'si-cond',
-  NO: 'no',
-  NO_CONDICIONADO: 'no-cond',
-  SIN_DATO: 'sin',
-}[veredicto])
+const clase = (veredicto) =>
+  ({
+    SI: 'si',
+    SI_CONDICIONADO: 'si-cond',
+    NO: 'no',
+    NO_CONDICIONADO: 'no-cond',
+    SIN_DATO: 'sin',
+  })[veredicto]
 
 /**
  * El límite, distinguiendo los tres casos que NO son lo mismo.
@@ -376,7 +549,9 @@ const limite = (ev) => {
 const fecha = (iso) => {
   if (!iso) return 'sin fecha'
   return new Date(iso).toLocaleDateString('es', {
-    year: 'numeric', month: 'short', day: 'numeric',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   })
 }
 
@@ -387,6 +562,10 @@ const cargar = async () => {
     analisis.value = props.ofertaUrl
       ? await api.analisisOferta(props.ejecucionId, props.ofertaUrl)
       : await api.analisisAditivos(props.ejecucionId, props.productoId)
+    // Cada carga vuelve a dejar solo el primero abierto: si no, cambiar de
+    // producto conserva el plegado del anterior y se ve un bloque desplegado
+    // que nadie ha abierto.
+    desplegados.value = new Set([0])
   } catch (e) {
     // Al log del navegador va el error entero: la pantalla enseña lo legible,
     // pero quien tenga la consola abierta merece la traza completa.
@@ -402,173 +581,451 @@ onMounted(cargar)
 
 <style scoped>
 .analisis {
-  max-width: 1180px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 20px 60px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
-.portada { padding: 24px 28px; }
-.volver { margin: 0 0 12px; font-size: 0.85rem; }
-.volver a { color: var(--text-muted); text-decoration: none; }
-.volver a:hover { color: var(--primary-color); }
+/* ---------------------------------------------------------------- *
+ *  Portada
+ * ---------------------------------------------------------------- */
+
+.portada { padding-bottom: 4px; }
+
+.volver { margin: 0 0 14px; font-size: 0.85rem; }
+
+.volver a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  text-decoration: none;
+}
 
 .eyebrow {
-  margin: 0;
-  font-size: 0.74rem;
-  letter-spacing: 0.09em;
+  margin: 0 0 4px;
+  font-size: 0.69rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--primary-color);
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--verde-texto);
 }
 
-.portada h1 { margin: 6px 0 10px; font-size: 1.7rem; color: var(--text-main); }
-.subtitulo { margin: 0 0 14px; color: var(--text-muted); line-height: 1.6; }
+.portada h1 {
+  margin: 0 0 10px;
+  font-size: 1.875rem;
+  line-height: 1.15;
+}
+
+.subtitulo {
+  margin: 0;
+  max-width: 76ch;
+  font-size: 0.9375rem;
+  color: var(--texto-atenuado);
+}
 
 .matriz {
-  margin: 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--card-border);
-  font-size: 0.9rem;
-}
-.matriz .codigo { color: var(--primary-color); font-weight: 600; }
-
-.etiqueta {
-  display: block;
-  font-size: 0.68rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 14px 0 0;
+  font-size: 0.875rem;
+  color: var(--texto);
 }
 
-.estado { padding: 40px 28px; text-align: center; }
-.estado.error { border-color: rgba(220, 53, 69, 0.4); }
-.matiz { color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin: 8px auto 0; max-width: 620px; }
-.quehacer { color: var(--text-main); font-weight: 500; }
+/* ---------------------------------------------------------------- *
+ *  Estados
+ * ---------------------------------------------------------------- */
+
+.estado {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px;
+}
+
+.estado strong { display: block; color: var(--tinta); font-size: 0.9375rem; }
+
+.matiz {
+  margin: 6px 0 0;
+  max-width: 76ch;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--texto-atenuado);
+}
+
+.quehacer { color: var(--texto); }
+
 .tecnico {
-  margin: 12px auto 16px;
-  max-width: 620px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.05);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.76rem;
-  color: var(--text-muted);
+  margin: 8px 0 12px;
+  font-size: 0.75rem;
+  color: var(--texto-sin-dato);
   word-break: break-word;
 }
 
-.hilandero {
-  width: 28px; height: 28px; margin: 0 auto 14px;
-  border: 3px solid var(--card-border);
-  border-top-color: var(--primary-color);
-  border-radius: 50%;
-  animation: girar 0.9s linear infinite;
+.estado--error {
+  border-color: var(--critico-borde);
+  background: var(--critico-fondo);
+  color: var(--critico);
 }
-@keyframes girar { to { transform: rotate(360deg); } }
 
-.aditivo { padding: 22px 24px; }
-.cabecera-aditivo { margin-bottom: 16px; }
-.cabecera-aditivo h2 { margin: 4px 0 0; font-size: 1.25rem; color: var(--text-main); }
+.estado--error strong { color: var(--critico); }
+
+.estado--limpio {
+  border-color: var(--verde-borde);
+  background: #F7FBF9;
+  color: var(--verde-texto);
+}
+
+.barra {
+  flex: none;
+  display: block;
+  width: 90px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #EEF1EF;
+  overflow: hidden;
+}
+
+.barra-barrido {
+  display: block;
+  width: 33%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--verde);
+  animation: ags-barrido 1.4s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------- *
+ *  Resumen
+ * ---------------------------------------------------------------- */
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 10px;
+}
+
+.resumen-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 14px 16px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  background: var(--superficie-sutil);
+}
+
+.resumen-n {
+  font-size: 1.625rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+.resumen-que {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--texto);
+}
+
+.resumen-det {
+  font-size: 0.72rem;
+  color: var(--texto-sin-dato);
+}
+
+.resumen-tile.es-si   { background: var(--verde-tinte);  border-color: var(--verde-borde); }
+.resumen-tile.es-cond { background: var(--aviso-fondo);  border-color: var(--aviso-borde); }
+.resumen-tile.es-sin  { background: var(--lienzo);       border-color: var(--borde-medio); }
+
+.es-si   .resumen-n { color: var(--exito); }
+.es-cond .resumen-n { color: var(--aviso); }
+.es-sin  .resumen-n { color: #6F7B76; }
+
+/* ---------------------------------------------------------------- *
+ *  Aditivo
+ * ---------------------------------------------------------------- */
+
+.aditivo { overflow: hidden; }
+
+.cabecera-aditivo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 22px;
+  font-family: inherit;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cabecera-aditivo:hover { background: var(--superficie-sutil); }
+
+.cabecera-texto { flex: 1; min-width: 0; }
+
+.cabecera-texto .eyebrow {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  color: var(--texto-sin-dato);
+  letter-spacing: 0.06em;
+}
+
+.cabecera-texto h2 {
+  margin: 2px 0 0;
+  font-size: 1.1875rem;
+  font-weight: 750;
+}
+
+/* Los tres veredictos del bloque plegado. Van en el mismo orden que las
+   tarjetas de dentro —EE. UU., Codex, UE— para que abrirlo no obligue a volver
+   a situarse. */
+.mini-veredictos {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.mini {
+  min-width: 46px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 750;
+  padding: 3px 8px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--borde-medio);
+  background: var(--lienzo);
+  color: #6F7B76;
+}
+
+.mini.si       { background: var(--verde-tinte);   border-color: var(--verde-borde-fuerte); color: var(--exito); }
+.mini.si-cond,
+.mini.no-cond  { background: var(--aviso-fondo);   border-color: var(--aviso-borde);        color: var(--aviso); }
+.mini.no       { background: var(--critico-fondo); border-color: var(--critico-borde);      color: var(--critico); }
+.mini.sin      { border-style: dashed; }
+
+.cabecera-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--texto-atenuado);
+}
+
+.aditivo-cuerpo {
+  padding: 0 22px 20px;
+  border-top: 1px solid var(--borde-suave);
+}
 
 /*
-  Tres columnas iguales. La comparación entre mercados es la pregunta de esta
-  pantalla, y en paralelo se hace de un vistazo; apiladas obligarían a
-  desplazarse para comparar dos, que es justo lo que se viene a hacer.
+  Tres columnas iguales, siempre. Es lo que hace que la comparación se lea en
+  horizontal sin mover la vista, y por eso no se colapsa a dos: dos y una es
+  peor que tres estrechas hasta que ya no caben, y ahí se apilan del todo.
 */
 .tarjetas {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-}
-@media (max-width: 900px) {
-  .tarjetas { grid-template-columns: 1fr; }
+  padding-top: 20px;
 }
 
 .tarjeta {
-  border: 1px solid var(--card-border);
-  border-top-width: 4px;
-  border-radius: 12px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.6);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  background: var(--superficie);
 }
 
-/* El color dice el veredicto antes de leerlo; el texto lo confirma. Nunca solo
-   el color: quien no distinga verde de rojo tiene que poder leer 'SÍ' y 'NO'. */
-.tarjeta.si       { border-top-color: var(--success); }
-.tarjeta.si-cond  { border-top-color: #E0A800; }
-.tarjeta.no       { border-top-color: #DC3545; }
-.tarjeta.no-cond  { border-top-color: #E0A800; }
-.tarjeta.sin      { border-top-color: var(--text-muted); }
+/* El tinte del fondo es refuerzo, muy suave a propósito: el que informa es el
+   recuadro del veredicto de arriba. */
+.tarjeta.si       { border-color: var(--verde-borde); }
+.tarjeta.si-cond,
+.tarjeta.no-cond  { border-color: var(--aviso-borde); }
+.tarjeta.no       { border-color: var(--critico-borde); }
+.tarjeta.sin      { border-style: dashed; border-color: var(--borde-fuerte); }
 
-.veredicto { font-size: 1.5rem; font-weight: 700; line-height: 1; }
-.tarjeta.si .veredicto      { color: var(--success); }
-.tarjeta.si-cond .veredicto { color: #B98700; }
-.tarjeta.no .veredicto      { color: #DC3545; }
-.tarjeta.no-cond .veredicto { color: #B98700; }
-.tarjeta.sin .veredicto     { color: var(--text-muted); font-size: 1.05rem; }
+.veredicto {
+  align-self: flex-start;
+}
+
+.veredicto--si {
+  background: var(--verde-tinte);
+  border-color: var(--verde-borde-fuerte);
+  color: var(--exito);
+}
+
+.veredicto--si-cond,
+.veredicto--no-cond {
+  background: var(--aviso-fondo);
+  border-color: var(--aviso-borde);
+  color: var(--aviso);
+}
+
+.veredicto--no {
+  background: var(--critico-fondo);
+  border-color: var(--critico-borde);
+  color: var(--critico);
+}
+
+.veredicto--sin { border-style: dashed; color: #6F7B76; }
 
 .mercado {
   margin: 0;
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 700;
 }
 
-.campo { font-size: 0.87rem; }
-.campo a { color: var(--primary-color); word-break: break-word; }
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.82rem;
+}
+
+.campo strong { color: var(--tinta); font-weight: 650; }
+
+.campo a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-weight: 600;
+}
 
 .cita {
   margin: 0;
-  padding: 8px 10px;
-  border-left: 3px solid var(--card-border);
-  background: rgba(0, 0, 0, 0.03);
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-  font-style: italic;
+  padding: 10px 0 10px 14px;
+  border-left: 3px solid var(--verde-borde);
+  font-family: var(--fuente-lectura);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--texto);
 }
 
-.nota { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); }
+.nota {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-xs);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  background: var(--superficie-sutil);
+  border: 1px solid var(--borde-suave);
+  color: var(--texto-atenuado);
+}
 
 .procedencia {
   margin: auto 0 0;
-  padding-top: 8px;
-  border-top: 1px dashed var(--card-border);
+  padding-top: 10px;
+  border-top: 1px solid var(--borde-suave);
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: var(--texto-sin-dato);
 }
 
 .limite-interno {
   margin: 16px 0 0;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: rgba(45, 151, 102, 0.08);
-  font-size: 0.88rem;
-  line-height: 1.6;
+  padding: 13px 15px;
+  border-radius: var(--r-md);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  background: var(--verde-tinte);
+  border: 1px solid var(--verde-borde);
+  color: var(--texto);
 }
-.limite-interno.vacio { background: rgba(0, 0, 0, 0.03); color: var(--text-muted); }
 
-.conclusiones, .alcance { padding: 22px 24px; }
-.conclusiones h2 { margin: 0 0 12px; font-size: 1.15rem; }
-.conclusiones ol { margin: 0; padding-left: 22px; }
-.conclusiones li { margin-bottom: 10px; line-height: 1.65; font-size: 0.92rem; }
-.conclusiones li.grave strong { color: #DC3545; }
+.limite-interno strong { color: var(--verde-texto); }
 
-.alcance h3 { margin: 0 0 10px; font-size: 0.95rem; }
-.alcance ul { margin: 0; padding-left: 20px; }
-.alcance li {
-  margin-bottom: 8px;
+.limite-interno.vacio {
+  background: var(--superficie-sutil);
+  border-color: var(--borde);
+  color: var(--texto-sin-dato);
+}
+
+/* ---------------------------------------------------------------- *
+ *  Conclusiones y alcance
+ * ---------------------------------------------------------------- */
+
+.conclusiones,
+.alcance {
+  padding: 22px;
+}
+
+.conclusiones h2 {
+  margin: 0 0 14px;
+  font-size: 1.1875rem;
+  font-weight: 750;
+}
+
+.conclusiones ol {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 12px;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--texto-atenuado);
+  max-width: 88ch;
+}
+
+.conclusiones strong { color: var(--tinta); }
+
+/* La única conclusión con color: la que obliga a reformular antes de exportar
+   es la que puede parar un envío. */
+.conclusiones .grave strong { color: var(--critico); }
+
+.alcance {
+  background: var(--superficie-sutil);
+}
+
+.alcance h3 {
+  margin: 0 0 12px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-atenuado);
+}
+
+.alcance ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 9px;
   font-size: 0.82rem;
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
+  max-width: 92ch;
 }
 
-.sin-dato { color: var(--text-muted); font-style: italic; }
+.alcance strong { color: var(--texto); }
+
+/* ---------------------------------------------------------------- *
+ *  Impresión y pantallas estrechas
+ * ---------------------------------------------------------------- */
+
+@media print {
+  /* Plegado o no, en papel se imprime todo: un expediente con un aditivo
+     ausente porque estaba cerrado en pantalla sería un expediente incompleto.
+     El `!important` es lo que gana al `display: none` en línea que pone
+     `v-show`. */
+  .aditivo-cuerpo { display: block !important; }
+  .aditivo { break-inside: avoid; }
+}
+
+@media (max-width: 900px) {
+  .tarjetas { grid-template-columns: 1fr; }
+
+  .cabecera-aditivo { flex-wrap: wrap; }
+  .cabecera-texto { flex-basis: 100%; }
+  .mini-veredictos { margin-right: auto; }
+}
 </style>

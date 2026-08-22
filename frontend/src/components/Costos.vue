@@ -325,13 +325,13 @@ onMounted(cargar)
 h2 { margin: 0 0 4px; }
 h3 { margin: 0; font-size: 1rem; }
 
-.sub { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+.sub { margin: 0; color: var(--texto-atenuado); font-size: 0.9rem; }
 
 .acciones { display: flex; gap: 8px; }
 
 .tarjeta {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -346,9 +346,9 @@ h3 { margin: 0; font-size: 1rem; }
 }
 
 select, .btn, .btn-sm {
-  background: #ffffff;
-  color: var(--text-main);
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borde);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -359,9 +359,9 @@ select, .btn, .btn-sm {
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .aviso { padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; }
-.aviso.error { background: rgba(220, 38, 38, 0.1); color: #b3312f; }
+.aviso.error { background: var(--critico-fondo); color: var(--critico); }
 
-.vacio, .nota { padding: 16px 0; color: var(--text-muted); font-size: 0.9rem; }
+.vacio, .nota { padding: 16px 0; color: var(--texto-atenuado); font-size: 0.9rem; }
 
 /* -- KPIs y cuota -------------------------------------------------------- */
 
@@ -369,12 +369,12 @@ select, .btn, .btn-sm {
 
 .hero { display: flex; flex-direction: column; }
 .hero-num { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.hero-etq { font-size: 0.82rem; color: var(--text-muted); }
+.hero-etq { font-size: 0.82rem; color: var(--texto-atenuado); }
 
 .tiles { display: flex; gap: 24px; flex-wrap: wrap; }
 .tile { display: flex; flex-direction: column; }
 .tile .valor { font-size: 1.1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.tile .etq { font-size: 0.76rem; color: var(--text-muted); }
+.tile .etq { font-size: 0.76rem; color: var(--texto-atenuado); }
 
 .cuota { margin-top: 20px; }
 
@@ -390,22 +390,22 @@ select, .btn, .btn-sm {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--primary-color);
+  background: var(--verde);
 }
 
-.usado.cerca { background: #D97706; }
-.usado.agotada { background: #b3312f; }
+.usado.cerca { background: var(--aviso); }
+.usado.agotada { background: var(--critico); }
 
 .marca {
   position: absolute;
   top: -3px;
   width: 2px;
   height: 18px;
-  background: var(--text-main);
+  background: var(--texto);
 }
 
-.pie-cuota { margin: 8px 0 0; font-size: 0.82rem; color: var(--text-muted); }
-.alerta { color: #b3312f; }
+.pie-cuota { margin: 8px 0 0; font-size: 0.82rem; color: var(--texto-atenuado); }
+.alerta { color: var(--critico); }
 
 /* -- Serie diaria -------------------------------------------------------- */
 
@@ -427,9 +427,9 @@ select, .btn, .btn-sm {
   justify-content: flex-start;
 }
 
-.barra-v { display: block; width: 100%; background: #2a78d6; border-radius: 2px 2px 0 0; }
+.barra-v { display: block; width: 100%; background: var(--verde); border-radius: 2px 2px 0 0; }
 
-.fecha { font-size: 0.62rem; color: var(--text-muted); white-space: nowrap; }
+.fecha { font-size: 0.62rem; color: var(--texto-atenuado); white-space: nowrap; }
 
 /* -- Barra apilada ------------------------------------------------------- */
 
@@ -467,15 +467,15 @@ select, .btn, .btn-sm {
 .plan {
   font-style: normal;
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   margin-left: 6px;
 }
 
 .pista { flex: 1; height: 10px; background: rgba(108, 117, 125, 0.14); border-radius: 999px; }
-.barra { display: block; height: 100%; background: #2a78d6; border-radius: 999px; }
+.barra { display: block; height: 100%; background: var(--verde); border-radius: 999px; }
 
 .num { font-variant-numeric: tabular-nums; text-align: right; min-width: 78px; }
-.num.runs { min-width: 68px; color: var(--text-muted); font-size: 0.8rem; }
+.num.runs { min-width: 68px; color: var(--texto-atenuado); font-size: 0.8rem; }
 
 /* -- Tablas -------------------------------------------------------------- */
 
@@ -487,8 +487,8 @@ select, .btn, .btn-sm {
   font-size: 0.7rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--card-border);
+  color: var(--texto-atenuado);
+  border-bottom: 1px solid var(--borde);
 }
 
 .tabla td, .tabla-vista td {
@@ -503,7 +503,7 @@ select, .btn, .btn-sm {
 .tabla-vista summary {
   cursor: pointer;
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   margin-bottom: 8px;
 }
 

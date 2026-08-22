@@ -196,13 +196,13 @@ h3 { margin: 0 0 4px; font-size: 1rem; }
 
 .sub, .explicacion {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   font-size: 0.9rem;
 }
 
 .tarjeta {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -228,14 +228,14 @@ h3 { margin: 0 0 4px; font-size: 1rem; }
   border-radius: 50%;
   margin-top: 5px;
   flex-shrink: 0;
-  background: var(--success);
+  background: var(--exito);
 }
 
-.switch.parado .punto { background: #D97706; }
+.switch.parado .punto { background: var(--aviso); }
 
-.motivo { margin: 6px 0 0; font-size: 0.9rem; color: #92400E; }
+.motivo { margin: 6px 0 0; font-size: 0.9rem; color: var(--aviso-texto); }
 
-.pie { margin: 6px 0 0; font-size: 0.78rem; color: var(--text-muted); }
+.pie { margin: 6px 0 0; font-size: 0.78rem; color: var(--texto-atenuado); }
 
 .accion { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
@@ -244,14 +244,14 @@ h3 { margin: 0 0 4px; font-size: 1rem; }
   font-size: 0.85rem;
   padding: 7px 10px;
   border-radius: 6px;
-  border: 1px solid #CED4DA;
-  background: #ffffff;
+  border: 1px solid var(--borde-fuerte);
+  background: var(--superficie);
 }
 
 .btn {
-  background: #ffffff;
-  color: var(--text-main);
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borde);
   padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
@@ -262,15 +262,15 @@ h3 { margin: 0 0 4px; font-size: 1rem; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn.primario {
-  background: var(--primary-color);
-  border-color: var(--primary-hover);
-  color: #ffffff;
+  background: var(--verde);
+  border-color: var(--verde-texto);
+  color: var(--superficie);
 }
 
 .btn.peligro {
-  background: #ffffff;
+  background: var(--superficie);
   border-color: rgba(208, 59, 59, 0.45);
-  color: #b3312f;
+  color: var(--critico);
 }
 
 .aviso {
@@ -280,10 +280,10 @@ h3 { margin: 0 0 4px; font-size: 1rem; }
   margin: 0 0 16px;
 }
 
-.aviso.info { background: rgba(45, 151, 102, 0.12); color: var(--primary-hover); }
-.aviso.error { background: rgba(220, 38, 38, 0.1); color: #b3312f; }
+.aviso.info { background: var(--verde-tinte); color: var(--verde-texto); }
+.aviso.error { background: var(--critico-fondo); color: var(--critico); }
 
-.vacio { padding: 24px; text-align: center; color: var(--text-muted); }
+.vacio { padding: 24px; text-align: center; color: var(--texto-atenuado); }
 
 .tabla {
   width: 100%;
@@ -298,8 +298,8 @@ h3 { margin: 0 0 4px; font-size: 1rem; }
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--card-border);
+  color: var(--texto-atenuado);
+  border-bottom: 1px solid var(--borde);
 }
 
 .tabla td {
@@ -316,12 +316,12 @@ h3 { margin: 0 0 4px; font-size: 1rem; }
   border-radius: 999px;
   font-size: 0.75rem;
   background: rgba(108, 117, 125, 0.15);
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .etiqueta.admin {
   background: rgba(45, 151, 102, 0.14);
-  color: var(--primary-hover);
+  color: var(--verde-texto);
   font-weight: 600;
 }
 
@@ -329,9 +329,9 @@ select {
   font-size: 0.85rem;
   padding: 5px 8px;
   border-radius: 6px;
-  border: 1px solid #CED4DA;
-  background: #ffffff;
-  color: var(--text-main);
+  border: 1px solid var(--borde-fuerte);
+  background: var(--superficie);
+  color: var(--texto);
 }
 
 @media (max-width: 700px) {

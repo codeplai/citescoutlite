@@ -1,10 +1,33 @@
 <!doctype html>
-<html lang="en">
+<!--
+  `lang="es"` y no `en`, que es lo que dejó el andamio de Vite. No es cosmético:
+  con `en`, un lector de pantalla pronuncia toda la interfaz —«Presupuestos y
+  control», «Góndolas»— con fonética inglesa, y el corrector del navegador
+  marca como falta cada palabra de cada campo de texto.
+
+  Las citas normativas en inglés llevan su propio `lang="en"` donde se pintan.
+-->
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <!--
+      Las dos tipografías que se usan en la primera pantalla, precargadas. Sin
+      esto la interfaz se pinta con la de sistema y salta a Public Sans cuando
+      llega el woff2; con `font-display: swap` el salto es visible.
+
+      El serif NO se precarga: solo aparece en las citas normativas del análisis
+      regulatorio, y `unicode-range` ya hace que el navegador lo pida únicamente
+      cuando hay una en pantalla.
+    -->
+    <link rel="preload" href="/fuentes/public-sans-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fuentes/jetbrains-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+    <meta name="description" content="Evaluación de insumos agroindustriales: mapa comercial, precio de góndola y panorama regulatorio." />
+    <meta name="color-scheme" content="light" />
+    <title>AgroScout IA · CITEagroindustrial Chavimochic</title>
   </head>
   <body>
     <div id="app"></div>

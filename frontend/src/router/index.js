@@ -12,6 +12,14 @@
  * Cada ruta declara en `meta` su título y si es de administración, y la barra
  * lateral se dibuja recorriendo el router. Así una pantalla nueva se añade en
  * un solo sitio y es imposible que aparezca en el menú sin ruta, o al revés.
+ *
+ * ## `meta.icono` es un nombre, no un carácter
+ *
+ * Hasta el rediseño aquí vivían caracteres Unicode sueltos —`⌕ ⚠ ⇪ ☰ ◔ ⏻`— y
+ * la barra lateral los pintaba como texto. El resultado dependía de las
+ * fuentes instaladas en cada máquina: lupa en unas, cuadrado vacío en otras.
+ * Ahora es el nombre de un trazo de `components/Icono.vue`, que se dibuja
+ * igual en todas partes y no arrastra color propio.
  */
 
 import { createRouter, createWebHistory } from 'vue-router'
@@ -32,13 +40,13 @@ export const rutas = [
     path: '/consulta',
     name: 'consulta',
     component: () => import('../vistas/ConsultaVista.vue'),
-    meta: { titulo: 'Consulta', grupo: 'Operación', icono: '⌕' },
+    meta: { titulo: 'Consulta', grupo: 'Operación', icono: 'buscar' },
   },
   {
     path: '/alertas',
     name: 'alertas',
     component: () => import('../components/AlertasRetiro.vue'),
-    meta: { titulo: 'Alertas de retiro', grupo: 'Operación', icono: '⚠' },
+    meta: { titulo: 'Alertas de retiro', grupo: 'Operación', icono: 'alerta' },
   },
   {
     // Mirar la cola puede hacerlo cualquiera del equipo; promover y rechazar
@@ -47,7 +55,7 @@ export const rutas = [
     path: '/promociones',
     name: 'promociones',
     component: () => import('../components/Promociones.vue'),
-    meta: { titulo: 'Promociones', grupo: 'Operación', icono: '⇪' },
+    meta: { titulo: 'Promociones', grupo: 'Operación', icono: 'promover' },
   },
   {
     // S8.3. Primera ruta que exige rol de administrador para LEER. Hasta ahora
@@ -60,7 +68,7 @@ export const rutas = [
     path: '/auditoria',
     name: 'auditoria',
     component: () => import('../components/Auditoria.vue'),
-    meta: { titulo: 'Auditoría', grupo: 'Administración', icono: '☰', admin: true },
+    meta: { titulo: 'Auditoría', grupo: 'Administración', icono: 'lista', admin: true },
   },
   {
     // S8.2. El desglose enseña cuánto ha gastado cada usuario, así que es de
@@ -68,7 +76,7 @@ export const rutas = [
     path: '/costos',
     name: 'costos',
     component: () => import('../components/Costos.vue'),
-    meta: { titulo: 'Costes', grupo: 'Administración', icono: '◔', admin: true },
+    meta: { titulo: 'Costes', grupo: 'Administración', icono: 'medidor', admin: true },
   },
   {
     // S8.5 y S8.9. Aquí se detiene el gasto de todo el mundo y se cambia el
@@ -78,7 +86,7 @@ export const rutas = [
     name: 'control',
     component: () => import('../components/Control.vue'),
     meta: { titulo: 'Presupuestos y control', grupo: 'Administración',
-            icono: '⏻', admin: true },
+            icono: 'encendido', admin: true },
   },
   {
     // T6. Sin `titulo` en `meta`, y por eso **no sale en el menú lateral**:

@@ -1,108 +1,847 @@
+/**
+ * Sistema de diseño de AgroScout IA Lite.
+ *
+ * ## Qué se retira y por qué
+ *
+ * La hoja anterior definía TRES carcasas para el mismo papel —cristal con
+ * `backdrop-filter`, tarjeta plana con sombra de color y caja blanca a secas—
+ * y un gradiente de marca verde→azul (#007BFF) que aparecía en el logo, en
+ * cada botón primario y en el realce del menú. Tres superficies para una sola
+ * idea es ruido: quien lee la pantalla gasta atención en distinguir carcasas
+ * en vez de datos, y el azul del gradiente compite con el ámbar de aviso y el
+ * rojo de crítico, que sí significan algo.
+ *
+ * Aquí queda **una sola familia de superficie** (blanco sobre lienzo cálido,
+ * borde de 1px, sin blur ni sombra de color) y **una sola familia de botón**
+ * con cuatro pesos. El gradiente sobrevive únicamente como firma de marca en
+ * el acceso, que es donde una firma tiene sentido.
+ *
+ * ## El color solo lo lleva lo que significa
+ *
+ * Regla de la casa: el único control con color propio es el que **gasta
+ * dinero** (`.btn--coste`). Todo lo demás se jerarquiza con peso tipográfico y
+ * borde, no con color. Así, cuando aparece ámbar en pantalla, quiere decir
+ * algo en vez de ser decoración.
+ *
+ * ## Ausencia de dato: tres estados que NO son el mismo
+ *
+ * `.sin-dato` (se miró y no estaba) · `.chip--limpio` (se miró, el resultado es
+ * cero, y eso es un resultado) · `.chip--no-consultado` (la fuente quedó fuera
+ * del barrido). Confundirlos es el error más caro de esta interfaz: «no hay
+ * aditivos» y «no lo hemos mirado» son afirmaciones opuestas.
+ *
+ * ## Contraste
+ *
+ * Los tonos atenuados están elegidos por medición, no por gusto: `#55635D`
+ * da 6,3:1 sobre blanco y `#6B7772` da 4,66:1, los dos por encima del 4,5:1 de
+ * WCAG AA para texto normal. El `#8A938E` del documento de diseño se queda
+ * solo donde el texto es grande o decorativo (`--texto-tenue`), porque a 13px
+ * da 3,16:1 y no pasa.
+ */
+
+/* ------------------------------------------------------------------ *
+ *  Tipografías — auto-hospedadas, no de CDN
+ *
+ *  El plan B de la demo corre con AGROSCOUT_OFFLINE=1 y sin red. Si las
+ *  fuentes vinieran de fonts.googleapis.com, ese modo enseñaría la interfaz
+ *  con tipografías de sistema justo el día que más importa que se vea bien.
+ *  Los .woff2 viven en public/fuentes/ y pesan 236 KB en total.
+ *
+ *  Public Sans y Source Serif 4 son variables (un archivo cubre todo el rango
+ *  de peso). El serif solo se descarga cuando hay una cita normativa en
+ *  pantalla: `unicode-range` hace esa carga perezosa sola.
+ * ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: 'Public Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fuentes/public-sans-var-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Los nombres de producto vienen de OpenFoodFacts y llegan en cualquier idioma:
+   sin este subconjunto, un producto polaco o turco se pinta con tofu. */
+@font-face {
+  font-family: 'Public Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fuentes/public-sans-var-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fuentes/source-serif-4-var-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fuentes/jetbrains-mono-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fuentes/jetbrains-mono-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Tokens
+ * ------------------------------------------------------------------ */
+
 :root {
-  --primary-color: #2D9766;
-  --primary-hover: #247A52;
-  --bg-color: #F8F9FA;
-  --text-main: #212529;
-  --text-muted: #6C757D;
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(45, 151, 102, 0.25);
-  --accent-gradient: linear-gradient(135deg, #2D9766 0%, #007BFF 100%);
-  --success: #28A745;
+  /* -- Tipografía ------------------------------------------------- */
+  --fuente-ui: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  /* Informe y cita normativa. El serif marca «esto es texto para leer», no
+     interfaz para operar: separa el juicio del sistema del dato bruto. */
+  --fuente-lectura: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  /* Códigos que se comparan carácter a carácter: EAN, INS, identificadores de
+     ejecución. En proporcional, 7750243015436 y 7750243016436 se leen iguales. */
+  --fuente-codigo: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+
+  /* -- Marca ------------------------------------------------------ */
+  --verde: #2D9766;          /* rellenos, bordes, realces. 3,66:1: NO para texto */
+  --verde-texto: #1F6B48;    /* 6,45:1 sobre blanco: este sí para texto y enlaces */
+  --verde-tinte: #EAF5EF;
+  --verde-borde: #C9E4D6;
+  --verde-borde-fuerte: #BFE0CD;
+  --verde-claro: #4FBF8B;    /* solo sobre el panel oscuro de la barra lateral */
+
+  /* -- Texto ------------------------------------------------------ */
+  --tinta: #0F1512;          /* titulares y cifras que mandan */
+  --texto: #2B3733;          /* cuerpo */
+  --texto-atenuado: #55635D; /* 6,31:1 — secundario legible */
+  --texto-sin-dato: #6B7772; /* 4,66:1 — la ausencia declarada */
+  --texto-tenue: #8A938E;    /* 3,16:1 — SOLO ≥18px o decorativo */
+
+  /* -- Superficie ------------------------------------------------- */
+  --lienzo: #F4F6F5;         /* fondo de la aplicación */
+  --superficie: #FFFFFF;     /* la única carcasa */
+  --superficie-sutil: #FAFBFA;
+  --borde: #E4E9E6;
+  --borde-suave: #EDF1EF;
+  --borde-fuerte: #C9D3CE;   /* campos y botones secundarios */
+  --borde-medio: #D6DEDA;
+
+  /* -- Panel oscuro (barra lateral) ------------------------------- */
+  --oscuro: #0F1512;
+  --oscuro-activo: #1B2723;
+  --oscuro-hover: #161F1C;
+  --oscuro-texto: #98A5A0;
+  --oscuro-rotulo: #5C6B65;
+
+  /* -- Semántica -------------------------------------------------- */
+  --aviso: #B45309;
+  --aviso-texto: #8A5A11;
+  --aviso-fondo: #FDF7EA;
+  --aviso-borde: #EFDCB4;
+  --aviso-borde-suave: #E4C892;
+
+  --critico: #B91C1C;
+  --critico-fondo: #FCEDEC;
+  --critico-borde: #F0CBC8;
+
+  --exito: #15803D;
+
+  /* Plan de pago. Morado porque no es ni un aviso ni un fallo: es una
+     frontera comercial, y mezclarla con el ámbar de «esto cuesta» haría creer
+     que pagar es un problema del sistema. */
+  --plan: #6D28D9;
+  --plan-fondo: #F1EDFA;
+  --plan-borde: #DED4F3;
+
+  /* Severidad de alerta. Cuatro escalones de un mismo eje, no cuatro colores
+     sueltos: la escala va de rojo a oliva pasando por naranja y ocre. */
+  --sev-critica: #B91C1C;
+  --sev-alta: #C2410C;
+  --sev-media: #A16207;
+  --sev-baja: #4D7C0F;
+
+  /* -- Geometría -------------------------------------------------- */
+  --r-chip: 999px;
+  --r-xs: 6px;
+  --r-sm: 7px;
+  --r-md: 9px;
+  --r-lg: 12px;
+  --r-xl: 14px;
+
+  /* Sombra única, neutra y mínima. Las sombras de color («0 4px 15px
+     rgba(45,151,102,.4)») pintaban un halo verde bajo cada botón que competía
+     con los chips verdes de estado. */
+  --sombra: 0 1px 2px rgba(15, 21, 18, 0.04);
+  --sombra-elevada: 0 4px 16px rgba(15, 21, 18, 0.08);
+
+  --foco: 0 0 0 3px rgba(45, 151, 102, 0.35);
+
+  /* Firma de marca. Sobrevive SOLO en el acceso. */
+  --firma-marca: linear-gradient(135deg, #2D9766 0%, #1F6B48 100%);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Base
+ * ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-main);
+  font-family: var(--fuente-ui);
+  font-size: 15px;
+  line-height: 1.55;
+  background: var(--lienzo);
+  color: var(--texto);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-image: radial-gradient(circle at 50% 0%, #E6F2EC 0%, var(--bg-color) 80%);
-  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Sin el radial verde de antes: el degradado de fondo obligaba a que toda
+     superficie fuese opaca o translúcida a propósito, que es de donde salió
+     el cristal. Fondo plano, una decisión menos por componente. */
 }
 
-h1, h2, h3 {
-  font-weight: 700;
+h1,
+h2,
+h3,
+h4,
+h5 {
   margin-top: 0;
+  color: var(--tinta);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
-.glass-panel {
-  background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+h1 { font-size: 2rem;     font-weight: 800; letter-spacing: -0.028em; line-height: 1.1; }
+h2 { font-size: 1.5rem;   font-weight: 750; }
+h3 { font-size: 1.15rem;  font-weight: 700; }
+h4 { font-size: 1rem;     font-weight: 700; }
+h5 { font-size: 0.875rem; font-weight: 700; }
+
+p { text-wrap: pretty; }
+
+a {
+  color: var(--verde-texto);
+  text-decoration-color: color-mix(in srgb, var(--verde-texto) 35%, transparent);
+  text-underline-offset: 2px;
 }
 
-.btn-primary {
-  background: var(--accent-gradient);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
+a:hover {
+  color: var(--verde);
+  text-decoration-color: currentColor;
+}
+
+/* El foco visible es el único rastro que deja el teclado. La hoja anterior
+   ponía `outline: none` en todos los input y no lo reemplazaba por nada:
+   navegar la pantalla con el tabulador era navegar a ciegas. */
+:focus-visible {
+  outline: 2px solid var(--verde);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Superficie — una sola familia
+ * ------------------------------------------------------------------ */
+
+.superficie {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  box-shadow: none;
+  /* Sin backdrop-filter: además de crear la segunda carcasa, obligaba al
+     navegador a recomponer la capa en cada scroll de una tabla de 200 filas. */
+}
+
+.superficie--sutil {
+  background: var(--superficie-sutil);
+}
+
+.superficie--elevada {
+  box-shadow: var(--sombra-elevada);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Botón — una familia, cuatro pesos
+ *
+ *  principal   verde relleno      la acción de la pantalla, una por vista
+ *  secundario  borde              alternativas del mismo rango
+ *  fantasma    ni borde ni fondo  cambios de vista, plegar/desplegar
+ *  coste       ámbar + punto      el ÚNICO con color propio: gasta saldo
+ * ------------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.2;
+  padding: 10px 18px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--texto);
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(45, 151, 102, 0.4);
+  text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(45, 151, 102, 0.6);
-}
-
-.btn-primary:disabled {
-  opacity: 0.7;
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  background: var(--lienzo);
+  border-color: var(--borde);
+  color: #A8B2AD;
   cursor: not-allowed;
-  transform: none;
 }
 
-input {
-  background: #FFFFFF;
-  border: 1px solid #CED4DA;
-  color: var(--text-main);
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+.btn--principal {
+  border-color: var(--verde);
+  background: var(--verde);
+  color: #fff;
+  font-weight: 650;
+  /* Sin `transform: translateY(-2px)` al pasar por encima: el salto movía la
+     fila entera en las tablas donde el botón vive dentro de una celda. */
+  box-shadow: none;
 }
 
-input::placeholder {
-  color: var(--text-muted);
-  opacity: 0.7;
+.btn--principal:hover:not(:disabled) {
+  background: var(--verde-texto);
+  border-color: var(--verde-texto);
 }
 
-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(45, 151, 102, 0.25);
+.btn--secundario {
+  border-color: var(--borde-fuerte);
+  background: var(--superficie);
+  color: var(--texto);
 }
 
-/* Animations */
+.btn--secundario:hover:not(:disabled) {
+  border-color: var(--verde);
+  color: var(--verde-texto);
+}
+
+.btn--fantasma {
+  padding-left: 14px;
+  padding-right: 14px;
+  color: var(--texto-atenuado);
+}
+
+.btn--fantasma:hover:not(:disabled) {
+  background: #EEF2F0;
+  color: var(--tinta);
+}
+
+/* El botón que gasta dinero. Lleva color propio, punto ámbar y el rótulo
+   «consume saldo» porque es irreversible en términos de presupuesto: quien lo
+   pulsa tiene que haberlo decidido, no descubierto. */
+.btn--coste {
+  border-color: var(--aviso-borde-suave);
+  background: var(--aviso-fondo);
+  color: var(--aviso-texto);
+  font-weight: 650;
+}
+
+.btn--coste:hover:not(:disabled) {
+  background: #F8EDD6;
+  border-color: var(--aviso);
+}
+
+.btn--coste::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--aviso);
+  flex: none;
+}
+
+.btn--peligro {
+  border-color: var(--critico-borde);
+  background: var(--critico-fondo);
+  color: var(--critico);
+}
+
+.btn--peligro:hover:not(:disabled) {
+  background: #F8DEDC;
+  border-color: var(--critico);
+}
+
+.btn--pequeno {
+  font-size: 0.78rem;
+  padding: 7px 12px;
+}
+
+.btn--bloque {
+  width: 100%;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Campos
+ * ------------------------------------------------------------------ */
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'],
+input[type='search'],
+input[type='date'],
+select,
+textarea {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde-fuerte);
+  color: var(--tinta);
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--texto-sin-dato);
+  opacity: 1; /* Firefox baja la opacidad por su cuenta y lo deja en 2,8:1 */
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--verde);
+  box-shadow: var(--foco);
+  outline: none; /* lo sustituye el anillo de arriba, que es más visible */
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--lienzo);
+  color: var(--texto-sin-dato);
+  cursor: not-allowed;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--texto-atenuado);
+}
+
+fieldset {
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  padding: 16px;
+}
+
+legend {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-atenuado);
+  padding: 0 6px;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Rótulos y chips
+ * ------------------------------------------------------------------ */
+
+/* Encabezado de bloque en versalitas. Sustituye a los h4 con emoji. */
+.rotulo {
+  font-size: 0.69rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--texto-atenuado);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  padding: 3px 9px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--borde-medio);
+  background: var(--superficie);
+  color: var(--texto-atenuado);
+  white-space: nowrap;
+}
+
+/* «Sin aditivos» es un RESULTADO, no una ausencia: el 49,8 % del snapshot cae
+   aquí. Por eso va en verde y no en gris. */
+.chip--limpio {
+  background: var(--verde-tinte);
+  border-color: var(--verde-borde);
+  color: var(--verde-texto);
+}
+
+/* «No se consultó»: la fuente quedó fuera del barrido. Nunca se puede
+   confundir con «se consultó y no había». */
+.chip--no-consultado {
+  background: var(--aviso-fondo);
+  border-color: var(--aviso-borde);
+  color: var(--aviso-texto);
+}
+
+.chip--aviso {
+  background: var(--aviso-fondo);
+  border-color: var(--aviso-borde);
+  color: var(--aviso-texto);
+}
+
+.chip--critico {
+  background: var(--critico-fondo);
+  border-color: var(--critico-borde);
+  color: var(--critico);
+}
+
+.chip--plan {
+  background: var(--plan-fondo);
+  border-color: var(--plan-borde);
+  color: var(--plan);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.chip--codigo {
+  font-family: var(--fuente-codigo);
+  font-size: 0.7rem;
+  border-radius: var(--r-xs);
+}
+
+/* Chip que además es filtro: cambia de estado al pulsarlo. */
+.chip--accion {
+  cursor: pointer;
+  font-family: inherit;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.chip--accion:hover {
+  border-color: var(--verde);
+  color: var(--verde-texto);
+}
+
+.chip--accion[aria-pressed='true'] {
+  background: var(--verde-tinte);
+  border-color: var(--verde-borde-fuerte);
+  color: var(--verde-texto);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Veredicto — la forma va antes que el color
+ *
+ *  Cada veredicto lleva su propio icono además del color, y SIN DATO lleva
+ *  borde discontinuo. Impreso en gris o visto por alguien con deuteranopía,
+ *  los cuatro se siguen distinguiendo.
+ * ------------------------------------------------------------------ */
+
+.veredicto {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 750;
+  padding: 6px 12px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--borde-medio);
+  background: var(--lienzo);
+  color: var(--texto-atenuado);
+}
+
+.veredicto--si {
+  background: var(--verde-tinte);
+  border-color: var(--verde-borde-fuerte);
+  color: var(--exito);
+}
+
+/* SÍ* y NO*: el aditivo sí, pero la categoría del producto no está confirmada.
+   Es el estado más frecuente del sistema y por eso se pinta distinto en vez de
+   disimularse dentro del SÍ rotundo. */
+.veredicto--condicionado {
+  background: var(--aviso-fondo);
+  border-color: var(--aviso-borde);
+  color: var(--aviso);
+}
+
+.veredicto--no {
+  background: var(--critico-fondo);
+  border-color: var(--critico-borde);
+  color: var(--critico);
+}
+
+.veredicto--sin-dato {
+  background: var(--lienzo);
+  border: 1px dashed var(--borde-fuerte);
+  color: #6F7B76;
+}
+
+/* Severidad: barra izquierda + rótulo en versalitas. El color es refuerzo. */
+.severidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.severidad::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: currentColor;
+  flex: none;
+}
+
+.severidad--critica { color: var(--sev-critica); }
+.severidad--alta    { color: var(--sev-alta); }
+.severidad--media   { color: var(--sev-media); }
+.severidad--baja    { color: var(--sev-baja); }
+
+/* ------------------------------------------------------------------ *
+ *  Ausencia de dato
+ * ------------------------------------------------------------------ */
+
+/* Se miró y no estaba. Sin recuadro y sin color: cuando aparece cinco veces
+   seguidas en una columna no puede dominar la pantalla. Minúsculas a propósito
+   —un «SIN DATO» en versalitas grita más que el dato que falta—. */
+.sin-dato {
+  color: var(--texto-sin-dato);
+  font-weight: 400;
+  font-size: 0.9em;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Datos
+ * ------------------------------------------------------------------ */
+
+.codigo {
+  font-family: var(--fuente-codigo);
+  font-size: 0.85em;
+  letter-spacing: -0.01em;
+}
+
+/* Cifras que se comparan en columna: sin esto, 1.284 y 37 no alinean. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.cifra {
+  font-size: 1.75rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--tinta);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+/* Texto para leer, no para operar: informe y cita normativa. */
+.lectura {
+  font-family: var(--fuente-lectura);
+  font-size: 1.03rem;
+  line-height: 1.65;
+  color: var(--texto);
+}
+
+/* Nombres de producto de OpenFoodFacts: los hay de 240 caracteres. Dos líneas
+   y recorte; el nombre entero va en el `title`. Sin esto, una fila invadía la
+   columna vecina y descolocaba la tabla entera. */
+.recorte-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recorte-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Tablas
+ * ------------------------------------------------------------------ */
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tabla th {
+  text-align: left;
+  font-size: 0.69rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--texto-atenuado);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--borde);
+  background: var(--superficie-sutil);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.tabla th.num,
+.tabla td.num {
+  text-align: right;
+}
+
+.tabla td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--borde-suave);
+  vertical-align: top;
+}
+
+.tabla tbody tr:hover {
+  background: var(--superficie-sutil);
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  background: var(--superficie);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Movimiento
+ * ------------------------------------------------------------------ */
+
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s ease forwards;
+  animation: fadeIn 0.35s ease forwards;
 }
 
-/* Scrollbar */
+@keyframes ags-pulso {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.85; }
+}
+
+/* Barrido de la barra indeterminada: dice «sigo vivo» sin fingir un
+   porcentaje. Ver Search.vue. */
+@keyframes ags-barrido {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(220%); }
+}
+
+/* Quien pide menos movimiento por accesibilidad no debería perder la
+   información: la animación se apaga, el estado se sigue viendo. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Barra de desplazamiento
+ * ------------------------------------------------------------------ */
+
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #F1F1F1; 
+  background: var(--lienzo);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #C1C1C1; 
-  border-radius: 4px;
+  background: #C9D3CE;
+  border-radius: 5px;
+  border: 2px solid var(--lienzo);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #A8A8A8; 
+  background: #A8B2AD;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Impresión
+ *
+ *  El informe regulatorio se imprime y se adjunta a un expediente. Sin esto,
+ *  salía con la barra lateral, los botones y el fondo gris.
+ * ------------------------------------------------------------------ */
+
+@media print {
+  .no-imprimir {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    font-size: 11pt;
+  }
+
+  .superficie {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+
+  .imprimible {
+    break-inside: avoid;
+  }
+
+  .imprimible-salto {
+    break-before: page;
+  }
+
+  /* El destino de un enlace no se ve en papel. */
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    color: #555;
+    word-break: break-all;
+  }
 }
