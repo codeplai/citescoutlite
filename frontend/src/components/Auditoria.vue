@@ -293,7 +293,7 @@ h2 {
 
 .sub {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   font-size: 0.9rem;
 }
 
@@ -310,7 +310,7 @@ h2 {
   flex-direction: column;
   gap: 4px;
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .campo select,
@@ -318,9 +318,9 @@ h2 {
   font-size: 0.88rem;
   padding: 7px 10px;
   border-radius: 6px;
-  border: 1px solid #CED4DA;
-  background: #ffffff;
-  color: var(--text-main);
+  border: 1px solid var(--borde-fuerte);
+  background: var(--superficie);
+  color: var(--texto);
 }
 
 .acciones {
@@ -330,9 +330,9 @@ h2 {
 }
 
 .btn {
-  background: #ffffff;
-  color: var(--text-main);
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borde);
   padding: 7px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -342,9 +342,9 @@ h2 {
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn.primario {
-  background: var(--primary-color);
-  border-color: var(--primary-hover);
-  color: #ffffff;
+  background: var(--verde);
+  border-color: var(--verde-texto);
+  color: var(--superficie);
 }
 
 .btn.menudo { padding: 3px 9px; font-size: 0.78rem; }
@@ -356,20 +356,20 @@ h2 {
   margin: 0 0 12px;
 }
 
-.aviso.info { background: rgba(45, 151, 102, 0.12); color: var(--primary-hover); }
-.aviso.error { background: rgba(220, 38, 38, 0.1); color: #b3312f; }
+.aviso.info { background: var(--verde-tinte); color: var(--verde-texto); }
+.aviso.error { background: var(--critico-fondo); color: var(--critico); }
 
 .vacio {
   padding: 40px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .tabla {
   width: 100%;
   border-collapse: collapse;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
   border-radius: 10px;
   overflow: hidden;
   font-size: 0.88rem;
@@ -381,8 +381,8 @@ h2 {
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--card-border);
+  color: var(--texto-atenuado);
+  border-bottom: 1px solid var(--borde);
 }
 
 .tabla td {
@@ -393,15 +393,15 @@ h2 {
 
 tr.abierta td { background: rgba(45, 151, 102, 0.05); }
 
-.cuando { white-space: nowrap; color: var(--text-muted); }
+.cuando { white-space: nowrap; color: var(--texto-atenuado); }
 .usuario { word-break: break-all; }
 
 .etiqueta {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(45, 151, 102, 0.12);
-  color: var(--primary-hover);
+  background: var(--verde-tinte);
+  color: var(--verde-texto);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -409,7 +409,7 @@ tr.abierta td { background: rgba(45, 151, 102, 0.05); }
 .entidad code {
   margin-left: 6px;
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .col-detalle { text-align: right; width: 1%; }
@@ -427,7 +427,7 @@ tr.abierta td { background: rgba(45, 151, 102, 0.05); }
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .panel.contexto { margin-top: 16px; }
@@ -440,7 +440,7 @@ tr.abierta td { background: rgba(45, 151, 102, 0.05); }
   font-size: 0.84rem;
 }
 
-.panel dt { color: var(--text-muted); }
+.panel dt { color: var(--texto-atenuado); }
 .panel dd { margin: 0; word-break: break-word; }
 
 /* Lo único que se busca al abrir una fila es qué cambió. */
@@ -449,10 +449,10 @@ tr.abierta td { background: rgba(45, 151, 102, 0.05); }
   border-radius: 3px;
   padding: 0 3px;
   font-weight: 600;
-  color: var(--text-main);
+  color: var(--texto);
 }
 
-.ninguno { color: var(--text-muted); font-style: italic; margin: 0; font-size: 0.85rem; }
+.ninguno { color: var(--texto-atenuado); font-style: italic; margin: 0; font-size: 0.85rem; }
 .ninguno.bloque { padding: 4px 0; }
 
 .paginacion {
@@ -464,7 +464,7 @@ tr.abierta td { background: rgba(45, 151, 102, 0.05); }
   font-size: 0.85rem;
 }
 
-.rango { color: var(--text-muted); }
+.rango { color: var(--texto-atenuado); }
 
 @media (max-width: 800px) {
   .paneles { grid-template-columns: 1fr; }

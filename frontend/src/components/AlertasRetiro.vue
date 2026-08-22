@@ -1,250 +1,294 @@
+<!--
+  11 · Vigilancia de retiros (FDA + RASFF).
+
+  ## De tarjetas de colores a filas comparables
+
+  La versión anterior pintaba cada alerta como una tarjeta con encabezado
+  🚨, tres tarjetas de estadística con gradiente morado y rosa, y la severidad
+  en un emoji de círculo de color. Tres problemas, y el tercero es el grave:
+
+  1. **Las tarjetas no se comparan.** Lo que se hace en esta pantalla es
+     ordenar por gravedad y decidir qué mirar primero. Con seis tarjetas de
+     alto variable, «cuál es peor» exige leerlas todas.
+  2. **El gradiente morado no significa nada.** Estaba en la cabecera, en el
+     botón y en la barra de score, o sea en los tres sitios donde el color
+     tenía que estar diciendo la severidad.
+  3. **La severidad iba solo en color.** 🔴🟠🟡🟢 es color puro: quien no
+     distinga rojo de naranja no puede ordenar la lista, y en gris de
+     impresora los cuatro círculos son el mismo círculo.
+
+  Ahora cada alerta es una fila de altura fija con una **barra de severidad a
+  la izquierda** y el rótulo en versalitas al lado. El color refuerza; el que
+  informa es el rótulo. La escala completa —crítica, alta, media, baja— va de
+  rojo a oliva pasando por naranja y ocre, que es un eje y no cuatro colores
+  sueltos.
+-->
 <template>
-  <div class="alertas-retiro">
-    <!-- Header con resumen -->
-    <div class="header-alertas">
-      <div class="titulo">
-        <h2>🚨 Vigilancia de Retiros</h2>
-        <p class="subtitle">Alertas activas de FDA + RASFF (últimas 90 días)</p>
+  <div class="alertas">
+    <header class="cabecera">
+      <div>
+        <p class="eyebrow">Vigilancia</p>
+        <h1>Alertas de retiro</h1>
+        <p class="entradilla">
+          Retiradas y notificaciones de la FDA (Estados Unidos) y del RASFF
+          (Unión Europea) sobre productos alimentarios.
+        </p>
       </div>
 
-      <div class="estadisticas">
-        <div class="stat-card">
-          <div class="stat-valor">{{ estadisticas.alertas_criticas }}</div>
-          <div class="stat-label">Críticas</div>
-          <div class="stat-icon">🔴</div>
+      <!--
+        Los contadores salen de /estadisticas/resumen y son GLOBALES, no los de
+        la página filtrada. Rellenarlos desde /activas —que es lo que hacía una
+        versión anterior— hacía que filtrar por «crítica» cambiara el total de
+        críticas, que es justo la cifra que no debe moverse al filtrar.
+      -->
+      <dl class="contadores">
+        <div>
+          <dt>Críticas</dt>
+          <dd class="cifra critica">{{ estadisticas.alertas_criticas }}</dd>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-valor">{{ estadisticas.alertas_activas_90d }}</div>
-          <div class="stat-label">Activas</div>
-          <div class="stat-icon">⚠️</div>
+        <div>
+          <dt>Activas · 90 días</dt>
+          <dd class="cifra alta">{{ estadisticas.alertas_activas_90d }}</dd>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-valor">{{ estadisticas.total_alertas }}</div>
-          <div class="stat-label">Totales</div>
-          <div class="stat-icon">📊</div>
+        <div>
+          <dt>Totales</dt>
+          <dd class="cifra">{{ estadisticas.total_alertas }}</dd>
         </div>
+      </dl>
+    </header>
 
-        <div class="stat-card small">
-          <div class="stat-label">Última actualización</div>
-          <div class="stat-valor-small">{{ formatearFecha(estadisticas.ultima_actualizacion) }}</div>
-        </div>
-      </div>
-    </div>
+    <p v-if="estadisticas.ultima_actualizacion" class="actualizado">
+      Última actualización del corpus:
+      <strong>{{ formatearFecha(estadisticas.ultima_actualizacion) }}</strong>
+    </p>
 
-    <!-- Controles de filtro -->
-    <div class="filtros">
-      <div class="filtro-grupo">
-        <label>Severidad:</label>
-        <select v-model="filtroSeveridad" @change="cargarAlertas">
-          <option value="">Todas</option>
-          <option value="critical">🔴 Crítica</option>
-          <option value="high">🟠 Alta</option>
-          <option value="medium">🟡 Media</option>
-          <option value="low">🟢 Baja</option>
-        </select>
-      </div>
+    <!-- ================= Filtros ================= -->
+    <div class="filtros no-imprimir">
+      <span class="rotulo">Severidad</span>
+      <!--
+        Chips y no un desplegable: son cinco opciones excluyentes y con el chip
+        se ve cuál está puesta sin abrir nada. Cada uno lleva su punto de
+        color, que aquí sí es legítimo porque el texto va al lado.
+      -->
+      <button
+        v-for="s in SEVERIDADES"
+        :key="s.valor"
+        type="button"
+        class="chip chip--accion"
+        :aria-pressed="filtroSeveridad === s.valor"
+        @click="ponerSeveridad(s.valor)"
+      >
+        <span class="punto" :class="`punto--${s.valor || 'todas'}`" aria-hidden="true"></span>
+        {{ s.nombre }}
+      </button>
 
-      <div class="filtro-grupo">
-        <label>Días:</label>
+      <span class="separador" aria-hidden="true"></span>
+
+      <label class="campo-en-linea">
+        <span class="rotulo">Días</span>
         <select v-model.number="filtroDias" @change="cargarAlertas">
-          <option value="7">Últimos 7 días</option>
-          <option value="30">Últimos 30 días</option>
-          <option value="90">Últimos 90 días</option>
+          <option :value="7">Últimos 7 días</option>
+          <option :value="30">Últimos 30 días</option>
+          <option :value="90">Últimos 90 días</option>
         </select>
-      </div>
+      </label>
 
-      <div class="filtro-grupo">
-        <label>Límite:</label>
-        <input
-          v-model.number="filtroLimite"
-          type="number"
-          min="1"
-          max="200"
-          @change="cargarAlertas"
-        />
-      </div>
+      <label class="campo-en-linea">
+        <span class="rotulo">Máximo</span>
+        <select v-model.number="filtroLimite" @change="cargarAlertas">
+          <option :value="25">25 alertas</option>
+          <option :value="50">50 alertas</option>
+          <option :value="100">100 alertas</option>
+          <option :value="200">200 alertas</option>
+        </select>
+      </label>
 
-      <button @click="cargarAlertas" class="btn-refresh">
-        🔄 Actualizar
+      <span class="cuenta">
+        <b class="num">{{ alertas.length }}</b> visibles
+      </span>
+
+      <button type="button" class="btn btn--secundario btn--pequeno" @click="cargarAlertas">
+        <Icono nombre="refrescar" :tamano="14" />Actualizar
       </button>
     </div>
 
-    <!-- Listado de alertas -->
-    <div class="alertas-lista">
-      <div v-if="cargando" class="loading">
-        ⏳ Cargando alertas...
-      </div>
+    <!-- ================= Estados ================= -->
+    <!--
+      Los tres estados de la lista se ven distintos entre sí. Antes «cargando»,
+      «sin resultados» y «error» compartían el mismo hueco silencioso, y la
+      diferencia entre «no hay alertas» y «la API no responde» era invisible.
+    -->
+    <div v-if="cargando" class="estado superficie" aria-live="polite" aria-busy="true">
+      <span class="barra"><span class="barra-barrido"></span></span>
+      Consultando el corpus de alertas…
+    </div>
 
-      <div v-else-if="alertas.length === 0" class="sin-alertas">
-        ✅ Sin alertas activas para los filtros seleccionados
-      </div>
-
-      <div v-else class="alertas-container">
-        <div
-          v-for="alerta in alertas"
-          :key="alerta.alert_id"
-          :class="['alerta-card', `severity-${alerta.severity_label}`]"
-          @click="mostrarDetalle(alerta)"
-        >
-          <!-- Encabezado -->
-          <div class="alerta-header">
-            <div class="alerta-titulo">
-              <span class="badge" :class="`badge-${alerta.severity_label}`">
-                {{ etiquetaSeveridad(alerta.severity_label) }}
-              </span>
-              <h3>{{ alerta.producto_nombre }}</h3>
-            </div>
-
-            <div class="alerta-fuente">
-              <span class="fuente-badge" :class="`fuente-${alerta.fuente}`">
-                {{ alerta.fuente.toUpperCase() }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Contenido -->
-          <div class="alerta-contenido">
-            <div class="contenido-fila">
-              <span class="label">Riesgo:</span>
-              <span class="valor">
-                {{ capitalizarPrimera(alerta.riesgo_categoria) }}
-              </span>
-            </div>
-
-            <div class="contenido-fila">
-              <span class="label">Descripción:</span>
-              <span class="valor">{{ alerta.riesgo_texto }}</span>
-            </div>
-
-            <div class="contenido-fila">
-              <span class="label">Fecha:</span>
-              <span class="valor">
-                {{ formatearFecha(alerta.fecha_emitida) }}
-                <span class="dias-atrás">(hace {{ alerta.dias_desde }} días)</span>
-              </span>
-            </div>
-
-            <div class="contenido-fila">
-              <span class="label">País Origen:</span>
-              <span class="valor">{{ alerta.pais_origen }}</span>
-            </div>
-
-            <div v-if="alerta.severity_score" class="contenido-fila">
-              <span class="label">Score:</span>
-              <div class="score-bar">
-                <div
-                  class="score-fill"
-                  :style="{ width: (alerta.severity_score / 5) * 100 + '%' }"
-                ></div>
-                <span class="score-valor">{{ alerta.severity_score.toFixed(1) }}/5</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pie -->
-          <div class="alerta-footer">
-            <a :href="alerta.url_oficial" target="_blank" class="link-oficial">
-              🔗 Ver en fuente oficial
-            </a>
-            <span class="click-hint">Click para más detalles →</span>
-          </div>
-        </div>
+    <div v-else-if="error" class="estado superficie estado--error" role="alert">
+      <Icono nombre="info" :tamano="18" />
+      <div>
+        <strong>No se pudo cargar la lista de alertas</strong>
+        <p>
+          Los contadores de arriba pueden ser de una carga anterior. Pulsa
+          Actualizar; si se repite, el motivo está en el log de la API.
+        </p>
       </div>
     </div>
 
-    <!-- Modal de detalles -->
-    <div v-if="alertaSeleccionada" class="modal-overlay" @click="cerrarDetalle">
-      <div class="modal-contenido" @click.stop>
-        <button class="btn-cerrar" @click="cerrarDetalle">✕</button>
+    <div v-else-if="!alertas.length" class="estado superficie">
+      <Icono nombre="check" :tamano="18" />
+      <div>
+        <strong>Ninguna alerta con estos filtros</strong>
+        <p>
+          No es lo mismo que «no hay riesgo»: es que en los últimos
+          {{ filtroDias }} días no hay ninguna notificación de la severidad
+          seleccionada.
+        </p>
+      </div>
+    </div>
 
-        <h2>Detalles de Alerta</h2>
+    <!-- ================= Lista ================= -->
+    <div v-else class="lista">
+      <article
+        v-for="alerta in alertas"
+        :key="alerta.alert_id"
+        class="alerta"
+        :class="`sev-${alerta.severity_label}`"
+      >
+        <!-- La barra de severidad. Es un elemento propio y no un `border-left`
+             para que ocupe el alto completo de la fila aunque la descripción
+             sea de una sola línea. -->
+        <div class="alerta-barra" aria-hidden="true"></div>
 
-        <div class="detalles-grid">
-          <div class="detalle-item">
-            <span class="label">ID:</span>
-            <span class="valor monospace">{{ alertaSeleccionada.alert_id }}</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">Fuente:</span>
-            <span class="valor">{{ alertaSeleccionada.fuente.toUpperCase() }}</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">Producto:</span>
-            <span class="valor">{{ alertaSeleccionada.producto_nombre }}</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">Severidad:</span>
-            <span class="valor">
-              {{ etiquetaSeveridad(alertaSeleccionada.severity_label) }}
-              ({{ alertaSeleccionada.severity_score?.toFixed(1) }}/5)
-            </span>
-          </div>
-
-          <div class="detalle-item full-width">
-            <span class="label">Descripción del Riesgo:</span>
-            <span class="valor">{{ alertaSeleccionada.riesgo_texto }}</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">Categoría de Riesgo:</span>
-            <span class="valor">{{ capitalizarPrimera(alertaSeleccionada.riesgo_categoria) }}</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">Fecha Emitida:</span>
-            <span class="valor">{{ formatearFecha(alertaSeleccionada.fecha_emitida) }}</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">Días Desde:</span>
-            <span class="valor">{{ alertaSeleccionada.dias_desde }} días</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">País Origen:</span>
-            <span class="valor">{{ alertaSeleccionada.pais_origen }}</span>
-          </div>
-
-          <div class="detalle-item">
-            <span class="label">País Destino:</span>
-            <span class="valor">{{ alertaSeleccionada.pais_destino }}</span>
-          </div>
-
-          <div v-if="alertaSeleccionada.empresa" class="detalle-item">
-            <span class="label">Empresa:</span>
-            <span class="valor">{{ alertaSeleccionada.empresa }}</span>
-          </div>
-
-          <div v-if="alertaSeleccionada.reference_number" class="detalle-item">
-            <span class="label">Referencia:</span>
-            <span class="valor monospace">{{ alertaSeleccionada.reference_number }}</span>
-          </div>
-
-          <div class="detalle-item full-width">
-            <span class="label">Fuente Oficial:</span>
-            <a :href="alertaSeleccionada.url_oficial" target="_blank" class="link-oficial-modal">
-              {{ alertaSeleccionada.url_oficial }}
-            </a>
-          </div>
+        <div class="alerta-sev">
+          <span class="sev-rotulo">
+            {{ NOMBRE_SEV[alerta.severity_label] || alerta.severity_label }}
+          </span>
+          <span class="sev-fuente codigo">{{ alerta.fuente.toUpperCase() }}</span>
         </div>
 
-        <div class="modal-acciones">
-          <button @click="cerrarDetalle" class="btn-cerrar-modal">Cerrar</button>
-          <a :href="alertaSeleccionada.url_oficial" target="_blank" class="btn-original">
-            Abrir en FDA/RASFF
+        <div class="alerta-cuerpo">
+          <h2 :title="alerta.producto_nombre">{{ alerta.producto_nombre }}</h2>
+          <!--
+            El texto del riesgo viene de la fuente y está en inglés. `lang="en"`
+            para que un lector de pantalla en español no lo pronuncie como si lo
+            fuera; sin esto, «Listeria monocytogenes detected» sale ininteligible.
+          -->
+          <p class="alerta-desc recorte-2" lang="en" :title="alerta.riesgo_texto">
+            {{ alerta.riesgo_texto }}
+          </p>
+        </div>
+
+        <div class="alerta-riesgo">
+          <span class="rotulo">Riesgo</span>
+          <span class="riesgo-valor">{{ capitalizarPrimera(alerta.riesgo_categoria) }}</span>
+          <span class="riesgo-meta">
+            {{ alerta.pais_origen }} · hace {{ alerta.dias_desde }} días
+          </span>
+        </div>
+
+        <!--
+          El score va con su medidor. `role="img"` con etiqueta porque la barra
+          sola no se puede leer, y la cifra ya está al lado en texto: la barra
+          es para comparar de un vistazo entre filas.
+        -->
+        <div v-if="alerta.severity_score" class="alerta-score">
+          <span class="score-cifra num">{{ alerta.severity_score.toFixed(1) }}</span>
+          <span
+            class="score-barra"
+            role="img"
+            :aria-label="`Severidad ${alerta.severity_score.toFixed(1)} sobre 5`"
+          >
+            <span
+              class="score-relleno"
+              :style="{ width: (alerta.severity_score / 5) * 100 + '%' }"
+            ></span>
+          </span>
+        </div>
+        <div v-else class="alerta-score">
+          <span class="sin-dato">sin score</span>
+        </div>
+
+        <div class="alerta-acciones no-imprimir">
+          <button
+            type="button"
+            class="btn btn--secundario btn--pequeno"
+            @click="mostrarDetalle(alerta)"
+          >
+            Detalles
+          </button>
+          <a :href="alerta.url_oficial" target="_blank" rel="noopener" class="enlace-fuente">
+            Fuente oficial <Icono nombre="externo" :tamano="12" />
           </a>
         </div>
+      </article>
+    </div>
+
+    <!-- ================= Detalle ================= -->
+    <div v-if="alertaSeleccionada" class="modal-fondo no-imprimir" @click.self="cerrarDetalle">
+      <div
+        class="modal superficie"
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+        :aria-label="alertaSeleccionada.producto_nombre"
+      >
+        <header class="modal-cabecera">
+          <div class="modal-titulo">
+            <span
+              class="severidad"
+              :class="`severidad--${claseSev(alertaSeleccionada.severity_label)}`"
+            >
+              {{ NOMBRE_SEV[alertaSeleccionada.severity_label] || alertaSeleccionada.severity_label }}
+            </span>
+            <h4>{{ alertaSeleccionada.producto_nombre }}</h4>
+            <p class="modal-sub codigo">
+              {{ alertaSeleccionada.fuente.toUpperCase() }} ·
+              {{ alertaSeleccionada.alert_id }}
+            </p>
+          </div>
+          <button class="modal-cerrar" aria-label="Cerrar" @click="cerrarDetalle">
+            <Icono nombre="equis" :tamano="17" />
+          </button>
+        </header>
+
+        <div class="modal-cuerpo">
+          <section>
+            <h5>Descripción del riesgo</h5>
+            <p class="riesgo-texto" lang="en">{{ alertaSeleccionada.riesgo_texto }}</p>
+          </section>
+
+          <dl class="detalles">
+            <template v-for="d in detalles" :key="d.etiqueta">
+              <dt>{{ d.etiqueta }}</dt>
+              <dd :class="{ codigo: d.codigo }">
+                <span v-if="d.valor">{{ d.valor }}</span>
+                <span v-else class="sin-dato">sin dato</span>
+              </dd>
+            </template>
+          </dl>
+        </div>
+
+        <footer class="modal-pie">
+          <a
+            :href="alertaSeleccionada.url_oficial"
+            target="_blank"
+            rel="noopener"
+            class="btn btn--secundario btn--pequeno"
+          >
+            Abrir en {{ alertaSeleccionada.fuente.toUpperCase() }}
+            <Icono nombre="externo" :tamano="13" />
+          </a>
+          <span class="modal-nota">
+            El texto y la clasificación son los de la fuente oficial. Aquí no se
+            reinterpretan ni se traducen.
+          </span>
+        </footer>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
 // Las llamadas pasan por el cliente de api.js y no por fetch directo: es el
 // unico sitio que adjunta el token y el que cierra la sesion ante un 401.
 //
@@ -252,594 +296,634 @@
 // 8000, clave de token "token"). Nada de eso existe aqui: el bundler es Vite,
 // la API escucha en 8001 y el token se guarda en `agroscout_token`. Tal cual
 // estaba, reventaba al montarlo con "process is not defined".
-import { ref, onMounted } from "vue";
-import { api } from "../api.js";
+import { computed, onMounted, ref } from 'vue'
+import { api } from '../api.js'
+import Icono from './Icono.vue'
 
-export default {
-  name: "AlertasRetiro",
+const SEVERIDADES = [
+  { valor: '', nombre: 'Todas' },
+  { valor: 'critical', nombre: 'Crítica' },
+  { valor: 'high', nombre: 'Alta' },
+  { valor: 'medium', nombre: 'Media' },
+  { valor: 'low', nombre: 'Baja' },
+]
 
-  setup() {
-    const alertas = ref([]);
-    const cargando = ref(false);
-    const alertaSeleccionada = ref(null);
-    const estadisticas = ref({
-      total_alertas: 0,
-      alertas_criticas: 0,
-      alertas_activas_90d: 0,
-      ultima_actualizacion: null,
-    });
+// Los nombres, sin emoji. El color lo pone la barra de la izquierda y el
+// rótulo se lee igual en gris.
+const NOMBRE_SEV = {
+  critical: 'Crítica',
+  high: 'Alta',
+  medium: 'Media',
+  low: 'Baja',
+}
 
-    const filtroSeveridad = ref("");
-    const filtroDias = ref(90);
-    const filtroLimite = ref(50);
+const CLASE_SEV = {
+  critical: 'critica',
+  high: 'alta',
+  medium: 'media',
+  low: 'baja',
+}
 
-    // Cargar alertas del API
-    const cargarAlertas = async () => {
-      cargando.value = true;
+const alertas = ref([])
+const cargando = ref(false)
+const error = ref(false)
+const alertaSeleccionada = ref(null)
+const estadisticas = ref({
+  total_alertas: 0,
+  alertas_criticas: 0,
+  alertas_activas_90d: 0,
+  ultima_actualizacion: null,
+})
 
-      try {
-        const data = await api.alertasActivas({
-          limite: filtroLimite.value,
-          dias: filtroDias.value,
-          severidad: filtroSeveridad.value,
-        });
+const filtroSeveridad = ref('')
+const filtroDias = ref(90)
+const filtroLimite = ref(50)
 
-        alertas.value = data.alertas;
-        // Las tarjetas de arriba NO se rellenan desde aqui. Los conteos que
-        // devuelve /activas son los de la pagina ya filtrada y recortada por
-        // el limite, asi que al filtrar por "critical" las tarjetas pasaban a
-        // mostrar el total de lo filtrado en vez del global. Los totales
-        // buenos salen de /estadisticas/resumen.
-      } catch (error) {
-        console.error("Error cargando alertas:", error);
-        alertas.value = [];
-      } finally {
-        cargando.value = false;
-      }
-    };
+const claseSev = (label) => CLASE_SEV[label] || 'baja'
 
-    // Cargar estadísticas
-    const cargarEstadisticas = async () => {
-      try {
-        estadisticas.value = await api.estadisticasAlertas();
-      } catch (error) {
-        console.error("Error cargando estadísticas:", error);
-      }
-    };
+const cargarAlertas = async () => {
+  cargando.value = true
+  error.value = false
 
-    // Mostrar detalle de alerta
-    const mostrarDetalle = async (alerta) => {
-      try {
-        alertaSeleccionada.value = await api.alertaDetalle(alerta.alert_id);
-      } catch (error) {
-        console.error("Error cargando detalles:", error);
-      }
-    };
+  try {
+    const data = await api.alertasActivas({
+      limite: filtroLimite.value,
+      dias: filtroDias.value,
+      severidad: filtroSeveridad.value,
+    })
 
-    const cerrarDetalle = () => {
-      alertaSeleccionada.value = null;
-    };
+    alertas.value = data.alertas
+    // Las tarjetas de arriba NO se rellenan desde aqui. Los conteos que
+    // devuelve /activas son los de la pagina ya filtrada y recortada por
+    // el limite, asi que al filtrar por "critical" las tarjetas pasaban a
+    // mostrar el total de lo filtrado en vez del global. Los totales
+    // buenos salen de /estadisticas/resumen.
+  } catch (e) {
+    console.error('Error cargando alertas:', e)
+    alertas.value = []
+    // Antes esto dejaba la lista vacía y nada más, así que un fallo de red se
+    // veía exactamente igual que «no hay alertas». Son dos mensajes opuestos:
+    // uno dice que todo está en orden y el otro que no sabemos si lo está.
+    error.value = true
+  } finally {
+    cargando.value = false
+  }
+}
 
-    // Utilidades
-    const etiquetaSeveridad = (label) => {
-      const etiquetas = {
-        critical: "🔴 CRÍTICA",
-        high: "🟠 ALTA",
-        medium: "🟡 MEDIA",
-        low: "🟢 BAJA",
-      };
-      return etiquetas[label] || label;
-    };
+const cargarEstadisticas = async () => {
+  try {
+    estadisticas.value = await api.estadisticasAlertas()
+  } catch (e) {
+    console.error('Error cargando estadísticas:', e)
+  }
+}
 
-    const capitalizarPrimera = (str) => {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    };
+const ponerSeveridad = (valor) => {
+  filtroSeveridad.value = valor
+  cargarAlertas()
+}
 
-    const formatearFecha = (fechaStr) => {
-      if (!fechaStr) return "N/A";
-      const fecha = new Date(fechaStr);
-      return fecha.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    };
+const mostrarDetalle = async (alerta) => {
+  try {
+    alertaSeleccionada.value = await api.alertaDetalle(alerta.alert_id)
+  } catch (e) {
+    console.error('Error cargando detalles:', e)
+  }
+}
 
-    // Inicializar
-    onMounted(() => {
-      cargarAlertas();
-      cargarEstadisticas();
-    });
+const cerrarDetalle = () => {
+  alertaSeleccionada.value = null
+}
 
-    return {
-      alertas,
-      cargando,
-      alertaSeleccionada,
-      estadisticas,
-      filtroSeveridad,
-      filtroDias,
-      filtroLimite,
-      cargarAlertas,
-      mostrarDetalle,
-      cerrarDetalle,
-      etiquetaSeveridad,
-      capitalizarPrimera,
-      formatearFecha,
-    };
-  },
-};
+const capitalizarPrimera = (str) =>
+  str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
+
+const formatearFecha = (fechaStr) => {
+  if (!fechaStr) return ''
+  const fecha = new Date(fechaStr)
+  return fecha.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+/**
+ * Los campos del detalle, en una tabla.
+ *
+ * Antes eran doce bloques `<div class="detalle-item">` escritos a mano, cada
+ * uno con su `v-if`, y los que faltaban desaparecían: el hueco se cerraba y no
+ * quedaba forma de saber si el campo no venía o si nadie lo había puesto. Aquí
+ * se recorren siempre los mismos y los vacíos dicen «sin dato».
+ */
+const detalles = computed(() => {
+  const a = alertaSeleccionada.value
+  if (!a) return []
+  return [
+    { etiqueta: 'Categoría de riesgo', valor: capitalizarPrimera(a.riesgo_categoria) },
+    { etiqueta: 'Fecha emitida', valor: formatearFecha(a.fecha_emitida) },
+    { etiqueta: 'Días desde', valor: a.dias_desde != null ? `${a.dias_desde} días` : '' },
+    { etiqueta: 'País de origen', valor: a.pais_origen },
+    { etiqueta: 'País de destino', valor: a.pais_destino },
+    { etiqueta: 'Empresa', valor: a.empresa },
+    { etiqueta: 'Referencia', valor: a.reference_number, codigo: true },
+    {
+      etiqueta: 'Severidad',
+      valor: a.severity_score != null ? `${a.severity_score.toFixed(1)} / 5` : '',
+    },
+  ]
+})
+
+onMounted(() => {
+  cargarAlertas()
+  cargarEstadisticas()
+})
 </script>
 
 <style scoped>
-.alertas-retiro {
-  padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
-}
-
-/* Header */
-.header-alertas {
-  margin-bottom: 30px;
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.titulo h2 {
-  margin: 0;
-  color: #d63031;
-  font-size: 28px;
-}
-
-.subtitle {
-  margin: 8px 0 0 0;
-  color: #7f8c8d;
-  font-size: 14px;
-}
-
-/* Estadísticas */
-.estadisticas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-}
-
-.stat-card.small {
-  grid-column: 1 / -1;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-icon {
-  font-size: 32px;
-  margin-top: 10px;
-}
-
-.stat-valor {
-  font-size: 32px;
-  font-weight: bold;
-}
-
-.stat-valor-small {
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-.stat-label {
-  font-size: 12px;
-  opacity: 0.9;
-  margin-top: 8px;
-}
-
-/* Filtros */
-.filtros {
+.alertas {
+  max-width: 1180px;
+  margin: 0 auto;
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------------------------------------------------------------- *
+ *  Cabecera
+ * ---------------------------------------------------------------- */
+
+.cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
   flex-wrap: wrap;
 }
 
-.filtro-grupo {
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.69rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--verde-texto);
+}
+
+.cabecera h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.entradilla {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  font-size: 0.9375rem;
+  color: var(--texto-atenuado);
+}
+
+.contadores {
+  display: flex;
+  gap: 28px;
+  margin: 0;
+}
+
+.contadores div { text-align: right; }
+
+.contadores dt {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--texto-sin-dato);
+  margin-bottom: 2px;
+}
+
+.contadores dd { margin: 0; }
+
+/* Los contadores no llevan tarjeta ni gradiente: son tres números, y una
+   tarjeta alrededor de un número solo añade borde. */
+.cifra.critica { color: var(--sev-critica); }
+.cifra.alta    { color: var(--sev-alta); }
+
+.actualizado {
+  margin: -8px 0 0;
+  font-size: 0.78rem;
+  color: var(--texto-sin-dato);
+}
+
+.actualizado strong { color: var(--texto-atenuado); font-weight: 600; }
+
+/* ---------------------------------------------------------------- *
+ *  Filtros
+ * ---------------------------------------------------------------- */
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  background: var(--superficie);
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.punto--todas    { background: var(--texto-tenue); }
+.punto--critical { background: var(--sev-critica); }
+.punto--high     { background: var(--sev-alta); }
+.punto--medium   { background: var(--sev-media); }
+.punto--low      { background: var(--sev-baja); }
+
+.separador {
+  width: 1px;
+  height: 22px;
+  background: var(--borde);
+  margin: 0 4px;
+}
+
+.campo-en-linea {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.campo-en-linea select { font-size: 0.82rem; padding: 6px 10px; }
+
+.cuenta {
+  margin-left: auto;
+  font-size: 0.82rem;
+  color: var(--texto-atenuado);
+}
+
+.cuenta b { color: var(--tinta); }
+
+/* ---------------------------------------------------------------- *
+ *  Estados
+ * ---------------------------------------------------------------- */
+
+.estado {
   display: flex;
   align-items: center;
+  gap: 12px;
+  padding: 20px 22px;
+  font-size: 0.9375rem;
+  color: var(--texto-atenuado);
+}
+
+.estado strong { display: block; color: var(--tinta); }
+.estado p { margin: 3px 0 0; font-size: 0.85rem; }
+
+.estado--error {
+  align-items: flex-start;
+  border-color: var(--critico-borde);
+  background: var(--critico-fondo);
+  color: var(--critico);
+}
+
+.estado--error strong { color: var(--critico); }
+.estado--error p { color: var(--texto-atenuado); }
+
+.barra {
+  flex: none;
+  display: block;
+  width: 90px;
+  height: 4px;
+  border-radius: 999px;
+  background: #EEF1EF;
+  overflow: hidden;
+}
+
+.barra-barrido {
+  display: block;
+  width: 33%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--verde);
+  animation: ags-barrido 1.4s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------- *
+ *  Lista
+ * ---------------------------------------------------------------- */
+
+.lista {
+  display: grid;
   gap: 8px;
 }
 
-.filtro-grupo label {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.filtro-grupo select,
-.filtro-grupo input {
-  padding: 8px 12px;
-  border: 1px solid #bdc3c7;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.btn-refresh {
-  padding: 8px 16px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-.btn-refresh:hover {
-  background: #5568d3;
-}
-
-/* Alertas */
-.alertas-lista {
-  margin-bottom: 30px;
-}
-
-.loading,
-.sin-alertas {
-  text-align: center;
-  padding: 40px 20px;
-  background: white;
-  border-radius: 8px;
-  color: #7f8c8d;
-  font-size: 16px;
-}
-
-.sin-alertas {
-  color: #27ae60;
-  background: #ecf0f1;
-}
-
-.alertas-container {
+/*
+  Rejilla de anchos fijos salvo la descripción, que es la que se estira. Con
+  todas las columnas fluidas, la de severidad cambiaba de ancho según el texto
+  y los rótulos dejaban de alinearse entre filas, que es lo único que hace que
+  esta lista se pueda barrer en vertical.
+*/
+.alerta {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
-}
-
-.alerta-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  grid-template-columns: 5px 128px 1fr 172px 84px 128px;
+  align-items: stretch;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
   overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s;
-  border-left: 6px solid #95a5a6;
+  transition: border-color 0.15s;
 }
 
-.alerta-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
+.alerta:hover { border-color: var(--borde-fuerte); }
 
-.alerta-card.severity-critical {
-  border-left-color: #e74c3c;
-  background: linear-gradient(to right, rgba(231, 76, 60, 0.05) 0%, white 100%);
-}
+.alerta-barra { background: var(--borde-medio); }
 
-.alerta-card.severity-high {
-  border-left-color: #e67e22;
-  background: linear-gradient(to right, rgba(230, 126, 34, 0.05) 0%, white 100%);
-}
+.sev-critical .alerta-barra { background: var(--sev-critica); }
+.sev-high     .alerta-barra { background: var(--sev-alta); }
+.sev-medium   .alerta-barra { background: var(--sev-media); }
+.sev-low      .alerta-barra { background: var(--sev-baja); }
 
-.alerta-card.severity-medium {
-  border-left-color: #f39c12;
-}
-
-.alerta-card.severity-low {
-  border-left-color: #27ae60;
-}
-
-/* Card - Header */
-.alerta-header {
-  padding: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  border-bottom: 1px solid #ecf0f1;
-}
-
-.alerta-titulo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-}
-
-.alerta-titulo h3 {
-  margin: 0;
-  font-size: 16px;
-  color: #2c3e50;
-}
-
-.badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.badge-critical {
-  background: #e74c3c;
-  color: white;
-}
-
-.badge-high {
-  background: #e67e22;
-  color: white;
-}
-
-.badge-medium {
-  background: #f39c12;
-  color: white;
-}
-
-.badge-low {
-  background: #27ae60;
-  color: white;
-}
-
-.fuente-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.fuente-openfda {
-  background: #3498db;
-  color: white;
-}
-
-.fuente-rasff {
-  background: #9b59b6;
-  color: white;
-}
-
-/* Card - Contenido */
-.alerta-contenido {
-  padding: 15px;
-}
-
-.contenido-fila {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: 13px;
-}
-
-.contenido-fila:last-child {
-  margin-bottom: 0;
-}
-
-.contenido-fila .label {
-  font-weight: 600;
-  color: #7f8c8d;
-  min-width: 90px;
-}
-
-.contenido-fila .valor {
-  color: #2c3e50;
-  flex: 1;
-  word-break: break-word;
-}
-
-.dias-atrás {
-  color: #95a5a6;
-  font-size: 12px;
-}
-
-.score-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-}
-
-.score-fill {
-  height: 8px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  border-radius: 4px;
-  min-width: 50px;
-}
-
-.score-valor {
-  font-weight: 600;
-  font-size: 12px;
-  min-width: 40px;
-}
-
-/* Card - Footer */
-.alerta-footer {
-  padding: 12px 15px;
-  border-top: 1px solid #ecf0f1;
-  background: #f8f9fa;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-}
-
-.link-oficial {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.link-oficial:hover {
-  text-decoration: underline;
-}
-
-.click-hint {
-  color: #bdc3c7;
-  font-size: 11px;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.modal-contenido {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  max-width: 600px;
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  position: relative;
-}
-
-.modal-contenido h2 {
-  margin-top: 0;
-  color: #2c3e50;
-}
-
-.btn-cerrar {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #7f8c8d;
-}
-
-.detalles-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.detalles-grid .full-width {
-  grid-column: 1 / -1;
-}
-
-.detalle-item {
+.alerta-sev {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  justify-content: center;
+  padding: 14px 16px;
+  border-right: 1px solid var(--borde-suave);
 }
 
-.detalle-item .label {
-  font-weight: 600;
-  color: #7f8c8d;
-  font-size: 12px;
+.sev-rotulo {
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.detalle-item .valor {
-  color: #2c3e50;
-  font-size: 14px;
+.sev-critical .sev-rotulo { color: var(--sev-critica); }
+.sev-high     .sev-rotulo { color: var(--sev-alta); }
+.sev-medium   .sev-rotulo { color: var(--sev-media); }
+.sev-low      .sev-rotulo { color: var(--sev-baja); }
+
+.sev-fuente {
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  color: var(--texto-sin-dato);
 }
 
-.monospace {
-  font-family: "Courier New", monospace;
-  font-size: 12px;
-  background: #f8f9fa;
-  padding: 4px 8px;
-  border-radius: 4px;
-  word-break: break-all;
+.alerta-cuerpo {
+  padding: 14px 18px;
+  min-width: 0;
 }
 
-.link-oficial-modal {
-  color: #667eea;
-  text-decoration: none;
-  word-break: break-all;
+.alerta-cuerpo h2 {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.008em;
+  line-height: 1.3;
 }
 
-.link-oficial-modal:hover {
-  text-decoration: underline;
+.alerta-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--texto-atenuado);
 }
 
-.modal-acciones {
+.alerta-riesgo {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  flex-direction: column;
+  gap: 3px;
+  justify-content: center;
+  padding: 14px 16px;
+  border-left: 1px solid var(--borde-suave);
+  min-width: 0;
 }
 
-.btn-cerrar-modal,
-.btn-original {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
+.riesgo-valor {
+  font-size: 0.82rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+  color: var(--texto);
 }
 
-.btn-cerrar-modal {
-  background: #ecf0f1;
-  color: #2c3e50;
+.riesgo-meta {
+  font-size: 0.75rem;
+  color: var(--texto-sin-dato);
 }
 
-.btn-cerrar-modal:hover {
-  background: #bdc3c7;
+.alerta-score {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 10px;
+  border-left: 1px solid var(--borde-suave);
 }
 
-.btn-original {
-  background: #667eea;
-  color: white;
+.score-cifra {
+  font-size: 1.125rem;
+  font-weight: 750;
+  color: var(--tinta);
+}
+
+.score-barra {
+  display: block;
+  width: 56px;
+  height: 4px;
+  border-radius: 999px;
+  background: #EEF1EF;
+  overflow: hidden;
+}
+
+.score-relleno {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--borde-medio);
+}
+
+.sev-critical .score-relleno { background: var(--sev-critica); }
+.sev-high     .score-relleno { background: var(--sev-alta); }
+.sev-medium   .score-relleno { background: var(--sev-media); }
+.sev-low      .score-relleno { background: var(--sev-baja); }
+
+.alerta-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  padding: 14px;
+  border-left: 1px solid var(--borde-suave);
+  background: var(--superficie-sutil);
+}
+
+.enlace-fuente {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--texto-atenuado);
   text-decoration: none;
-  text-align: center;
+}
+
+.enlace-fuente:hover { color: var(--verde-texto); }
+
+/* ---------------------------------------------------------------- *
+ *  Detalle
+ * ---------------------------------------------------------------- */
+
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 21, 18, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px;
 }
 
-.btn-original:hover {
-  background: #5568d3;
-  color: white;
-  text-decoration: none;
+.modal {
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--sombra-elevada);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .alertas-container {
-    grid-template-columns: 1fr;
+.modal-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.modal-titulo { flex: 1; min-width: 0; }
+.modal-titulo h4 { margin: 6px 0 3px; font-size: 1.0625rem; line-height: 1.3; }
+.modal-sub { margin: 0; font-size: 0.72rem; color: var(--texto-sin-dato); }
+
+.modal-cerrar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-xs);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--texto-atenuado);
+  cursor: pointer;
+}
+
+.modal-cerrar:hover { background: var(--lienzo); color: var(--tinta); }
+
+.modal-cuerpo {
+  overflow-y: auto;
+  padding: 18px 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.modal-cuerpo h5 {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-atenuado);
+}
+
+.riesgo-texto {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--texto);
+}
+
+.detalles {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) 1fr;
+  gap: 0;
+  margin: 0;
+}
+
+.detalles dt,
+.detalles dd {
+  margin: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--borde-suave);
+  font-size: 0.85rem;
+}
+
+.detalles dt { color: var(--texto-atenuado); padding-right: 16px; }
+.detalles dd { color: var(--tinta); font-weight: 600; }
+
+.modal-pie {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 22px;
+  border-top: 1px solid var(--borde-suave);
+  background: var(--superficie-sutil);
+}
+
+.modal-nota {
+  flex: 1;
+  min-width: 200px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--texto-sin-dato);
+}
+
+/* ---------------------------------------------------------------- *
+ *  Estrecho
+ * ---------------------------------------------------------------- */
+
+/*
+  Por debajo de 1080 px la rejilla de seis columnas deja la descripción en 90 px
+  y el nombre del producto en cuatro líneas. Se apila: la barra de severidad
+  pasa a ser un filo superior y cada bloque ocupa el ancho.
+*/
+@media (max-width: 1080px) {
+  .alerta {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'barra  barra'
+      'sev    score'
+      'cuerpo cuerpo'
+      'riesgo riesgo'
+      'acc    acc';
   }
 
-  .estadisticas {
-    grid-template-columns: repeat(2, 1fr);
+  .alerta-barra   { grid-area: barra; height: 4px; }
+  .alerta-sev     { grid-area: sev; flex-direction: row; align-items: center; gap: 10px; border-right: 0; }
+  .alerta-cuerpo  { grid-area: cuerpo; padding-top: 0; }
+  .alerta-riesgo  { grid-area: riesgo; border-left: 0; border-top: 1px solid var(--borde-suave); }
+  .alerta-score   { grid-area: score; flex-direction: row; gap: 8px; border-left: 0; }
+  .alerta-acciones {
+    grid-area: acc;
+    flex-direction: row;
+    border-left: 0;
+    border-top: 1px solid var(--borde-suave);
   }
 
-  .filtros {
-    flex-direction: column;
-  }
+  .alerta-desc { -webkit-line-clamp: 4; line-clamp: 4; }
+}
 
-  .detalles-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 760px) {
+  .cabecera { gap: 18px; }
+  .contadores { gap: 20px; }
+  .contadores div { text-align: left; }
+  .cuenta { margin-left: 0; }
+  .modal-fondo { padding: 0; align-items: flex-end; }
+  .modal { max-width: none; max-height: 92vh; border-radius: var(--r-lg) var(--r-lg) 0 0; }
 }
 </style>

@@ -185,8 +185,8 @@ onMounted(cargar)
 
 <style scoped>
 .dashboard {
-  background: #ffffff;
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
   border-radius: 12px;
   padding: 18px 20px;
   margin-bottom: 24px;
@@ -208,15 +208,15 @@ h4 {
   margin: 0 0 8px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .btn-sm {
   background: transparent;
-  border: 1px solid var(--card-border);
-  color: var(--text-muted);
+  border: 1px solid var(--borde);
+  color: var(--texto-atenuado);
   border-radius: 6px;
   padding: 4px 10px;
   font-size: 0.8rem;
@@ -231,7 +231,7 @@ h4 {
 }
 
 .vacio {
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   padding: 20px 0;
 }
 
@@ -252,7 +252,7 @@ h4 {
   font-size: 3rem;
   font-weight: 700;
   line-height: 1;
-  color: var(--text-main);
+  color: var(--texto);
 }
 
 .pct {
@@ -262,7 +262,7 @@ h4 {
 
 .hero-etq {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .tiles {
@@ -282,7 +282,7 @@ h4 {
 
 .tile .etq {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .punto {
@@ -305,7 +305,7 @@ h4 {
   height: 14px;
   border-radius: 4px;
   overflow: hidden;
-  background: #f1f1ef;
+  background: var(--lienzo);
 }
 
 .seg {
@@ -322,11 +322,11 @@ h4 {
   padding: 0;
   margin: 8px 0 0;
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .leyenda b {
-  color: var(--text-main);
+  color: var(--texto);
 }
 
 .barras .fila {
@@ -339,7 +339,7 @@ h4 {
 
 .nombre {
   width: 170px;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -347,7 +347,7 @@ h4 {
 
 .pista {
   flex: 1;
-  background: #f1f1ef;
+  background: var(--lienzo);
   border-radius: 4px;
   height: 10px;
 }
@@ -355,7 +355,7 @@ h4 {
 .barra {
   display: block;
   height: 100%;
-  background: #2a78d6;
+  background: var(--verde);
   border-radius: 4px;
 }
 
@@ -396,20 +396,20 @@ h4 {
 
 .fecha {
   font-size: 0.7rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   margin-top: 6px;
   font-variant-numeric: tabular-nums;
 }
 
 .nota {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   margin: 6px 0 0;
 }
 
 .tabla-vista {
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .tabla-vista summary {
@@ -426,7 +426,7 @@ h4 {
 .tabla-vista td {
   text-align: left;
   padding: 4px 6px;
-  border-bottom: 1px solid #ececeb;
+  border-bottom: 1px solid var(--borde);
   font-variant-numeric: tabular-nums;
 }
 </style>

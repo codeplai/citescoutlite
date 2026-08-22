@@ -237,7 +237,7 @@ h2 {
 
 .sub {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   font-size: 0.9rem;
 }
 
@@ -251,7 +251,7 @@ h2 {
 
 .filtro {
   font-size: 0.9rem;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   cursor: pointer;
 }
 
@@ -266,9 +266,9 @@ h2 {
 /* Fondo claro: los realces van con los colores de marca y de estado, no con
    blancos translucidos, que sobre #F8F9FA no se ven. */
 .btn {
-  background: #ffffff;
-  color: var(--text-main);
-  border: 1px solid var(--card-border);
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borde);
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -281,15 +281,15 @@ h2 {
 }
 
 .btn.primario {
-  background: var(--primary-color);
-  border-color: var(--primary-hover);
-  color: #ffffff;
+  background: var(--verde);
+  border-color: var(--verde-texto);
+  color: var(--superficie);
 }
 
 .btn.peligro {
-  background: #ffffff;
+  background: var(--superficie);
   border-color: rgba(208, 59, 59, 0.45);
-  color: #b3312f;
+  color: var(--critico);
 }
 
 .aviso {
@@ -299,19 +299,19 @@ h2 {
 }
 
 .aviso.ok {
-  background: rgba(45, 151, 102, 0.12);
-  color: var(--primary-hover);
+  background: var(--verde-tinte);
+  color: var(--verde-texto);
 }
 
 .aviso.error {
   background: rgba(208, 59, 59, 0.1);
-  color: #b3312f;
+  color: var(--critico);
 }
 
 .vacio {
   padding: 40px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
 }
 
 .tabla {
@@ -324,11 +324,11 @@ h2 {
 .tabla td {
   padding: 10px 8px;
   text-align: left;
-  border-bottom: 1px solid #ececeb;
+  border-bottom: 1px solid var(--borde);
 }
 
 .tabla th {
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   font-weight: 600;
   font-size: 0.8rem;
 }
@@ -346,7 +346,7 @@ h2 {
 }
 
 .urgente {
-  color: #f59e0b;
+  color: var(--aviso);
   font-weight: 600;
 }
 
@@ -361,7 +361,7 @@ h2 {
 }
 
 .etiqueta {
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   font-size: 0.8rem;
 }
 
@@ -377,7 +377,7 @@ h2 {
 
 .historial li {
   padding: 6px 0;
-  border-bottom: 1px solid #f0f0ee;
+  border-bottom: 1px solid var(--borde-suave);
 }
 
 .pill {
@@ -397,11 +397,11 @@ h2 {
 }
 
 .pill.tipo {
-  background: #ececeb;
+  background: var(--borde);
 }
 
 .fecha {
-  color: var(--text-muted);
+  color: var(--texto-atenuado);
   margin-left: 8px;
 }
 </style>
