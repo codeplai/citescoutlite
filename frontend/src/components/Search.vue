@@ -1,18 +1,87 @@
+<!--
+  La pregunta y la espera. Dos estados de la misma pantalla.
+
+  ## La pregunta
+
+  Antes esto era una tarjeta titulada «Consulta de Insumos» con el título
+  pintado en degradado y un campo de texto azul marino sobre fondo claro —la
+  tercera carcasa—. Ahora es una sola pregunta centrada, porque literalmente no
+  hay nada más que hacer aquí: escribir un insumo y pulsar Analizar.
+
+  ## La espera dejó de inventarse un porcentaje
+
+  La versión anterior enseñaba una barra que subía sola con
+  `progress += (95 - progress) * 0.05` y un número grande debajo. Ese número no
+  medía nada: era una asíntota hacia el 95 % que llegaba al 94 % tanto si el
+  servidor iba a tardar treinta segundos como si iba a fallar. Un porcentaje
+  falso es peor que ninguno, porque quien lo mira calcula cuánto le queda y
+  planifica con esa cuenta.
+
+  Lo que queda es lo que sí es verdad: **el reloj**, que cuenta segundos reales,
+  y **la lista de etapas**, que dice qué está ocurriendo. La barra pasa a
+  indeterminada —barre de izquierda a derecha— porque su trabajo es decir «sigo
+  vivo», no «voy por la mitad».
+
+  Las etapas siguen avanzando por temporizador, calibrado con los tiempos
+  medidos en consultas reales, y la pantalla lo declara en una línea en vez de
+  disimularlo. El arreglo de verdad es leer el avance del servidor por el
+  websocket de `api/websocket_jobs.py`; eso es trabajo de conexión, no de
+  interfaz, y no entra en este rediseño.
+-->
 <template>
-  <div class="search-container animate-fade-in">
-    <div class="glass-panel search-card" v-show="!isLoading">
-      <h2>Consulta de Insumos</h2>
-      <p class="description">Analiza el potencial de cualquier materia prima agrícola</p>
+  <div class="consulta">
+    <!-- ================= 03 · La pregunta ================= -->
+    <div v-if="!isLoading" class="pregunta animate-fade-in">
+      <h1>¿Qué insumo evaluamos?</h1>
+      <p class="entradilla">
+        Escribe una materia prima o un producto y AgroScout barre bases
+        abiertas y góndolas.
+      </p>
+
+      <form class="buscador" @submit.prevent="submitSearch">
+        <label class="oculto" for="insumo">Insumo a evaluar</label>
+        <span class="lupa" aria-hidden="true"><Icono nombre="buscar" :tamano="19" /></span>
+        <input
+          id="insumo"
+          ref="campo"
+          v-model="query"
+          type="text"
+          placeholder="Ej.: cáscara de cacao, mucílago de café…"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" class="btn btn--principal" :disabled="!query.trim()">
+          Analizar
+        </button>
+      </form>
+
+      <!--
+        Sugerencias, no ejemplos en el placeholder. El placeholder desaparece
+        en cuanto se escribe una letra y con él la única pista de qué tipo de
+        cosa espera el sistema; estas se quedan y además son pulsables.
+      -->
+      <div class="sugerencias">
+        <button
+          v-for="s in SUGERENCIAS"
+          :key="s"
+          type="button"
+          class="chip chip--accion"
+          @click="usarSugerencia(s)"
+        >
+          {{ s }}
+        </button>
+      </div>
 
       <fieldset class="fuentes">
         <legend>
-          ¿Dónde buscamos?
+          <span class="rotulo">Dónde buscamos</span>
           <!-- Marcado mientras la selección no filtre de verdad. Sin esto, en
                una demostración se entiende que ya decide, y quien la vea
                sacaría conclusiones de un filtro que no se aplicó. -->
-          <span class="previa" title="La selección todavía no filtra la búsqueda">
-            vista previa
-          </span>
+          <span
+            class="chip chip--plan"
+            title="La selección todavía no filtra la búsqueda"
+          >vista previa</span>
         </legend>
 
         <div class="rejilla">
@@ -41,40 +110,66 @@
           </label>
         </div>
       </fieldset>
-
-      <form @submit.prevent="submitSearch" class="search-form">
-        <div class="input-wrapper">
-          <input
-            type="text"
-            v-model="query"
-            placeholder="Ej: Cáscara de cacao, mucílago de café..."
-            required
-            :disabled="isLoading"
-          />
-          <button type="submit" class="btn-primary" :disabled="isLoading">
-            Analizar
-          </button>
-        </div>
-      </form>
     </div>
 
-    <!-- Gran Loading Overlay -->
-    <div class="loading-overlay animate-fade-in" v-if="isLoading">
-      <div class="glass-panel loading-card">
-        <div class="spinner-large"></div>
-        <h3>{{ loadingText }}</h3>
-        <div class="progress-bar-container">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+    <!-- ================= 04 · La espera ================= -->
+    <!--
+      `aria-live="polite"` sobre el bloque entero: el cambio de etapa se anuncia
+      solo, sin interrumpir. Con `assertive` cortaría la lectura cuatro veces
+      en cuarenta segundos.
+    -->
+    <div v-else class="espera animate-fade-in">
+      <div class="espera-tarjeta superficie" aria-live="polite" aria-busy="true">
+        <div class="espera-cabecera">
+          <h2>Analizando «{{ consultaEnCurso }}»</h2>
+          <span class="reloj codigo num">{{ segundos }} s</span>
         </div>
-        <p class="progress-text">{{ Math.round(progress) }}%</p>
+
+        <!-- Indeterminada: dice «sigo vivo», no «voy por la mitad». -->
+        <div class="barra" role="presentation">
+          <span class="barra-barrido"></span>
+        </div>
+
+        <ol class="etapas">
+          <li
+            v-for="(e, i) in etapas"
+            :key="e.texto"
+            class="etapa"
+            :class="estadoEtapa(i)"
+          >
+            <span class="etapa-marca" aria-hidden="true">
+              <Icono v-if="estadoEtapa(i) === 'hecho'" nombre="check" :tamano="12" />
+            </span>
+            <span class="etapa-texto">{{ e.texto }}</span>
+            <span v-if="estadoEtapa(i) === 'curso'" class="etapa-estado">en curso</span>
+          </li>
+        </ol>
+
+        <p class="espera-nota">
+          Los tiempos de esta lista son los medidos en consultas anteriores, no
+          el avance real del servidor. El reloj de arriba sí es real.
+        </p>
       </div>
+    </div>
+
+    <!-- El fallo se queda en la pantalla, no en un `alert()` del navegador. -->
+    <div v-if="error" class="fallo superficie" role="alert">
+      <Icono nombre="info" :tamano="18" />
+      <div>
+        <strong>{{ error.titulo }}</strong>
+        <p>{{ error.quehacer }}</p>
+      </div>
+      <button type="button" class="btn btn--secundario btn--pequeno" @click="error = null">
+        Cerrar
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { api, NoAutorizado } from '../api.js'
+import Icono from './Icono.vue'
 
 /**
  * Dónde se busca. Cuatro fuentes con papeles distintos, no cuatro versiones de
@@ -87,8 +182,7 @@ import { api, NoAutorizado } from '../api.js'
  *   alemania  → el mercado de destino. Dice a qué precio se vende allí, que es
  *               la pregunta de un exportador y no la responde ni el catálogo
  *               global ni la góndola peruana.
- *   suiza     → segundo mercado de destino. **Todavía no construido**, ver
- *               abajo y `TIERSV3/S8_GONDOLA_SUIZA.md`.
+ *   suiza     → segundo mercado de destino.
  *
  * Perú y Alemania juntos son el mapa que interesa: lo que un producto cuesta
  * aquí y lo que cuesta en el primer destino europeo de la quinua y el cacao
@@ -171,25 +265,50 @@ const FUENTES = [
     // son tiendas suizas más pequeñas y Piccantino. Nombrar las cadenas
     // grandes sería prometer lo que no llega.
     detalle: 'Tiendas suizas abiertas al rastreo · precios en francos',
-    // Ya no es «en preparación»: `de_suiza` existe y la tabla se pinta. Y ya no
-    // es gratis: va por agente, igual que Alemania, así que su coste tiene que
-    // leerse igual que el de Alemania. Una etiqueta «sin coste» sobre una
-    // fuente que gasta modelo empuja a marcarla sin pensar, que es justo lo que
-    // esta columna existe para evitar.
     coste: 'Minutos · con coste',
     tono: 'caro',
   },
 ]
 
+/**
+ * Insumos de ejemplo. Los cuatro son cosas que el sistema resuelve bien y que
+ * cubren los dos casos que sabe hacer: materia prima con precio MIDAGRI
+ * (arándano) y producto transformado con aditivos que analizar (harina de
+ * quinua). Una sugerencia que devolviera un informe vacío enseñaría a
+ * desconfiar del buscador en el primer clic.
+ */
+const SUGERENCIAS = [
+  'arándano',
+  'cáscara de mango',
+  'pulpa de maracuyá',
+  'harina de quinua',
+]
+
+/**
+ * Las etapas, con el segundo en que empieza cada una. Los cortes salen de los
+ * tiempos medidos: interpretar es casi inmediato, el snapshot tarda unos
+ * segundos y las góndolas por agente son las que se llevan la espera.
+ */
+const ETAPAS = [
+  { texto: 'Interpretando las características del insumo', desde: 0 },
+  { texto: 'Barriendo OpenFoodFacts', desde: 3 },
+  { texto: 'Leyendo góndolas', desde: 8 },
+  { texto: 'Redactando el informe', desde: 25 },
+]
+
 const query = ref('')
+const campo = ref(null)
 const isLoading = ref(false)
-const progress = ref(0)
-const loadingText = ref('')
+const consultaEnCurso = ref('')
+const segundos = ref(0)
+const error = ref(null)
 // Arrancan las dos gratuitas. Alemania se marca a conciencia: es la única que
 // cuesta dinero, y una opción cara activada por defecto se acaba pagando sin
 // que nadie haya decidido pagarla.
 const seleccionadas = ref(['snapshot', 'peru'])
 const emit = defineEmits(['search-result'])
+
+const etapas = computed(() => ETAPAS)
 
 /** Marca o desmarca una fuente, sin dejar la búsqueda sin ninguna. */
 const alternar = (clave) => {
@@ -206,98 +325,192 @@ const alternar = (clave) => {
   }
 }
 
-let progressInterval = null
-let stageTimeouts = []
-
-const startLoadingAnimation = () => {
-  progress.value = 0
-  loadingText.value = "Iniciando análisis..."
-  
-  progressInterval = setInterval(() => {
-    if (progress.value < 95) {
-      progress.value += (95 - progress.value) * 0.05
-    }
-  }, 500)
-
-  stageTimeouts.push(setTimeout(() => loadingText.value = "Interpretando características del insumo...", 3000))
-  stageTimeouts.push(setTimeout(() => loadingText.value = "Buscando referencias (LanceDB)...", 8000))
-  stageTimeouts.push(setTimeout(() => loadingText.value = "Verificando normativas regulatorias...", 15000))
-  stageTimeouts.push(setTimeout(() => loadingText.value = "Redactando Insight con Inteligencia Artificial...", 25000))
-  stageTimeouts.push(setTimeout(() => loadingText.value = "Preparando informe final...", 35000))
+/**
+ * Rellena el campo y deja el cursor dentro, sin lanzar la consulta.
+ *
+ * Buscar directamente al pulsar la sugerencia gastaría una consulta —y en
+ * góndolas de agente, dinero— por un clic que bien puede ser exploratorio.
+ * Quien la quiera, pulsa Analizar.
+ */
+const usarSugerencia = (s) => {
+  query.value = s
+  campo.value?.focus()
 }
 
-const clearLoadingAnimation = () => {
-  if (progressInterval) clearInterval(progressInterval)
-  stageTimeouts.forEach(clearTimeout)
-  progress.value = 100
-  loadingText.value = "¡Análisis completado!"
+/** Qué etapa va por dónde, deducido del reloj. */
+const estadoEtapa = (i) => {
+  const actual = ETAPAS.reduce(
+    (acc, e, idx) => (segundos.value >= e.desde ? idx : acc),
+    0,
+  )
+  if (i < actual) return 'hecho'
+  if (i === actual) return 'curso'
+  return 'pendiente'
 }
+
+let reloj = null
+
+const arrancarReloj = () => {
+  segundos.value = 0
+  reloj = setInterval(() => {
+    segundos.value += 1
+  }, 1000)
+}
+
+const pararReloj = () => {
+  if (reloj) clearInterval(reloj)
+  reloj = null
+}
+
+// Salir de la pantalla a mitad de consulta dejaba el intervalo corriendo.
+onUnmounted(pararReloj)
 
 const submitSearch = async () => {
-  if (!query.value) return
-  
+  const texto = query.value.trim()
+  if (!texto) return
+
   isLoading.value = true
-  const startTime = performance.now()
-  startLoadingAnimation()
-  
+  consultaEnCurso.value = texto
+  error.value = null
+  const inicio = performance.now()
+  arrancarReloj()
+
   try {
     // api.consultar adjunta el Authorization; antes se llamaba sin cabecera y
     // este endpoint exige token desde S1, así que siempre daba 401.
-    const data = await api.consultar(query.value)
-    clearLoadingAnimation()
-    
-    const elapsedSeconds = ((performance.now() - startTime) / 1000).toFixed(1)
-    data.elapsedTime = elapsedSeconds
-    
-    setTimeout(() => {
-      emit('search-result', data)
-      isLoading.value = false
-    }, 800)
-    
-  } catch (error) {
-    console.error(error)
-    if (!(error instanceof NoAutorizado)) {
-      // Un 401 ya cierra la sesión y lo gestiona App.vue; avisar dos veces sería ruido.
-      alert('Ocurrió un error al consultar el insumo.')
+    const data = await api.consultar(texto)
+    data.elapsedTime = ((performance.now() - inicio) / 1000).toFixed(1)
+    emit('search-result', data)
+  } catch (e) {
+    console.error(e)
+    if (!(e instanceof NoAutorizado)) {
+      // Un 401 ya cierra la sesión y lo gestiona App.vue; avisar dos veces
+      // sería ruido.
+      //
+      // Antes esto era un `alert()`. Un diálogo del navegador bloquea la
+      // pestaña, no se puede copiar y se lleva por delante el contexto de lo
+      // que se estaba mirando; además, en la demo se traga el foco y hay que
+      // aceptarlo antes de poder seguir.
+      error.value = {
+        titulo: `No se pudo completar la consulta de «${texto}»`,
+        quehacer:
+          'Vuelve a intentarlo. Si se repite, el motivo está en el log de la ' +
+          'ventana «AgroScout API»: la consulta pasa por góndolas de agente y ' +
+          'esas llamadas pueden agotar su tiempo.',
+      }
     }
-    clearLoadingAnimation()
+  } finally {
+    pararReloj()
     isLoading.value = false
   }
 }
 </script>
 
 <style scoped>
-.search-container {
-  padding: 20px;
-  max-width: 800px;
+.consulta {
+  max-width: 700px;
   margin: 0 auto;
+  padding: 40px 0 20px;
 }
 
-.search-card {
-  padding: 40px;
+/* ---------------------------------------------------------------- *
+ *  03 · La pregunta
+ * ---------------------------------------------------------------- */
+
+.pregunta {
   text-align: center;
 }
 
-.search-card h2 {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.pregunta h1 {
+  margin: 0 0 6px;
+  font-size: 2.125rem;
+  /* Sin `background-clip: text` con degradado. Además de traer el azul de
+     vuelta, el texto recortado sobre degradado deja de tener color propio y
+     se vuelve invisible en modo de alto contraste. */
+  color: var(--tinta);
 }
 
-.description {
-  color: var(--text-muted);
-  margin-bottom: 26px;
+.entradilla {
+  margin: 0 0 22px;
+  font-size: 0.9375rem;
+  color: var(--texto-atenuado);
 }
 
-/* -- Selector de fuentes -------------------------------------------------- */
+/* El campo y el botón dentro del mismo recuadro: son una sola acción. */
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  background: var(--superficie);
+  border: 1.5px solid var(--borde-fuerte);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sombra);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* El foco se pinta en el contenedor, no en el input: si no, el anillo saldría
+   dentro del recuadro y por debajo del botón. */
+.buscador:focus-within {
+  border-color: var(--verde);
+  box-shadow: var(--foco);
+}
+
+.lupa {
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  color: var(--texto-sin-dato);
+}
+
+.buscador input {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--tinta);
+  padding: 10px 4px;
+  box-shadow: none;
+}
+
+.buscador input:focus {
+  box-shadow: none;
+  border: 0;
+}
+
+.buscador .btn--principal {
+  padding: 11px 26px;
+  font-size: 0.9375rem;
+  border-radius: var(--r-md);
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.sugerencias {
+  margin-top: 12px;
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* -- Selector de fuentes ------------------------------------------ */
 
 .fuentes {
   border: none;
-  margin: 0 auto 24px;
+  margin: 30px 0 0;
   padding: 0;
-  max-width: 600px;
   text-align: left;
 }
 
@@ -305,29 +518,14 @@ const submitSearch = async () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 0 10px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  justify-content: center;
+  padding: 0 0 12px;
+  width: 100%;
 }
 
-.previa {
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: rgba(217, 119, 6, 0.14);
-  color: #92400E;
-  cursor: help;
-}
-
-/* Dos columnas y no cuatro: con el ancho de 600 px de la tarjeta, cuatro
-   dejarían 140 px por fuente y «Wong, Metro, Plaza Vea y Makro» se partiría en
-   cuatro líneas. En 2x2 cada una tiene ~290 px y el detalle cabe entero. */
+/* Dos columnas y no cuatro: con el ancho de la tarjeta, cuatro dejarían 140 px
+   por fuente y «Wong, Metro, Plaza Vea y Makro» se partiría en cuatro líneas.
+   En 2x2 cada una tiene ~290 px y el detalle cabe entero. */
 .rejilla {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -339,19 +537,19 @@ const submitSearch = async () => {
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  padding: 12px 12px 12px 11px;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  background: #ffffff;
+  padding: 12px 13px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  background: var(--superficie);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
-.fuente:hover { background: rgba(45, 151, 102, 0.04); }
+.fuente:hover { border-color: var(--borde-fuerte); }
 
 .fuente.activa {
-  border-color: var(--primary-color);
-  background: rgba(45, 151, 102, 0.07);
+  border-color: var(--verde-borde);
+  background: #F7FBF9;
 }
 
 /* La casilla real se oculta pero sigue ahí: recibe el foco del tabulador y el
@@ -366,7 +564,7 @@ const submitSearch = async () => {
 }
 
 .fuente input:focus-visible ~ .marca {
-  box-shadow: 0 0 0 3px rgba(45, 151, 102, 0.35);
+  box-shadow: var(--foco);
 }
 
 .marca {
@@ -374,15 +572,15 @@ const submitSearch = async () => {
   height: 16px;
   margin-top: 2px;
   flex-shrink: 0;
-  border: 1.5px solid #CED4DA;
+  border: 1.5px solid var(--borde-fuerte);
   border-radius: 4px;
-  background: #ffffff;
-  transition: all 0.15s;
+  background: var(--superficie);
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
 .fuente.activa .marca {
-  border-color: var(--primary-color);
-  background: var(--primary-color);
+  border-color: var(--verde);
+  background: var(--verde);
 }
 
 /* El palito del tick, dibujado con bordes: no hace falta ningún icono. */
@@ -400,124 +598,185 @@ const submitSearch = async () => {
 .cuerpo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
 .nombre {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-main);
-  line-height: 1.2;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--tinta);
+  line-height: 1.25;
 }
 
 .detalle {
   font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.3;
+  color: var(--texto-atenuado);
+  line-height: 1.35;
 }
 
 .coste {
   margin-top: 3px;
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.coste.gratis { color: var(--primary-hover); }
-.coste.caro { color: #B45309; }
+.coste.gratis { color: var(--verde-texto); }
+.coste.caro { color: var(--aviso); }
+
+/* ---------------------------------------------------------------- *
+ *  04 · La espera
+ * ---------------------------------------------------------------- */
+
+.espera {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.espera-tarjeta {
+  width: 100%;
+  max-width: 520px;
+  padding: 26px;
+}
+
+.espera-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.espera-cabecera h2 {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reloj {
+  flex: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--texto-atenuado);
+}
+
+.barra {
+  height: 4px;
+  border-radius: 999px;
+  background: #EEF1EF;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+/* Un tercio de ancho que cruza de lado a lado. Sin punto de llegada, así que
+   no se puede leer como progreso. */
+.barra-barrido {
+  display: block;
+  width: 33%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--verde);
+  animation: ags-barrido 1.4s ease-in-out infinite;
+}
+
+.etapas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+}
+
+.etapa {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 0.875rem;
+  color: #A8B2AD;
+}
+
+.etapa.hecho { color: var(--texto-atenuado); }
+
+.etapa.curso {
+  color: var(--tinta);
+  font-weight: 650;
+}
+
+.etapa-marca {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1px solid var(--borde-medio);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.etapa.hecho .etapa-marca {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+
+/* La que está en curso late. Es la única señal de movimiento de la lista, y
+   se apaga sola con prefers-reduced-motion. */
+.etapa.curso .etapa-marca {
+  border-color: var(--verde);
+  animation: ags-pulso 1.6s ease-in-out infinite;
+}
+
+.etapa-texto { flex: 1; min-width: 0; }
+
+.etapa-estado {
+  flex: none;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--verde-texto);
+}
+
+.espera-nota {
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--borde-suave);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--texto-sin-dato);
+}
+
+/* ---------------------------------------------------------------- *
+ *  Fallo
+ * ---------------------------------------------------------------- */
+
+.fallo {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-color: var(--critico-borde);
+  background: var(--critico-fondo);
+  color: var(--critico);
+  text-align: left;
+}
+
+.fallo > div { flex: 1; }
+
+.fallo p {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--texto-atenuado);
+}
 
 @media (max-width: 640px) {
   .rejilla { grid-template-columns: 1fr; }
-}
-
-.search-form {
-  display: flex;
-  justify-content: center;
-}
-
-.input-wrapper {
-  display: flex;
-  width: 100%;
-  max-width: 600px;
-  position: relative;
-}
-
-.input-wrapper input {
-  flex-grow: 1;
-  padding: 16px 20px;
-  padding-right: 120px;
-  border-radius: 30px;
-  font-size: 1.1rem;
-  background: rgba(15, 23, 42, 0.8);
-  color: #FFFFFF;
-}
-
-.input-wrapper input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.input-wrapper button {
-  position: absolute;
-  right: 6px;
-  top: 6px;
-  bottom: 6px;
-  padding: 0 24px;
-  border-radius: 24px;
-}
-
-/* Loading Overlay */
-.loading-overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 40px 0;
-}
-
-.loading-card {
-  padding: 50px;
-  text-align: center;
-  width: 100%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.loading-card h3 {
-  color: var(--primary-color);
-  font-size: 1.5rem;
-  margin: 10px 0;
-}
-
-.spinner-large {
-  width: 60px;
-  height: 60px;
-  border: 5px solid rgba(45, 151, 102, 0.2);
-  border-radius: 50%;
-  border-top-color: var(--primary-color);
-  animation: spin 1s ease-in-out infinite;
-}
-
-.progress-bar-container {
-  width: 100%;
-  height: 12px;
-  background: rgba(0,0,0,0.05);
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.progress-bar {
-  height: 100%;
-  background: var(--accent-gradient);
-  transition: width 0.3s ease-out;
-}
-
-.progress-text {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: var(--text-main);
-  margin: 0;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  .pregunta h1 { font-size: 1.75rem; }
+  .buscador { flex-wrap: wrap; }
+  .buscador .btn--principal { width: 100%; }
 }
 </style>
