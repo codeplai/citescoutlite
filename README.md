@@ -40,10 +40,26 @@ uv run python scripts/crear_usuarios_demo.py --generar
 
 ### 4. Arrancar
 
-```bash
-uv run api                       # backend en :8001
-cd frontend && npm run dev       # SPA en :3000
+En Windows, los dos scripts de la raiz lo hacen todo:
+
+```bat
+iniciar.bat    :: comprueba requisitos, abre API y SPA en su ventana, espera y abre el navegador
+detener.bat    :: cierra esas ventanas y libera :8001 y :3000
 ```
+
+`iniciar.bat worker` levanta ademas el worker de Procrastinate (los periodicos de
+las 03:00 y 04:00); `iniciar.bat recarga` arranca la API con `--reload`.
+
+A mano, una terminal por servicio:
+
+```bash
+uv run uvicorn api.main:app --host 0.0.0.0 --port 8001   # backend en :8001
+cd frontend && npx vite --host 0.0.0.0 --port 3000       # SPA en :3000
+```
+
+`npm run dev` a secas sirve en :5173, el puerto por defecto de Vite. Los dos
+puertos estan en la lista de CORS, pero la SPA solo se ve desde otra maquina si
+se arranca con `--host`.
 
 ---
 
