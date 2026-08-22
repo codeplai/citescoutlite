@@ -160,6 +160,28 @@ function explicar(status) {
 const handleLogin = async () => {
   if (!email.value || !password.value) return
 
+  // Comprobación de formato ANTES de salir a la red.
+  //
+  // El formulario lleva `novalidate` para que los mensajes de aquí abajo
+  // sustituyan al globo del navegador, que cambia de texto y de idioma en cada
+  // uno. Pero quitar la validación sin poner otra tenía un coste real: quien
+  // escribía `demo` en vez de `demo-premium@cite.gob.pe` recibía «Correo o
+  // contraseña incorrectos», que le manda a revisar la contraseña cuando lo
+  // que falta es el dominio.
+  //
+  // El patrón es deliberadamente laxo —algo, arroba, algo, punto, algo—: aquí
+  // no se trata de decidir si una dirección existe, que eso solo lo sabe el
+  // servidor, sino de atrapar lo que con seguridad no es un correo.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    errorMsg.value = {
+      titulo: 'Eso no parece un correo electrónico',
+      quehacer:
+        'Hace falta la dirección completa, con arroba y dominio: ' +
+        'por ejemplo demo-premium@cite.gob.pe.',
+    }
+    return
+  }
+
   isLoading.value = true
   errorMsg.value = null
 
