@@ -1,0 +1,225 @@
+[2026-08-24T05:30:22] ======================================================================
+[2026-08-24T05:30:22] OFF terminados · 20 productos × 3 mercados · page_size=50
+[2026-08-24T05:30:22] ======================================================================
+[2026-08-24T05:30:23]   mango        peru      néctar de mango              -> 50
+[2026-08-24T05:30:31]   mango        suiza     Mango Nektar                 -> 50
+[2026-08-24T05:30:38]   mango        alemania  Mango Nektar                 -> 50
+[2026-08-24T05:30:46]   quinua       peru      barras de quinua             -> 50
+[2026-08-24T05:30:53]   quinua       suiza     Quinoa Riegel                -> 50
+[2026-08-24T05:31:01]   quinua       alemania  Quinoa Riegel                -> 50
+[2026-08-24T05:31:09]   manzana      peru      puré de manzana              -> 50
+[2026-08-24T05:31:16]   manzana      suiza     Apfelmus                     -> 4
+[2026-08-24T05:31:24]   manzana      alemania  Apfelmus                     -> 50
+[2026-08-24T05:31:32]   arándano     peru      arándanos deshidratados      -> 1
+[2026-08-24T05:31:39]   arándano     suiza     getrocknete Blaubeeren       -> 2
+[2026-08-24T05:31:47]   arándano     alemania  getrocknete Blaubeeren       -> 50
+[2026-08-24T05:31:54]   limón        peru      limonada de limón            -> 50
+[2026-08-24T05:32:02]   limón        suiza     Zitronenlimonade             -> 0
+[2026-08-24T05:32:10]   limón        alemania  Zitronenlimonade             -> 7
+[2026-08-24T05:32:17]   avena        peru      muesli de avena              -> 50
+[2026-08-24T05:32:25]   avena        suiza     Hafermüsli                   -> 0
+[2026-08-24T05:32:32]   avena        alemania  Hafermüsli                   -> 2
+[2026-08-24T05:32:40]   piña         peru      piña en conserva             -> 11
+[2026-08-24T05:32:48]   piña         suiza     Ananas Konserve              -> 26
+[2026-08-24T05:32:55]   piña         alemania  Ananas Konserve              -> 50
+[2026-08-24T05:33:03]   zanahoria    peru      jugo de zanahoria            -> 50
+[2026-08-24T05:33:10]   zanahoria    suiza     Karottensaft                 -> 0
+[2026-08-24T05:33:18]   zanahoria    alemania  Karottensaft                 -> 9
+[2026-08-24T05:33:25]   palta        peru      aceite de palta              -> 50
+[2026-08-24T05:33:33]   palta        suiza     Avocadoöl                    -> 0
+[2026-08-24T05:33:41]   palta        alemania  Avocadoöl                    -> 1
+[2026-08-24T05:33:48]   coco         peru      leche de coco                -> 50
+[2026-08-24T05:33:56]   coco         suiza     Kokosmilch                   -> 3
+[2026-08-24T05:34:04]   coco         alemania  Kokosmilch                   -> 50
+[2026-08-24T05:34:11]   tomate       peru      salsa de tomate              -> 50
+[2026-08-24T05:34:19]   tomate       suiza     Tomatenpassata               -> 0
+[2026-08-24T05:34:26]   tomate       alemania  Tomatenpassata               -> 0
+[2026-08-24T05:34:34]   sésamo       peru      pasta de sésamo              -> 50
+[2026-08-24T05:34:42]   sésamo       suiza     Tahin                        -> 3
+[2026-08-24T05:34:50]   sésamo       alemania  Tahin                        -> 12
+[2026-08-24T05:34:57]   papa         peru      chips de papa                -> 50
+[2026-08-24T05:35:05]   papa         suiza     Kartoffelchips               -> 0
+[2026-08-24T05:35:12]   papa         alemania  Kartoffelchips               -> 11
+[2026-08-24T05:35:20]   cacao        peru      chocolate negro              -> 50
+[2026-08-24T05:35:28]   cacao        suiza     Zartbitterschokolade         -> 1
+[2026-08-24T05:35:36]   cacao        alemania  Zartbitterschokolade         -> 12
+[2026-08-24T05:35:43]   naranja      peru      jugo de naranja              -> 50
+[2026-08-24T05:35:51]   naranja      suiza     Orangensaft                  -> 5
+[2026-08-24T05:35:59]   naranja      alemania  Orangensaft                  -> 50
+[2026-08-24T05:36:06]   uva          peru      pasas                        -> 0
+[2026-08-24T05:36:14]   uva          suiza     Rosinen                      -> 0
+[2026-08-24T05:36:22]   uva          alemania  Rosinen                      -> 20
+[2026-08-24T05:36:29]   cúrcuma      peru      bebida de cúrcuma            -> 50
+[2026-08-24T05:36:37]   cúrcuma      suiza     Kurkuma Latte                -> 50
+[2026-08-24T05:36:45]   cúrcuma      alemania  Kurkuma Latte                -> 50
+[2026-08-24T05:36:52]   banano       peru      chips de banano              -> 50
+[2026-08-24T05:37:00]   banano       suiza     Bananenchips                 -> 1
+[2026-08-24T05:37:08]   banano       alemania  Bananenchips                 -> 5
+[2026-08-24T05:37:15]   jengibre     peru      infusión de jengibre         -> 50
+[2026-08-24T05:37:23]   jengibre     suiza     Ingwertee                    -> 0
+[2026-08-24T05:37:30]   jengibre     alemania  Ingwertee                    -> 3
+[2026-08-24T05:37:38]   maracuyá     peru      mermelada de maracuyá        -> 50
+[2026-08-24T05:37:45]   maracuyá     suiza     Maracuja Konfitüre           -> 12
+[2026-08-24T05:37:53]   maracuyá     alemania  Maracuja Konfitüre           -> 50
+[2026-08-24T05:38:00] ----------------------------------------------------------------------
+[2026-08-24T05:38:00] Codigos unicos: 944
+[2026-08-24T05:38:00] Hits por mercado (con solapamiento): {'peru': 862, 'suiza': 207, 'alemania': 532}
+[2026-08-24T05:38:00] --dry-run: no se piden fichas ni se escribe nada.
+[2026-08-24T05:38:10] ======================================================================
+[2026-08-24T05:38:10] OFF terminados · 20 productos × 3 mercados · page_size=50
+[2026-08-24T05:38:10] ======================================================================
+[2026-08-24T05:38:11]   mango        peru      néctar de mango              -> 50
+[2026-08-24T05:38:19]   mango        suiza     Mango Nektar                 -> 50
+[2026-08-24T05:38:26]   mango        alemania  Mango Nektar                 -> 50
+[2026-08-24T05:38:34]   quinua       peru      barras de quinua             -> 50
+[2026-08-24T05:38:41]   quinua       suiza     Quinoa Riegel                -> 50
+[2026-08-24T05:38:49]   quinua       alemania  Quinoa Riegel                -> 50
+[2026-08-24T05:38:56]   manzana      peru      puré de manzana              -> 50
+[2026-08-24T05:39:12]   manzana      suiza     Apfelmus                     -> 26  (+22 por respaldo 'Apfel')
+[2026-08-24T05:39:19]   manzana      alemania  Apfelmus                     -> 50
+[2026-08-24T05:39:34]   arándano     peru      arándanos deshidratados      -> 1  (+0 por respaldo 'arándano')
+[2026-08-24T05:39:50]   arándano     suiza     getrocknete Blaubeeren       -> 5  (+3 por respaldo 'Heidelbeeren')
+[2026-08-24T05:39:57]   arándano     alemania  getrocknete Blaubeeren       -> 50
+[2026-08-24T05:40:05]   limón        peru      limonada de limón            -> 50
+[2026-08-24T05:40:20]   limón        suiza     Zitronenlimonade             -> 9  (+9 por respaldo 'Zitrone')
+[2026-08-24T05:40:35]   limón        alemania  Zitronenlimonade             -> 57  (+50 por respaldo 'Zitrone')
+[2026-08-24T05:40:43]   avena        peru      muesli de avena              -> 50
+[2026-08-24T05:40:58]   avena        suiza     Hafermüsli                   -> 21  (+21 por respaldo 'Hafer')
+[2026-08-24T05:41:13]   avena        alemania  Hafermüsli                   -> 52  (+50 por respaldo 'Hafer')
+[2026-08-24T05:41:21]   piña         peru      piña en conserva             -> 11
+[2026-08-24T05:41:28]   piña         suiza     Ananas Konserve              -> 26
+[2026-08-24T05:41:36]   piña         alemania  Ananas Konserve              -> 50
+[2026-08-24T05:41:44]   zanahoria    peru      jugo de zanahoria            -> 50
+[2026-08-24T05:41:59]   zanahoria    suiza     Karottensaft                 -> 7  (+7 por respaldo 'Karotten')
+[2026-08-24T05:42:14]   zanahoria    alemania  Karottensaft                 -> 45  (+36 por respaldo 'Karotten')
+[2026-08-24T05:42:22]   palta        peru      aceite de palta              -> 50
+[2026-08-24T05:42:37]   palta        suiza     Avocadoöl                    -> 27  (+27 por respaldo 'Avocado')
+[2026-08-24T05:42:52]   palta        alemania  Avocadoöl                    -> 50  (+49 por respaldo 'Avocado')
+[2026-08-24T05:43:00]   coco         peru      leche de coco                -> 50
+[2026-08-24T05:43:15]   coco         suiza     Kokosmilch                   -> 18  (+15 por respaldo 'Kokos')
+[2026-08-24T05:43:23]   coco         alemania  Kokosmilch                   -> 50
+[2026-08-24T05:43:30]   tomate       peru      salsa de tomate              -> 50
+[2026-08-24T05:43:45]   tomate       suiza     Tomatenpassata               -> 20  (+20 por respaldo 'Tomaten')
+[2026-08-24T05:44:00]   tomate       alemania  Tomatenpassata               -> 50  (+50 por respaldo 'Tomaten')
+[2026-08-24T05:44:09]   sésamo       peru      pasta de sésamo              -> 50
+[2026-08-24T05:44:24]   sésamo       suiza     Tahin                        -> 51  (+48 por respaldo 'Sesam')
+[2026-08-24T05:44:31]   sésamo       alemania  Tahin                        -> 12
+[2026-08-24T05:44:39]   papa         peru      chips de papa                -> 50
+[2026-08-24T05:44:54]   papa         suiza     Kartoffelchips               -> 4  (+4 por respaldo 'Kartoffel')
+[2026-08-24T05:45:02]   papa         alemania  Kartoffelchips               -> 11
+[2026-08-24T05:45:09]   cacao        peru      chocolate negro              -> 50
+[2026-08-24T05:45:25]   cacao        suiza     Zartbitterschokolade         -> 14  (+13 por respaldo 'Kakao')
+[2026-08-24T05:45:32]   cacao        alemania  Zartbitterschokolade         -> 12
+[2026-08-24T05:45:40]   naranja      peru      jugo de naranja              -> 50
+[2026-08-24T05:45:55]   naranja      suiza     Orangensaft                  -> 7  (+2 por respaldo 'Orangen')
+[2026-08-24T05:46:03]   naranja      alemania  Orangensaft                  -> 50
+[2026-08-24T05:46:18]   uva          peru      pasas                        -> 2  (+2 por respaldo 'uva')
+[2026-08-24T05:46:33]   uva          suiza     Rosinen                      -> 2  (+2 por respaldo 'Trauben')
+[2026-08-24T05:46:41]   uva          alemania  Rosinen                      -> 20
+[2026-08-24T05:46:48]   cúrcuma      peru      bebida de cúrcuma            -> 50
+[2026-08-24T05:46:56]   cúrcuma      suiza     Kurkuma Latte                -> 50
+[2026-08-24T05:47:04]   cúrcuma      alemania  Kurkuma Latte                -> 50
+[2026-08-24T05:47:11]   banano       peru      chips de banano              -> 50
+[2026-08-24T05:47:26]   banano       suiza     Bananenchips                 -> 5  (+4 por respaldo 'Bananen')
+[2026-08-24T05:47:41]   banano       alemania  Bananenchips                 -> 38  (+33 por respaldo 'Bananen')
+[2026-08-24T05:47:49]   jengibre     peru      infusión de jengibre         -> 50
+[2026-08-24T05:48:04]   jengibre     suiza     Ingwertee                    -> 11  (+11 por respaldo 'Ingwer')
+[2026-08-24T05:48:20]   jengibre     alemania  Ingwertee                    -> 53  (+50 por respaldo 'Ingwer')
+[2026-08-24T05:48:27]   maracuyá     peru      mermelada de maracuyá        -> 50
+[2026-08-24T05:48:35]   maracuyá     suiza     Maracuja Konfitüre           -> 12
+[2026-08-24T05:48:42]   maracuyá     alemania  Maracuja Konfitüre           -> 50
+[2026-08-24T05:48:49] ----------------------------------------------------------------------
+[2026-08-24T05:48:49] Codigos unicos: 1434
+[2026-08-24T05:48:49] Hits por mercado (con solapamiento): {'peru': 864, 'suiza': 415, 'alemania': 850}
+[2026-08-24T05:48:49] Pidiendo 1434 fichas (~17 min)...
+[2026-08-24T05:49:21]       429; reintento en 10s
+[2026-08-24T05:49:41]       429; reintento en 10s
+[2026-08-24T05:50:01]       429; reintento en 10s
+[2026-08-24T05:50:21]       429; reintento en 10s
+[2026-08-24T05:50:44]       429; reintento en 10s
+[2026-08-24T05:51:04]       429; reintento en 10s
+[2026-08-24T05:51:24]       429; reintento en 10s
+[2026-08-24T05:51:42]       429; reintento en 10s
+[2026-08-24T05:52:02]       429; reintento en 10s
+[2026-08-24T05:55:48] ======================================================================
+[2026-08-24T05:55:48] OFF terminados · 20 productos × 3 mercados · page_size=50
+[2026-08-24T05:55:48] ======================================================================
+[2026-08-24T05:55:49]   mango        peru      néctar de mango              -> 50
+[2026-08-24T05:55:56]   mango        suiza     Mango Nektar                 -> 50
+[2026-08-24T05:56:04]   mango        alemania  Mango Nektar                 -> 50
+[2026-08-24T05:56:12]   quinua       peru      barras de quinua             -> 50
+[2026-08-24T05:56:19]   quinua       suiza     Quinoa Riegel                -> 50
+[2026-08-24T05:56:27]   quinua       alemania  Quinoa Riegel                -> 50
+[2026-08-24T05:56:34]   manzana      peru      puré de manzana              -> 50
+[2026-08-24T05:56:50]   manzana      suiza     Apfelmus                     -> 26  (+22 por respaldo 'Apfel')
+[2026-08-24T05:56:57]   manzana      alemania  Apfelmus                     -> 50
+[2026-08-24T05:57:12]   arándano     peru      arándanos deshidratados      -> 1  (+0 por respaldo 'arándano')
+[2026-08-24T05:57:27]   arándano     suiza     getrocknete Blaubeeren       -> 5  (+3 por respaldo 'Heidelbeeren')
+[2026-08-24T05:57:35]   arándano     alemania  getrocknete Blaubeeren       -> 50
+[2026-08-24T05:57:43]   limón        peru      limonada de limón            -> 50
+[2026-08-24T05:57:58]   limón        suiza     Zitronenlimonade             -> 9  (+9 por respaldo 'Zitrone')
+[2026-08-24T05:58:13]   limón        alemania  Zitronenlimonade             -> 57  (+50 por respaldo 'Zitrone')
+[2026-08-24T05:58:20]   avena        peru      muesli de avena              -> 50
+[2026-08-24T05:58:36]   avena        suiza     Hafermüsli                   -> 21  (+21 por respaldo 'Hafer')
+[2026-08-24T05:58:51]   avena        alemania  Hafermüsli                   -> 52  (+50 por respaldo 'Hafer')
+[2026-08-24T05:58:58]   piña         peru      piña en conserva             -> 11
+[2026-08-24T05:59:06]   piña         suiza     Ananas Konserve              -> 26
+[2026-08-24T05:59:14]   piña         alemania  Ananas Konserve              -> 50
+[2026-08-24T05:59:21]   zanahoria    peru      jugo de zanahoria            -> 50
+[2026-08-24T05:59:37]   zanahoria    suiza     Karottensaft                 -> 7  (+7 por respaldo 'Karotten')
+[2026-08-24T05:59:52]   zanahoria    alemania  Karottensaft                 -> 45  (+36 por respaldo 'Karotten')
+[2026-08-24T05:59:59]   palta        peru      aceite de palta              -> 50
+[2026-08-24T06:00:15]   palta        suiza     Avocadoöl                    -> 27  (+27 por respaldo 'Avocado')
+[2026-08-24T06:00:30]   palta        alemania  Avocadoöl                    -> 50  (+49 por respaldo 'Avocado')
+[2026-08-24T06:00:37]   coco         peru      leche de coco                -> 50
+[2026-08-24T06:00:52]   coco         suiza     Kokosmilch                   -> 18  (+15 por respaldo 'Kokos')
+[2026-08-24T06:01:00]   coco         alemania  Kokosmilch                   -> 50
+[2026-08-24T06:01:08]   tomate       peru      salsa de tomate              -> 50
+[2026-08-24T06:01:23]   tomate       suiza     Tomatenpassata               -> 20  (+20 por respaldo 'Tomaten')
+[2026-08-24T06:01:38]   tomate       alemania  Tomatenpassata               -> 50  (+50 por respaldo 'Tomaten')
+[2026-08-24T06:01:46]   sésamo       peru      pasta de sésamo              -> 50
+[2026-08-24T06:02:02]   sésamo       suiza     Tahin                        -> 51  (+48 por respaldo 'Sesam')
+[2026-08-24T06:02:09]   sésamo       alemania  Tahin                        -> 12
+[2026-08-24T06:02:17]   papa         peru      chips de papa                -> 50
+[2026-08-24T06:02:32]   papa         suiza     Kartoffelchips               -> 4  (+4 por respaldo 'Kartoffel')
+[2026-08-24T06:02:40]   papa         alemania  Kartoffelchips               -> 11
+[2026-08-24T06:02:48]   cacao        peru      chocolate negro              -> 50
+[2026-08-24T06:03:03]   cacao        suiza     Zartbitterschokolade         -> 14  (+13 por respaldo 'Kakao')
+[2026-08-24T06:03:11]   cacao        alemania  Zartbitterschokolade         -> 12
+[2026-08-24T06:03:18]   naranja      peru      jugo de naranja              -> 50
+[2026-08-24T06:03:33]   naranja      suiza     Orangensaft                  -> 7  (+2 por respaldo 'Orangen')
+[2026-08-24T06:03:41]   naranja      alemania  Orangensaft                  -> 50
+[2026-08-24T06:03:56]   uva          peru      pasas                        -> 2  (+2 por respaldo 'uva')
+[2026-08-24T06:04:12]   uva          suiza     Rosinen                      -> 2  (+2 por respaldo 'Trauben')
+[2026-08-24T06:04:19]   uva          alemania  Rosinen                      -> 20
+[2026-08-24T06:04:27]   cúrcuma      peru      bebida de cúrcuma            -> 50
+[2026-08-24T06:04:35]   cúrcuma      suiza     Kurkuma Latte                -> 50
+[2026-08-24T06:04:43]   cúrcuma      alemania  Kurkuma Latte                -> 50
+[2026-08-24T06:04:50]   banano       peru      chips de banano              -> 50
+[2026-08-24T06:05:06]   banano       suiza     Bananenchips                 -> 5  (+4 por respaldo 'Bananen')
+[2026-08-24T06:05:21]   banano       alemania  Bananenchips                 -> 38  (+33 por respaldo 'Bananen')
+[2026-08-24T06:05:28]   jengibre     peru      infusión de jengibre         -> 50
+[2026-08-24T06:05:44]   jengibre     suiza     Ingwertee                    -> 11  (+11 por respaldo 'Ingwer')
+[2026-08-24T06:05:59]   jengibre     alemania  Ingwertee                    -> 53  (+50 por respaldo 'Ingwer')
+[2026-08-24T06:06:07]   maracuyá     peru      mermelada de maracuyá        -> 50
+[2026-08-24T06:06:14]   maracuyá     suiza     Maracuja Konfitüre           -> 12
+[2026-08-24T06:06:22]   maracuyá     alemania  Maracuja Konfitüre           -> 50
+[2026-08-24T06:06:29] ----------------------------------------------------------------------
+[2026-08-24T06:06:29] Codigos unicos: 1434 · guardados en datasets\2026-07\off_terminados_codigos.json
+[2026-08-24T06:06:29] Hits por mercado (con solapamiento): {'peru': 864, 'suiza': 415, 'alemania': 850}
+[2026-08-24T06:06:29] Pausa de 60 s para que descanse la cuota antes de las fichas...
+[2026-08-24T06:07:29] Fichas: 0 ya resueltas, 1434 pendientes (~26 min)
+[2026-08-24T06:08:17]       429; reintento 1/5 en 30s
+[2026-08-24T06:09:29]       429; reintento 1/5 en 30s
+[2026-08-24T06:10:37]       429; reintento 1/5 en 30s
+[2026-08-24T06:11:45]       429; reintento 1/5 en 30s
+[2026-08-24T06:12:53]       429; reintento 1/5 en 30s
+[2026-08-24T06:13:41]     100/1434 · utiles 19
+[2026-08-24T06:14:00]       429; reintento 1/5 en 30s
+[2026-08-24T06:15:09]       429; reintento 1/5 en 30s
+[2026-08-24T06:16:17]       429; reintento 1/5 en 30s
+[2026-08-24T06:18:29] ======================================================================
+[2026-08-24T06:18:29] OFF terminados · 20 productos × 3 mercados · page_size=50
+[2026-08-24T06:18:29] ======================================================================
+[2026-08-24T06:18:29] Codigos ya descubiertos: 1434 (de datasets\2026-07\off_terminados_codigos.json, se reutiliza)
+[2026-08-24T06:18:29] Fichas: 0 ya resueltas, 1434 pendientes (~38 min)

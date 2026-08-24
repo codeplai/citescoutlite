@@ -122,7 +122,15 @@
       <div class="espera-tarjeta superficie" aria-live="polite" aria-busy="true">
         <div class="espera-cabecera">
           <h2>Analizando «{{ consultaEnCurso }}»</h2>
-          <span class="reloj codigo num">{{ segundos }} s</span>
+          <!--
+            El reloj lleva al lado lo que se espera que dure. Sin esa segunda
+            cifra, el número de la izquierda no se puede interpretar: a los 70 s
+            no hay forma de saber si eso es normal o si algo se ha roto.
+          -->
+          <span class="reloj codigo num">
+            {{ segundos }} s
+            <span class="reloj-de">/ ~{{ DURACION_ESPERADA_S }} s</span>
+          </span>
         </div>
 
         <!-- Indeterminada: dice «sigo vivo», no «voy por la mitad». -->
@@ -141,9 +149,41 @@
               <Icono v-if="estadoEtapa(i) === 'hecho'" nombre="check" :tamano="12" />
             </span>
             <span class="etapa-texto">{{ e.texto }}</span>
-            <span v-if="estadoEtapa(i) === 'curso'" class="etapa-estado">en curso</span>
+            <!--
+              La etapa en curso dice cuánto lleva EN ELLA. «Leyendo góndolas» se
+              come casi toda la espera, y sin este número la lista se queda
+              quieta minuto y medio sin nada que indique que sigue viva.
+
+              Va solo aquí y NO en las etapas hechas. Ahí el único dato a mano
+              sería `desde`, que es el segundo en que empezó y no lo que duró:
+              poner «4 s» junto a una etapa que tardó noventa es exactamente la
+              cifra inventada que esta pantalla dejó de enseñar.
+            -->
+            <span v-if="estadoEtapa(i) === 'curso'" class="etapa-estado">
+              en curso
+              <span class="etapa-lleva codigo">{{ segundos - e.desde }} s</span>
+            </span>
           </li>
         </ol>
+
+        <!--
+          Pasado lo que se espera que dure, la pantalla lo DICE en vez de seguir
+          enseñando una lista terminada y un reloj que sube. Era el agujero de
+          verdad: la última etapa arranca en su segundo y no hay ninguna
+          después, así que a partir de ahí ponía «en curso» para siempre —
+          hiciera lo que hiciera el servidor. Tres minutos mirando «Redactando
+          el informe» se leen como un cuelgue, y no había forma de distinguirlo
+          de uno real.
+        -->
+        <p v-if="pasadoDeTiempo" class="espera-tarde" role="status">
+          <Icono nombre="info" :tamano="16" />
+          <span>
+            Está tardando más de lo habitual, pero la consulta sigue viva y no
+            hay que hacer nada. Las góndolas de Alemania y Suiza se leen con un
+            agente y tienen un tope de {{ TOPE_GONDOLAS_S }} s; si lo agotan, el
+            informe sale igual, sin esas dos tablas.
+          </span>
+        </p>
 
         <p class="espera-nota">
           Los tiempos de esta lista son los medidos en consultas anteriores, no
@@ -285,16 +325,65 @@ const SUGERENCIAS = [
 ]
 
 /**
- * Las etapas, con el segundo en que empieza cada una. Los cortes salen de los
- * tiempos medidos: interpretar es casi inmediato, el snapshot tarda unos
- * segundos y las góndolas por agente son las que se llevan la espera.
+ * Las etapas, con el segundo en que empieza cada una.
+ *
+ * ## Los cortes anteriores estaban mal por un factor de cuatro
+ *
+ * «Redactando el informe» arrancaba en el segundo 25 y las consultas duraban
+ * 203 s. Como esta lista se deduce del reloj y no hay ninguna etapa después de
+ * la última, a partir del segundo 25 la pantalla decía «Redactando el informe ·
+ * en curso» durante casi tres minutos, hiciera lo que hiciera el servidor. No
+ * era una etapa atascada: era el final de la lista.
+ *
+ * ## De dónde salen los números de ahora
+ *
+ * Medido sobre la ejecución fa76f0ca («galletas de quinua»), desglose real de
+ * `etapas_ejecucion`:
+ *
+ *     etapa 1  interpretar ........     0,1 s   (en caché)
+ *     etapa 2a buscar .............     0,4 s
+ *     etapa 2b MAPA COMERCIAL .....   199,8 s   <- la espera entera
+ *     etapas 3/4/5 informe ........     0,3 s   (en caché)
+ *
+ * O sea que la etapa larga no es redactar: son las góndolas. Dentro de esos
+ * 199,8 s, ~10 s eran Perú y ~190 s las dos europeas por agente, que iban en
+ * serie. Ahora van en paralelo y con tope, así que el bloque cae a ~100 s y por
+ * eso «Redactando el informe» empieza ahí.
+ *
+ * Sigue siendo un temporizador, no el avance del servidor —eso pide leer el
+ * websocket de `api/websocket_jobs.py`, que hoy no emite nada para /consultas—,
+ * pero al menos los cortes se parecen a lo que pasa.
  */
 const ETAPAS = [
   { texto: 'Interpretando las características del insumo', desde: 0 },
-  { texto: 'Barriendo OpenFoodFacts', desde: 3 },
-  { texto: 'Leyendo góndolas', desde: 8 },
-  { texto: 'Redactando el informe', desde: 25 },
+  { texto: 'Barriendo OpenFoodFacts', desde: 4 },
+  { texto: 'Leyendo góndolas de Perú, Alemania y Suiza', desde: 10 },
+  { texto: 'Redactando el informe', desde: 100 },
 ]
+
+/**
+ * Lo que se espera que dure una consulta que va bien.
+ *
+ * No es un adorno: es lo que convierte el reloj en información. Pasado este
+ * número la pantalla lo dice en una línea, en vez de dejar la última etapa
+ * anunciando «en curso» indefinidamente.
+ *
+ * 130 s sale de la medida de arriba (~100 s de góndolas) más margen para las
+ * etapas de modelo cuando NO están en caché. Con la caché caliente —que es lo
+ * normal en una demo, porque el insumo ya se consultó— la consulta entra muy
+ * por debajo.
+ */
+const DURACION_ESPERADA_S = 130
+
+/**
+ * El tope de las góndolas por agente, para poder nombrarlo en la explicación.
+ *
+ * Vive también en `AGROSCOUT_GONDOLA_TOPE_S` del servidor, y esta copia solo
+ * sirve para redactar la frase. Si allí se cambia, aquí hay que tocarlo: la
+ * alternativa —que el backend lo devuelva— pide un endpoint de configuración
+ * que hoy no existe, y no vale la pena por una cifra de un texto.
+ */
+const TOPE_GONDOLAS_S = 90
 
 const query = ref('')
 const campo = ref(null)
@@ -309,6 +398,9 @@ const seleccionadas = ref(['snapshot', 'peru'])
 const emit = defineEmits(['search-result'])
 
 const etapas = computed(() => ETAPAS)
+
+// Pasado lo esperado, la pantalla deja de fingir que todo va según el plan.
+const pasadoDeTiempo = computed(() => segundos.value > DURACION_ESPERADA_S)
 
 /** Marca o desmarca una fuente, sin dejar la búsqueda sin ninguna. */
 const alternar = (clave) => {
@@ -738,6 +830,44 @@ const submitSearch = async () => {
   text-transform: uppercase;
   color: var(--verde-texto);
 }
+
+/* Lo que lleva la etapa en curso. Pegado al «EN CURSO» pero en gris y sin
+   versalitas: es el dato que se mueve, no un segundo rótulo. */
+.etapa-lleva {
+  margin-left: 6px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 600;
+  color: var(--texto-sin-dato);
+}
+
+/* Lo esperado, al lado del reloj. Más pequeño y apagado: el dato es el número
+   de la izquierda; esto es solo la vara para medirlo. */
+.reloj-de {
+  font-weight: 600;
+  color: var(--texto-sin-dato);
+}
+
+/* -- Cuando se pasa de lo esperado --------------------------------- *
+ *
+ * Ámbar de aviso, no rojo de error: no ha fallado nada, solo está tardando.
+ * En rojo, quien lo viera cancelaría una consulta que iba a terminar bien.
+ */
+.espera-tarde {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 18px 0 0;
+  padding: 11px 13px;
+  border: 1px solid var(--aviso-borde);
+  border-radius: var(--r-md);
+  background: var(--aviso-fondo);
+  color: var(--aviso-texto);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.espera-tarde svg { flex: none; margin-top: 1px; }
 
 .espera-nota {
   margin: 20px 0 0;

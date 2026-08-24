@@ -180,12 +180,54 @@ def corresponde_al_insumo(nombre: str, insumo: str) -> bool:
     nota mucho menos que colar un producto que no es, y aguas abajo hay o una
     persona que revisa la cuarentena o una tabla que dice de que tienda salio
     cada fila.
+
+    ## Un termino compuesto se comprueba por partes, no entero
+
+    El termino ya no es siempre una palabra. Desde que la etapa 1 traduce
+    tambien la FORMA de producto, `terminos_aleman` devuelve cosas como
+    'Quinoa-Kekse', y exigir esa cadena literal descarta practicamente todo:
+    una tienda no titula su ficha con el termino de busqueda.
+
+    Medido el 2026-08-24 buscando 'Quinoa-Kekse':
+
+        Santiveri Quinoa-Schokolade-Verdauungskekse 175g  -> descartada
+        Rapunzel Bio Quinoa bunt 8 x 250g                 -> descartada
+        Alnatura Quinoa 500 g                             -> descartada
+
+    La primera **es** una galleta de quinua, y era la unica oferta real que el
+    agente llego a extraer en toda la pasada. Las gondolas alemana y suiza
+    devolvian cero por esto, no por falta de producto.
+
+    Ahora se exige que **todas** las partes aparezcan, cada una con la misma
+    regla de principio o final de palabra. Sobre esos tres nombres:
+    'Verdauungskekse' cierra en 'kekse' y lleva 'Quinoa' delante, asi que la
+    primera entra; las otras dos traen 'quinoa' pero ninguna 'kekse', que es lo
+    correcto —son grano suelto, no galletas—.
+
+    No afloja el filtro: si la cadena entera casaba, cada una de sus partes
+    casa tambien, porque los separadores del compuesto son limites de palabra.
+    O sea que **solo puede aceptar de mas**, nunca descartar algo que antes
+    pasaba.
     """
     if not nombre or not insumo:
         return False
-    termino = re.escape(_sin_tildes(insumo))
-    return re.search(rf"\b{termino}|{termino}\b",
-                     _sin_tildes(nombre)) is not None
+
+    limpio = _sin_tildes(nombre)
+    # Las partes de dos letras o menos no distinguen nada y en aleman son
+    # unidades ('g', 'kg') que se colarian desde el propio termino.
+    partes = [p for p in re.split(r"[^\w]+", _sin_tildes(insumo)) if len(p) >= 3]
+    # Un termino que se queda sin partes utiles se comprueba tal cual: es
+    # preferible al `all([])`, que daria True para cualquier nombre.
+    if not partes:
+        partes = [_sin_tildes(insumo)]
+
+    return all(_aparece_en(parte, limpio) for parte in partes)
+
+
+def _aparece_en(termino: str, nombre: str) -> bool:
+    """El termino al principio o al final de alguna palabra del nombre."""
+    escapado = re.escape(termino)
+    return re.search(rf"\b{escapado}|{escapado}\b", nombre) is not None
 
 # Reintentos cortos a proposito: quien llama envuelve esto en un
 # asyncio.wait_for(TIMEOUT_EXTRACCION), asi que un backoff largo solo sirve

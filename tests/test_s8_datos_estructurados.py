@@ -255,6 +255,27 @@ def test_lectura_de_precio(crudo, esperado):
     # Aflojar por el final no puede colar lo que no es: el termino tiene que
     # cerrar palabra, no aparecer en medio de cualquier sitio.
     ("Harina de trigo", "Quinoa", False),
+    # --- Termino COMPUESTO (2026-08-24) ---
+    #
+    # Desde que la etapa 1 traduce tambien la forma de producto, el termino
+    # llega como 'Quinoa-Kekse' y exigir esa cadena literal descartaba todo.
+    # Los tres primeros son nombres reales de una pasada del agente en la que
+    # las gondolas alemana y suiza devolvieron cero: no por falta de producto,
+    # sino porque este filtro tiraba lo que valia.
+    #
+    # 'Verdauungskekse' cierra en 'kekse' y lleva 'Quinoa' delante: es una
+    # galleta de quinua y tiene que entrar.
+    ("Santiveri Quinoa-Schokolade-Verdauungskekse 175g", "Quinoa-Kekse", True),
+    # Estas dos traen 'quinoa' pero ninguna 'kekse'. Son grano suelto, y
+    # descartarlas es lo correcto: comprobar por partes no es aflojar.
+    ("Rapunzel Bio Quinoa bunt 8 x 250g", "Quinoa-Kekse", False),
+    ("Alnatura Quinoa 500 g", "Quinoa-Kekse", False),
+    # Las partes no tienen por que ir pegadas ni en orden.
+    ("Bio Quinoa Kekse Vollkorn 200g", "Quinoa-Kekse", True),
+    ("Kekse mit Quinoa, 300 g", "Quinoa-Kekse", True),
+    # Un termino de varias palabras separadas por espacio, no por guion.
+    ("Mango Peel Snack 80g", "mango peel", True),
+    ("Mango Juice 1L", "mango peel", False),
 ])
 def test_corresponde_al_insumo(nombre, insumo, esperado):
     assert corresponde_al_insumo(nombre, insumo) is esperado

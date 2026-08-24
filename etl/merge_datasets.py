@@ -14,6 +14,7 @@ class MergeDatasets:
         self.dataset_dir = Path(dataset_dir)
         self.off_file = self.dataset_dir / "off_productos.json"
         self.usda_file = self.dataset_dir / "usda_productos.json"
+        self.terminados_file = self.dataset_dir / "off_terminados.json"
         self.output_file = self.dataset_dir / "productos_merged.json"
         self.log_file = self.dataset_dir / "merge.log"
 
@@ -56,6 +57,27 @@ class MergeDatasets:
 
         return productos_off, productos_usda
 
+    def cargar_terminados(self) -> List[Dict]:
+        """Productos terminados de `etl.cargar_off_terminados`.
+
+        Fuente opcional: si el archivo no existe, el merge es el de S2 y no
+        pasa nada. Se anade aparte y no dentro de `off_productos.json` porque
+        aquel es el filtrado del export masivo y su SHA256 esta en el manifest;
+        mezclarlos dejaria el manifest describiendo un archivo que ya no es el
+        que se descargo.
+        """
+        if not self.terminados_file.exists():
+            self.log("[LOAD] Terminados: no hay archivo, se omite la fuente")
+            return []
+        try:
+            with open(self.terminados_file, encoding='utf-8') as f:
+                productos = json.load(f)
+            self.log(f"[LOAD] Terminados: {len(productos)} productos")
+            return productos
+        except Exception as e:
+            self.log(f"[WARN] Terminados no legibles: {e}")
+            return []
+
     @staticmethod
     def clave_dedup(p: Dict) -> tuple | None:
         """
@@ -74,10 +96,11 @@ class MergeDatasets:
         clave1 = self.clave_dedup(p1)
         return clave1 is not None and clave1 == self.clave_dedup(p2)
 
-    def merge_y_dedup(self, productos_off: List[Dict], productos_usda: List[Dict]) -> List[Dict]:
+    def merge_y_dedup(self, productos_off: List[Dict], productos_usda: List[Dict],
+                      productos_terminados: List[Dict] = None) -> List[Dict]:
         """
-        Merge OFF + USDA, elimina duplicados.
-        Prioridad: mantener todos de OFF, agregar USDA sin duplicados.
+        Merge OFF + USDA + terminados, elimina duplicados.
+        Prioridad: mantener todos de OFF, agregar el resto sin duplicados.
         """
         self.log(f"[MERGE] Iniciando merge y deduplicación...")
 
@@ -98,7 +121,37 @@ class MergeDatasets:
                 continue
             merged.append(p_usda)
 
-        self.log(f"[MERGE] Duplicados removidos: {duplicados}")
+        self.log(f"[MERGE] Duplicados OFF/USDA removidos: {duplicados}")
+
+        # Los terminados salen de la MISMA fuente que `off_productos.json`, asi
+        # que un producto puede estar ya en el snapshot con su codigo de barras
+        # identico. `clave_dedup` no lo detecta —devuelve None en cuanto falta
+        # la marca, y entonces "no es duplicado de nada"—, de modo que sin este
+        # segundo filtro por `id_fuente` el merge duplicaria filas con el mismo
+        # codigo. `indexar_incremental` las descartaria despues al indexar, pero
+        # `productos_merged.json` y el manifest quedarian contando de mas.
+        repetidos_id = 0
+        if productos_terminados:
+            ids_previos = {p["id_fuente"] for p in merged}
+            claves_previas = {c for c in (self.clave_dedup(p) for p in merged)
+                              if c is not None}
+            nuevos = 0
+            for p in productos_terminados:
+                if p["id_fuente"] in ids_previos:
+                    repetidos_id += 1
+                    continue
+                clave = self.clave_dedup(p)
+                if clave is not None and clave in claves_previas:
+                    duplicados += 1
+                    continue
+                merged.append(p)
+                ids_previos.add(p["id_fuente"])
+                if clave is not None:
+                    claves_previas.add(clave)
+                nuevos += 1
+            self.log(f"[MERGE] Terminados: {nuevos} nuevos, "
+                     f"{repetidos_id} ya estaban por id_fuente")
+
         self.log(f"[MERGE] Total final: {len(merged)}")
 
         return merged
@@ -150,9 +203,11 @@ class MergeDatasets:
         productos_off, productos_usda = self.cargar_productos()
         if productos_off is None:
             return False
+        productos_terminados = self.cargar_terminados()
 
         # 2. Merge y dedup
-        merged = self.merge_y_dedup(productos_off, productos_usda)
+        merged = self.merge_y_dedup(productos_off, productos_usda,
+                                    productos_terminados)
 
         # 3. Validar
         if not self.validar_productos(merged):

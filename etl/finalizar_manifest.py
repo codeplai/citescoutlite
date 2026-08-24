@@ -35,7 +35,8 @@ INSUMOS = {
 FUENTES = [
     ("off_productos.json", "Open Food Facts — export offline filtrado", "API/export world.openfoodfacts.org"),
     ("usda_productos.json", "USDA FoodData Central — dataType Branded", "api.nal.usda.gov/fdc/v1"),
-    ("productos_merged.json", "OFF + USDA deduplicado por marca+nombre", "TIER 3 (etl.merge_datasets)"),
+    ("off_terminados.json", "OFF — productos terminados de 20 insumos en PE/CH/DE", "search-a-licious + API v2 (etl.cargar_off_terminados)"),
+    ("productos_merged.json", "OFF + USDA + terminados, deduplicado por marca+nombre e id_fuente", "TIER 3 (etl.merge_datasets)"),
     ("ecfr_aditivos.json", "eCFR Title 21 partes 182/184/145/146/150", "API versioner ecfr.gov"),
     ("digesa_normas.json", "PDFs normativos DIGESA con capa de texto", "digesa.minsa.gob.pe"),
     ("normativas_codex.json", "Normas Codex (demo S1, sustituido por el corpus TIER 6)", "Demo"),
