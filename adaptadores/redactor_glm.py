@@ -1,4 +1,7 @@
 import json
+import logging
+import os
+import time
 
 import instructor
 from litellm import acompletion
@@ -11,13 +14,71 @@ from dominio.insumo import InsumoInterpretado
 from dominio.resultado_busqueda import ResultadoBusqueda
 from puertos.redactor_llm import RedactorLLM
 
+_log = logging.getLogger(__name__)
+
+# Cuanto se espera a UNA llamada al modelo antes de darla por perdida.
+#
+# No habia ninguno, y eso significa que una llamada que no vuelve no vuelve
+# nunca: la peticion de /consultas se queda esperando indefinidamente y, como
+# el reintento solo entra si la llamada FALLA, tenacity ni se entera. Un
+# proveedor que cuelga la conexion sin cerrarla bloqueaba el run entero.
+#
+# El numero es DELIBERADAMENTE generoso, y conviene entender por que antes de
+# bajarlo. Medido el 2026-08-24 contra ModelArts: glm-5.2 genera a ~24
+# tokens/s, y las etapas grandes producen miles de tokens. En
+# `etapas_ejecucion` hay etapas 4 y 5 reales de 214 s y 237 s.
+#
+# O sea que un tope "razonable" de 60 o 120 s no cortaria llamadas colgadas:
+# cortaria generaciones que iban bien, y encima las reintentaria enteras. El
+# resultado seria una consulta MAS lenta y un informe peor.
+#
+# 300 s deja margen sobre el maximo observado y sigue acotando lo que este
+# tope existe para acotar: la llamada que no vuelve nunca. Para saber si algun
+# dia se puede bajar hace falta el dato que hasta ahora no habia —cuanto tarda
+# UNA llamada, no la etapa con sus reintentos—, y por eso `_pedir` ahora lo
+# registra.
+TIEMPO_MAXIMO_S = float(os.getenv("AGROSCOUT_LLM_TIMEOUT_S", "300"))
+
+# `reraise` para ver la causa. Sin el, al agotar los tres intentos tenacity
+# lanza un RetryError que esconde el error de verdad y arriba solo se lee
+# 'RetryError[Future...]'. Es la misma correccion que ya lleva el agente en
+# casos_de_uso/agente/agente.py.
 _REINTENTOS = dict(stop=stop_after_attempt(3),
-                   wait=wait_exponential(multiplier=1, min=2, max=10))
+                   wait=wait_exponential(multiplier=1, min=2, max=10),
+                   reraise=True)
 
 
 class RedactorGLM(RedactorLLM):
     def __init__(self, api_key: str, base_url: str | None = None):
-        self.client = instructor.from_litellm(acompletion)
+        # MD_JSON y no el TOOLS por defecto de instructor, y esto no es una
+        # preferencia: con TOOLS **se perdian respuestas correctas enteras**.
+        #
+        # instructor pedia el esquema por function calling, y los modelos de
+        # ModelArts a veces contestan en texto plano con el JSON dentro de un
+        # bloque ```json. Cuando eso pasa `tool_calls` viene a None, instructor
+        # levanta "No tool calls or function call found in response (mode:
+        # TOOLS)" y la respuesta se tira. Comprobado sobre una de esas
+        # respuestas descartadas: traia 14 ingredientes, 8 procesos y 14 citas,
+        # todas con ids validos. El contenido estaba perfecto; llego por el
+        # canal equivocado.
+        #
+        # Medido el 2026-08-24 sobre la misma entrada (etapa 4, 'salsa de soya'):
+        #
+        #   modelo     modo      exito    media
+        #   flash      TOOLS      2/4     27,7 s
+        #   flash      MD_JSON    4/4     14,5 s
+        #   glm-5.2    TOOLS      2/2    136,5 s
+        #   glm-5.2    MD_JSON    2/2    100,7 s
+        #
+        # O sea que MD_JSON arregla los descartes Y es mas rapido en los dos
+        # modelos: TOOLS obliga a emitir el andamiaje de la llamada de funcion,
+        # y eso son tokens que se generan a la misma velocidad que el informe.
+        # De las 6 respuestas con MD_JSON, ninguna invento una cita; de las 6
+        # con TOOLS, una si.
+        #
+        # El modo NO entra en la clave de cache (ver ejecutor.py), asi que este
+        # cambio no invalida nada de lo ya cacheado.
+        self.client = instructor.from_litellm(acompletion, mode=instructor.Mode.MD_JSON)
         self.api_key = api_key
         self.base_url = base_url
         # Verificado contra el endpoint el 2026-08-02: ModelArts sirve
@@ -29,26 +90,65 @@ class RedactorGLM(RedactorLLM):
         # Claves de tipo str: la numeracion de etapas es '1','2a','2b','3','4','5','6'
         # desde el esquema de S3 (D6). Con claves int el ejecutor no encontraba
         # el modelo y caia al de por defecto, corrompiendo la clave de cache.
+        # La etapa 4 va con flash y las otras dos no. No es una inconsistencia:
+        # es la unica de las tres cuyo contenido es DECLARADAMENTE especulativo
+        # —una hipotesis de formulacion— mientras que la 3 y la 5 escriben citas
+        # verificables (ids de producto y referencias regulatorias), que es
+        # justo donde un modelo mas pequeno inventa.
+        #
+        # Y es la que mas se nota. Medido sobre 'salsa de soya' (2026-08-24):
+        #
+        #   etapa   tokens salida   glm-5.2 a ~15 tok/s   flash a ~57 tok/s
+        #     3          1.411           96,2 s                ~25 s
+        #     4          2.404          160,2 s                ~42 s
+        #     5          1.301           90,0 s                ~23 s
+        #
+        # Las tres salen a la vez, asi que la consulta dura la MAS LENTA. Con
+        # la 4 en glm-5.2 esa era ella con 160 s; pasandola a flash el listero
+        # baja a la etapa 3, y la consulta de ~177 s a ~113 s.
+        #
+        # De propina, flash cuesta ~50 veces menos: esa etapa 4 costo 0,099 US$
+        # y con flash sale por 0,002 US$.
+        #
+        # OJO: el modelo entra en la clave de cache (ejecutor.py), asi que este
+        # cambio invalida lo cacheado de la etapa 4 y cada insumo la paga una
+        # vez mas. Es peaje unico, no un coste nuevo.
         self.modelo_por_etapa = {
             "1": "openai/deepseek-v4-flash",
             "2a": "openai/deepseek-v4-flash",
             "3": "openai/glm-5.2",
-            "4": "openai/glm-5.2",
+            "4": "openai/deepseek-v4-flash",
             "5": "openai/glm-5.2",
         }
 
     async def _pedir(self, etapa: str, modelo_respuesta, sistema: str, usuario: str):
         modelo = self.modelo_por_etapa.get(etapa, "openai/glm-5.2")
-        return await self.client.chat.completions.create(
-            model=modelo,
-            response_model=modelo_respuesta,
-            messages=[
-                {"role": "system", "content": sistema},
-                {"role": "user", "content": usuario},
-            ],
-            api_key=self.api_key,
-            api_base=self.base_url,
-        )
+        inicio = time.perf_counter()
+        try:
+            respuesta = await self.client.chat.completions.create(
+                model=modelo,
+                response_model=modelo_respuesta,
+                messages=[
+                    {"role": "system", "content": sistema},
+                    {"role": "user", "content": usuario},
+                ],
+                api_key=self.api_key,
+                api_base=self.base_url,
+                # Sin esto una llamada colgada se lleva la peticion por delante.
+                # Ver la nota de TIEMPO_MAXIMO_S.
+                timeout=TIEMPO_MAXIMO_S,
+            )
+        except Exception as e:
+            _log.warning("Etapa %s con %s: %s tras %.1f s",
+                         etapa, modelo, type(e).__name__, time.perf_counter() - inicio)
+            raise
+        # A nivel INFO porque es el dato que faltaba para saber por que una
+        # consulta tarda: la duracion de la etapa se registra en
+        # etapas_ejecucion, pero incluye los reintentos, asi que no distingue
+        # 'una llamada lenta' de 'tres llamadas'.
+        _log.info("Etapa %s con %s: %.1f s", etapa, modelo,
+                  time.perf_counter() - inicio)
+        return respuesta
 
     @retry(**_REINTENTOS)
     async def interpretar(self, texto: str) -> InsumoInterpretado:

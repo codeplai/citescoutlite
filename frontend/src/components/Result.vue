@@ -45,7 +45,9 @@
           {{ mapa?.insumo || result.insumo || 'Informe' }}
         </h1>
 
-        <div v-if="mapa" class="cifras">
+        <!-- Sin productos, las tres serían 0/0/0 y eso se lee como avería.
+             La sección de abajo explica la ausencia con palabras. -->
+        <div v-if="mapa?.productos?.length" class="cifras">
           <span><b class="num">{{ mapa.productos.length }}</b> productos</span>
           <span><b class="num">{{ nPaises }}</b> países</span>
           <span><b class="num">{{ nMarcas }}</b> marcas</span>
@@ -168,7 +170,12 @@
           <h2>Productos comparables en el mundo</h2>
           <span class="bloque-fuente">OpenFoodFacts · snapshot</span>
 
-          <div class="conmutador no-imprimir" role="group" aria-label="Forma de ver la lista">
+          <div
+            v-if="mapa.productos.length"
+            class="conmutador no-imprimir"
+            role="group"
+            aria-label="Forma de ver la lista"
+          >
             <button
               type="button"
               :aria-pressed="vista === 'grid'"
@@ -186,6 +193,28 @@
           </div>
         </div>
 
+        <!--
+          Cero productos NO es una avería, y para un insumo peruano es lo
+          normal: el snapshot no tiene ni uno con 'rocoto' entre sus 29.054.
+          Se dice con palabras en vez de enseñar filtros vacíos y un paginador
+          que anuncia «página 1 de 1» sobre una tabla sin filas.
+
+          Y sobre todo: esto ya no apaga las góndolas de abajo. Antes sí, y por
+          eso una consulta con 17 ofertas reales de Wong y Metro se veía como
+          una pantalla sin nada.
+        -->
+        <p v-if="!mapa.productos.length" class="vacio" role="status">
+          <Icono nombre="info" :tamano="17" />
+          <span>
+            <strong>OpenFoodFacts no cubre este insumo.</strong>
+            El catálogo global es sobre todo europeo y norteamericano, así que
+            los insumos peruanos con nombre propio suelen no aparecer. No es un
+            fallo de la consulta ni una limitación de tu plan: los precios de
+            góndola de más abajo se leyeron igual.
+          </span>
+        </p>
+
+        <template v-if="mapa.productos.length">
         <!--
           El precio ausente, explicado UNA vez y en el sitio donde el lector se
           va a hacer la pregunta: antes de mirar las filas, no después. En ámbar
@@ -431,6 +460,8 @@
           </div>
         </template>
 
+        </template>
+
         <p v-if="nivelesFaltan" class="niveles">
           <span class="chip chip--no-consultado">no se consultó</span>
           {{ nivelesFaltan }}
@@ -645,11 +676,38 @@ const NIVELES = {
   3: 'agente web',
 }
 
-// Un mapa sin productos no se pinta: el markdown ya dice que no se encontró
-// ninguno, y un panel con tres ceros se lee como un fallo de carga.
+/**
+ * El mapa, si trae ALGO que enseñar.
+ *
+ * Antes esto era `m.productos.length ? m : null`, y la condición estaba mal
+ * puesta: el mapa no es solo el snapshot de OpenFoodFacts. Lleva tres cosas
+ * independientes —productos del snapshot, ofertas de góndola y precio de
+ * materia prima— y todo el bloque de la plantilla cuelga de este valor, así
+ * que cero productos borraba también las góndolas y los precios.
+ *
+ * Medido con «salsa de rocoto» el 2026-08-24: el backend devolvió
+ * `productos: 0` y `ofertas_peru: 17`, y la pantalla no enseñó ninguna de las
+ * diecisiete. Las ofertas eran reales, de Wong y Metro, y son justamente el
+ * dato que un exportador viene a buscar.
+ *
+ * Cero productos en el snapshot es además el estado NORMAL para un insumo
+ * peruano: el snapshot no tiene ni un producto con 'rocoto' entre sus 29.054.
+ * Que eso apagase la pantalla entera convertía «OpenFoodFacts no lo cubre» en
+ * «no hay nada», que es falso y además desanima a mirar lo que sí hay.
+ *
+ * Es el mismo error que `TablaGondola` ya corrigió un nivel más abajo: ocultar
+ * una sección vacía hace que una avería y una ausencia se vean idénticas.
+ */
 const mapa = computed(() => {
   const m = props.result.mapa
-  return m && m.productos && m.productos.length ? m : null
+  if (!m) return null
+  const hayAlgo =
+    m.productos?.length ||
+    m.ofertas_peru?.length ||
+    m.ofertas_alemania?.length ||
+    m.ofertas_suiza?.length ||
+    m.precios_materia_prima?.length
+  return hayAlgo ? m : null
 })
 
 const nPaises = computed(
@@ -1145,6 +1203,28 @@ const descargar = async () => {
 }
 
 .hueco strong { color: var(--aviso-texto); }
+
+/* Ausencia declarada, no avería. En neutro y no en ámbar a propósito: que
+   OpenFoodFacts no cubra un insumo peruano es lo esperable, y pintarlo con el
+   color de aviso lo convertiría en un problema que el lector creería que tiene
+   que resolver. El ámbar queda para lo que sí es una limitación conocida del
+   dato —el precio ausente de arriba—. */
+.vacio {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 13px 15px;
+  border-radius: var(--r-md);
+  background: var(--fondo-sutil, #F7F8F7);
+  border: 1px solid var(--borde-suave);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--texto-atenuado);
+}
+
+.vacio strong { color: var(--tinta); }
+.vacio svg { flex: none; margin-top: 2px; color: var(--texto-sin-dato); }
 
 /* ---------------------------------------------------------------- *
  *  Filtros

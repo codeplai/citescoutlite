@@ -16,6 +16,7 @@ run y elige. Vive aqui y no en api/main.py para que la regla de negocio no
 dependa del framework web.
 """
 
+import asyncio
 from dataclasses import replace
 
 from casos_de_uso.dependencias import Dependencias
@@ -53,21 +54,79 @@ def _sin_presupuesto(d: Dependencias) -> bool:
     return d.presupuesto is not None and d.presupuesto.agotado
 
 
-async def _etapas_premium(d, ejecucion, resultado, interpretado, texto, motivos):
-    """Etapas 4 y 5, comprobando el presupuesto antes de cada una."""
+async def _etapas_de_modelo(d, ejecucion, resultado, interpretado, mapa, texto,
+                            motivos, con_premium):
+    """Las etapas que llaman al modelo —3, 4 y 5— **todas a la vez**.
+
+    ## Por que se pueden lanzar juntas
+
+    Porque ninguna lee la salida de otra. La 3 redacta el insight a partir de
+    `resultado` y del mapa, la 4 formula hipotesis a partir de `resultado`, y
+    la 5 verifica regulacion a partir de `interpretado`. Iban en fila sin
+    necesitarlo.
+
+    ## Lo que costaba la fila
+
+    Medido en `etapas_ejecucion` el 2026-08-24, con la cache vacia (que es el
+    caso de cualquier insumo que no se haya consultado antes):
+
+        consulta            etapa 3   etapa 4   etapa 5   en serie   la mayor
+        'salsa de rocoto'      64 s     120 s      93 s      277 s      120 s
+        'Pringles Queso'      111 s     172 s     109 s      392 s      172 s
+        'papas pringles'      164 s     125 s     101 s      390 s      164 s
+
+    Eran el 95 % de la consulta. glm-5.2 genera a ~24 tokens/s y estas tres
+    producen el informe entero, asi que no hay nada mas grande que recortar sin
+    tocar lo que el informe dice.
+
+    ## Lo que se pierde, dicho claro
+
+    Habia una comprobacion de presupuesto **entre** etapas: si la 3 agotaba el
+    tope, no se ejecutaban la 4 ni la 5. Lanzadas juntas eso ya no se puede
+    hacer, y un run que cruce el limite pagara las tres en vez de pararse en la
+    primera.
+
+    Lo que **sigue en pie** es la comprobacion de antes de entrar aqui, que es
+    la que de verdad protege: con el tope agotado no se lanza ninguna de las
+    tres y el informe sale con el mapa comercial y su motivo. Y el kill-switch
+    no se toca: se lee al empezar cada run.
+
+    O sea que el tope pasa de "corta a mitad de run" a "no deja empezar un run
+    que no se puede pagar", con un exceso acotado a las tres etapas de un run.
+    Es una politica de gasto distinta, no la ausencia de una.
+    """
     if _sin_presupuesto(d):
         motivos.add("presupuesto")
-        return None, DossierRegulatorio(restricciones=[], citas=[], sin_dato=True)
+        return None, None, DossierRegulatorio(restricciones=[], citas=[],
+                                              sin_dato=True)
 
-    hipotesis = await etapa(d, ejecucion, "4", formular_hipotesis, resultado)
+    # Con pocos productos se redacta distinto: el insight parcial no afirma
+    # sobre el mercado, describe lo poco que hay. La eleccion se hace aqui
+    # porque `motivos` ya esta decidido antes de llamar.
+    redactor = (generar_insight_parcial
+                if "pocos_productos" in motivos else generar_insight)
 
-    if _sin_presupuesto(d):
-        motivos.add("presupuesto")
-        return hipotesis, DossierRegulatorio(restricciones=[], citas=[], sin_dato=True)
+    # El insight recibe tambien el mapa: los paises y marcas reales son
+    # material de cita (T4.2). Va como kwarg, asi que entra en la clave de
+    # cache.
+    tareas = [etapa(d, ejecucion, "3", redactor, resultado,
+                    mapa=mapa.resumen_para_llm())]
 
-    dossier = await etapa(d, ejecucion, "5", verificar_regulacion,
-                          interpretado, texto=texto)
-    return hipotesis, dossier
+    if con_premium:
+        tareas.append(etapa(d, ejecucion, "4", formular_hipotesis, resultado))
+        tareas.append(etapa(d, ejecucion, "5", verificar_regulacion,
+                            interpretado, texto=texto))
+    else:
+        motivos.add("paywall")
+
+    # `gather` sin return_exceptions: si una revienta, la excepcion sube tal
+    # cual y el `finally` de _ejecutar cierra el run como 'error', igual que
+    # cuando iban en serie. Cambia el orden de la espera, no el del fallo.
+    salidas = await asyncio.gather(*tareas)
+
+    if con_premium:
+        return salidas[0], salidas[1], salidas[2]
+    return salidas[0], None, None
 
 
 async def _ejecutar(texto: str, d: Dependencias, usuario_id: str | None,
@@ -112,20 +171,11 @@ async def _ejecutar(texto: str, d: Dependencias, usuario_id: str | None,
                     emitir = lambda: d.informes.emitir(  # noqa: E731
                         ejecucion, None, True, mapa=mapa)
                 else:
-                    redactor = (generar_insight_parcial
-                                if "pocos_productos" in motivos else generar_insight)
-                    # El insight recibe tambien el mapa: los paises y marcas
-                    # reales son material de cita (T4.2). Va como kwarg, asi
-                    # que entra en la clave de cache.
-                    insight = await etapa(d, ejecucion, "3", redactor, resultado,
-                                          mapa=mapa.resumen_para_llm())
-
-                    hipotesis = dossier = None
-                    if con_premium:
-                        hipotesis, dossier = await _etapas_premium(
-                            d, ejecucion, resultado, interpretado, texto, motivos)
-                    else:
-                        motivos.add("paywall")
+                    # Las tres etapas de modelo salen a la vez; el porque y lo
+                    # que cuesta, en `_etapas_de_modelo`.
+                    insight, hipotesis, dossier = await _etapas_de_modelo(
+                        d, ejecucion, resultado, interpretado, mapa, texto,
+                        motivos, con_premium)
 
                     estado = "parcial" if motivos else "ok"
                     parcial = bool(motivos)

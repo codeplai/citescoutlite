@@ -1,0 +1,633 @@
+[2026-08-24T08:46:25] ======================================================================
+[2026-08-24T08:46:25] OFF · campana 'canasta' · 20 insumos · 400 terminos · mercados ['peru'] · page_size=20
+[2026-08-24T08:46:25] ======================================================================
+[2026-08-24T08:46:26]   arroz            peru      arroz extra                        -> 12
+[2026-08-24T08:46:34]   arroz            peru      arroz integral                     -> 15
+[2026-08-24T08:46:41]   arroz            peru      arroz parboiled                    -> 2
+[2026-08-24T08:46:49]   arroz            peru      harina de arroz                    -> 20
+[2026-08-24T08:46:57]   arroz            peru      leche de arroz                     -> 20
+[2026-08-24T08:47:04]   arroz            peru      bebida de arroz                    -> 20
+[2026-08-24T08:47:12]   arroz            peru      galletas de arroz                  -> 20
+[2026-08-24T08:47:20]   arroz            peru      tortitas de arroz                  -> 20
+[2026-08-24T08:47:27]   arroz            peru      arroz inflado                      -> 2
+[2026-08-24T08:47:35]   arroz            peru      cereal infantil de arroz           -> 20
+[2026-08-24T08:47:42]   arroz            peru      fideos de arroz                    -> 20
+[2026-08-24T08:47:50]   arroz            peru      papel de arroz                     -> 20
+[2026-08-24T08:47:58]   arroz            peru      vinagre de arroz                   -> 20
+[2026-08-24T08:48:05]   arroz            peru      sémola de arroz                    -> 20
+[2026-08-24T08:48:13]   arroz            peru      almidón de arroz                   -> 20
+[2026-08-24T08:48:20]   arroz            peru      arroz con leche                    -> 20
+[2026-08-24T08:48:28]   arroz            peru      arroz precocido                    -> 2
+[2026-08-24T08:48:35]   arroz            peru      snack de arroz                     -> 20
+[2026-08-24T08:48:43]   arroz            peru      jarabe de arroz                    -> 20
+[2026-08-24T08:48:51]   arroz            peru      arroz aromático                    -> 2
+[2026-08-24T08:48:58]   papa             peru      papas fritas en hojuelas           -> 13
+[2026-08-24T08:49:06]   papa             peru      chips de papa nativa               -> 20
+[2026-08-24T08:49:13]   papa             peru      papa prefrita congelada            -> 2
+[2026-08-24T08:49:21]   papa             peru      puré de papa instantáneo           -> 20
+[2026-08-24T08:49:29]   papa             peru      papa seca                          -> 2
+[2026-08-24T08:49:37]   papa             peru      chuño                              -> 0
+[2026-08-24T08:49:44]   papa             peru      tunta                              -> 0
+[2026-08-24T08:49:52]   papa             peru      almidón de papa                    -> 20
+[2026-08-24T08:50:00]   papa             peru      harina de papa                     -> 20
+[2026-08-24T08:50:07]   papa             peru      papas al hilo                      -> 2
+[2026-08-24T08:50:15]   papa             peru      croquetas de papa                  -> 20
+[2026-08-24T08:50:23]   papa             peru      ñoquis de papa                     -> 20
+[2026-08-24T08:50:30]   papa             peru      tortilla de papa                   -> 20
+[2026-08-24T08:50:38]   papa             peru      papa en conserva                   -> 12
+[2026-08-24T08:50:46]   papa             peru      snack de papa horneado             -> 20
+[2026-08-24T08:50:53]   papa             peru      papas onduladas                    -> 2
+[2026-08-24T08:51:01]   papa             peru      papa deshidratada en escamas       -> 12
+[2026-08-24T08:51:09]   papa             peru      papas rejilla                      -> 2
+[2026-08-24T08:51:16]   papa             peru      papa amarilla envasada             -> 2
+[2026-08-24T08:51:24]   papa             peru      papas fritas artesanales           -> 2
+[2026-08-24T08:51:31]   trigo            peru      pan de molde                       -> 20
+[2026-08-24T08:51:39]   trigo            peru      pan integral                       -> 20
+[2026-08-24T08:51:46]   trigo            peru      fideos spaghetti                   -> 10
+[2026-08-24T08:51:54]   trigo            peru      fideos tallarín                    -> 3
+[2026-08-24T08:52:02]   trigo            peru      harina de trigo                    -> 20
+[2026-08-24T08:52:09]   trigo            peru      harina integral                    -> 15
+[2026-08-24T08:52:17]   trigo            peru      galletas de soda                   -> 20
+[2026-08-24T08:52:25]   trigo            peru      galletas dulces                    -> 20
+[2026-08-24T08:52:32]   trigo            peru      panetón                            -> 0
+[2026-08-24T08:52:40]   trigo            peru      tostadas                           -> 6
+[2026-08-24T08:52:48]   trigo            peru      pan pita                           -> 20
+[2026-08-24T08:52:56]   trigo            peru      bizcocho                           -> 1
+[2026-08-24T08:53:03]   trigo            peru      sémola de trigo                    -> 20
+[2026-08-24T08:53:11]   trigo            peru      salvado de trigo                   -> 20
+[2026-08-24T08:53:19]   trigo            peru      germen de trigo                    -> 20
+[2026-08-24T08:53:26]   trigo            peru      fideos cabello de ángel            -> 20
+[2026-08-24T08:53:34]   trigo            peru      macarrones                         -> 0
+[2026-08-24T08:53:41]   trigo            peru      lasaña                             -> 0
+[2026-08-24T08:53:49]   trigo            peru      crackers integrales                -> 20
+[2026-08-24T08:53:57]   trigo            peru      pan francés                        -> 20
+[2026-08-24T08:54:04]   maíz             peru      harina de maíz                     -> 20
+[2026-08-24T08:54:12]   maíz             peru      maíz morado                        -> 0
+[2026-08-24T08:54:19]   maíz             peru      cancha serrana                     -> 0
+[2026-08-24T08:54:27]   maíz             peru      mote                               -> 0
+[2026-08-24T08:54:34]   maíz             peru      choclo en conserva                 -> 10
+[2026-08-24T08:54:42]   maíz             peru      palomitas de maíz                  -> 20
+[2026-08-24T08:54:50]   maíz             peru      hojuelas de maíz                   -> 20
+[2026-08-24T08:54:57]   maíz             peru      chicha morada                      -> 1
+[2026-08-24T08:55:05]   maíz             peru      maicena                            -> 0
+[2026-08-24T08:55:12]   maíz             peru      tortillas de maíz                  -> 20
+[2026-08-24T08:55:20]   maíz             peru      nachos de maíz                     -> 20
+[2026-08-24T08:55:28]   maíz             peru      sémola de maíz                     -> 20
+[2026-08-24T08:55:35]   maíz             peru      aceite de maíz                     -> 20
+[2026-08-24T08:55:43]   maíz             peru      jarabe de maíz                     -> 20
+[2026-08-24T08:55:50]   maíz             peru      snack de maíz                      -> 20
+[2026-08-24T08:55:58]   maíz             peru      maíz gigante del Cusco             -> 16
+[2026-08-24T08:56:05]   maíz             peru      cornflakes                         -> 0
+[2026-08-24T08:56:13]   maíz             peru      polenta                            -> 0
+[2026-08-24T08:56:21]   maíz             peru      humita                             -> 0
+[2026-08-24T08:56:28]   maíz             peru      maíz tostado                       -> 1
+[2026-08-24T08:56:36]   limón            peru      jugo de limón concentrado          -> 20
+[2026-08-24T08:56:43]   limón            peru      limonada envasada                  -> 0
+[2026-08-24T08:56:51]   limón            peru      gaseosa de limón                   -> 20
+[2026-08-24T08:56:59]   limón            peru      agua saborizada de limón           -> 20
+[2026-08-24T08:57:06]   limón            peru      mermelada de limón                 -> 20
+[2026-08-24T08:57:14]   limón            peru      cáscara de limón deshidratada      -> 20
+[2026-08-24T08:57:22]   limón            peru      aderezo de limón                   -> 20
+[2026-08-24T08:57:29]   limón            peru      vinagreta de limón                 -> 20
+[2026-08-24T08:57:37]   limón            peru      sal de limón                       -> 20
+[2026-08-24T08:57:45]   limón            peru      caramelos de limón                 -> 20
+[2026-08-24T08:57:52]   limón            peru      galletas de limón                  -> 20
+[2026-08-24T08:58:00]   limón            peru      queque de limón                    -> 20
+[2026-08-24T08:58:07]   limón            peru      helado de limón                    -> 20
+[2026-08-24T08:58:15]   limón            peru      té helado de limón                 -> 20
+[2026-08-24T08:58:23]   limón            peru      aceite esencial de limón           -> 20
+[2026-08-24T08:58:30]   limón            peru      ralladura de limón                 -> 20
+[2026-08-24T08:58:38]   limón            peru      gelatina de limón                  -> 20
+[2026-08-24T08:58:46]   limón            peru      limón en polvo                     -> 12
+[2026-08-24T08:58:53]   limón            peru      pisco sour mix                     -> 20
+[2026-08-24T08:59:01]   limón            peru      refresco de limón                  -> 20
+[2026-08-24T08:59:09]   ajo              peru      ajo en polvo                       -> 12
+[2026-08-24T08:59:17]   ajo              peru      pasta de ajo                       -> 20
+[2026-08-24T08:59:24]   ajo              peru      ajo molido                         -> 0
+[2026-08-24T08:59:32]   ajo              peru      ajo deshidratado                   -> 0
+[2026-08-24T08:59:39]   ajo              peru      ajo en escamas                     -> 10
+[2026-08-24T08:59:47]   ajo              peru      aceite de ajo                      -> 20
+[2026-08-24T08:59:55]   ajo              peru      ajo encurtido                      -> 0
+[2026-08-24T09:00:03]   ajo              peru      sal de ajo                         -> 20
+[2026-08-24T09:00:10]   ajo              peru      aderezo de ajo                     -> 20
+[2026-08-24T09:00:18]   ajo              peru      mayonesa de ajo                    -> 20
+[2026-08-24T09:00:26]   ajo              peru      pan de ajo                         -> 20
+[2026-08-24T09:00:33]   ajo              peru      salsa de ajo                       -> 20
+[2026-08-24T09:00:41]   ajo              peru      ajo negro                          -> 0
+[2026-08-24T09:00:49]   ajo              peru      ajo granulado                      -> 0
+[2026-08-24T09:00:57]   ajo              peru      condimento de ajo                  -> 20
+[2026-08-24T09:01:05]   ajo              peru      ajo frito crocante                 -> 8
+[2026-08-24T09:01:12]   ajo              peru      ajo en conserva                    -> 10
+[2026-08-24T09:01:20]   ajo              peru      chimichurri                        -> 0
+[2026-08-24T09:01:27]   ajo              peru      alioli                             -> 0
+[2026-08-24T09:01:35]   ajo              peru      ajo confitado                      -> 0
+[2026-08-24T09:01:43]   cebolla          peru      cebolla deshidratada               -> 1
+[2026-08-24T09:01:50]   cebolla          peru      cebolla en polvo                   -> 13
+[2026-08-24T09:01:58]   cebolla          peru      cebolla frita crocante             -> 1
+[2026-08-24T09:02:06]   cebolla          peru      aros de cebolla                    -> 20
+[2026-08-24T09:02:13]   cebolla          peru      cebolla encurtida                  -> 1
+[2026-08-24T09:02:21]   cebolla          peru      sopa de cebolla                    -> 20
+[2026-08-24T09:02:28]   cebolla          peru      salsa criolla                      -> 7
+[2026-08-24T09:02:36]   cebolla          peru      cebolla caramelizada               -> 1
+[2026-08-24T09:02:44]   cebolla          peru      cebolla granulada                  -> 1
+[2026-08-24T09:02:51]   cebolla          peru      condimento de cebolla              -> 20
+[2026-08-24T09:02:59]   cebolla          peru      cebolla en escamas                 -> 11
+[2026-08-24T09:03:07]   cebolla          peru      cebolla china deshidratada         -> 1
+[2026-08-24T09:03:14]   cebolla          peru      mermelada de cebolla               -> 20
+[2026-08-24T09:03:22]   cebolla          peru      aderezo de cebolla                 -> 20
+[2026-08-24T09:03:29]   cebolla          peru      cebolla congelada                  -> 1
+[2026-08-24T09:03:37]   cebolla          peru      snack sabor cebolla                -> 20
+[2026-08-24T09:03:45]   cebolla          peru      crema de cebolla                   -> 20
+[2026-08-24T09:03:53]   cebolla          peru      cebolla en conserva                -> 11
+[2026-08-24T09:04:04]   cebolla          peru      sal de cebolla                     -> 20
+[2026-08-24T09:04:13]   cebolla          peru      cebolla morada encurtida           -> 2
+[2026-08-24T09:04:20]   zanahoria        peru      jugo de zanahoria                  -> 20
+[2026-08-24T09:04:28]   zanahoria        peru      zanahoria rallada en conserva      -> 10
+[2026-08-24T09:04:36]   zanahoria        peru      puré de zanahoria                  -> 20
+[2026-08-24T09:04:43]   zanahoria        peru      zanahoria baby                     -> 9
+[2026-08-24T09:04:52]   zanahoria        peru      zanahoria congelada                -> 0
+[2026-08-24T09:05:00]   zanahoria        peru      sopa de zanahoria                  -> 20
+[2026-08-24T09:05:09]   zanahoria        peru      queque de zanahoria                -> 20
+[2026-08-24T09:05:16]   zanahoria        peru      mermelada de zanahoria             -> 20
+[2026-08-24T09:05:44] ======================================================================
+[2026-08-24T09:05:44] OFF · campana 'canasta' · 20 insumos · 400 terminos · mercados ['peru'] · page_size=20
+[2026-08-24T09:05:44] ======================================================================
+[2026-08-24T09:05:45]   arroz            peru      arroz extra                        -> 12
+[2026-08-24T09:05:53]   arroz            peru      arroz integral                     -> 15
+[2026-08-24T09:06:01]   arroz            peru      arroz parboiled                    -> 2
+[2026-08-24T09:06:08]   arroz            peru      harina de arroz                    -> 20
+[2026-08-24T09:06:16]   arroz            peru      leche de arroz                     -> 20
+[2026-08-24T09:06:24]   arroz            peru      bebida de arroz                    -> 20
+[2026-08-24T09:06:31]   arroz            peru      galletas de arroz                  -> 20
+[2026-08-24T09:06:39]   arroz            peru      tortitas de arroz                  -> 20
+[2026-08-24T09:06:46]   arroz            peru      arroz inflado                      -> 2
+[2026-08-24T09:06:54]   arroz            peru      cereal infantil de arroz           -> 20
+[2026-08-24T09:07:02]   arroz            peru      fideos de arroz                    -> 20
+[2026-08-24T09:07:09]   arroz            peru      papel de arroz                     -> 20
+[2026-08-24T09:07:17]   arroz            peru      vinagre de arroz                   -> 20
+[2026-08-24T09:07:24]   arroz            peru      sémola de arroz                    -> 20
+[2026-08-24T09:07:32]   arroz            peru      almidón de arroz                   -> 20
+[2026-08-24T09:07:40]   arroz            peru      arroz con leche                    -> 20
+[2026-08-24T09:07:47]   arroz            peru      arroz precocido                    -> 2
+[2026-08-24T09:07:55]   arroz            peru      snack de arroz                     -> 20
+[2026-08-24T09:08:03]   arroz            peru      jarabe de arroz                    -> 20
+[2026-08-24T09:08:10]   arroz            peru      arroz aromático                    -> 2
+[2026-08-24T09:08:18]   papa             peru      papas fritas en hojuelas           -> 13
+[2026-08-24T09:08:25]   papa             peru      chips de papa nativa               -> 20
+[2026-08-24T09:08:33]   papa             peru      papa prefrita congelada            -> 2
+[2026-08-24T09:08:41]   papa             peru      puré de papa instantáneo           -> 20
+[2026-08-24T09:08:48]   papa             peru      papa seca                          -> 2
+[2026-08-24T09:08:56]   papa             peru      chuño                              -> 0
+[2026-08-24T09:09:03]   papa             peru      tunta                              -> 0
+[2026-08-24T09:09:11]   papa             peru      almidón de papa                    -> 20
+[2026-08-24T09:09:18]   papa             peru      harina de papa                     -> 20
+[2026-08-24T09:09:26]   papa             peru      papas al hilo                      -> 2
+[2026-08-24T09:09:34]   papa             peru      croquetas de papa                  -> 20
+[2026-08-24T09:09:41]   papa             peru      ñoquis de papa                     -> 20
+[2026-08-24T09:09:49]   papa             peru      tortilla de papa                   -> 20
+[2026-08-24T09:09:56]   papa             peru      papa en conserva                   -> 12
+[2026-08-24T09:10:04]   papa             peru      snack de papa horneado             -> 20
+[2026-08-24T09:10:12]   papa             peru      papas onduladas                    -> 2
+[2026-08-24T09:10:19]   papa             peru      papa deshidratada en escamas       -> 12
+[2026-08-24T09:10:27]   papa             peru      papas rejilla                      -> 2
+[2026-08-24T09:10:34]   papa             peru      papa amarilla envasada             -> 2
+[2026-08-24T09:10:42]   papa             peru      papas fritas artesanales           -> 2
+[2026-08-24T09:10:49]   trigo            peru      pan de molde                       -> 20
+[2026-08-24T09:10:57]   trigo            peru      pan integral                       -> 20
+[2026-08-24T09:11:05]   trigo            peru      fideos spaghetti                   -> 10
+[2026-08-24T09:11:12]   trigo            peru      fideos tallarín                    -> 3
+[2026-08-24T09:11:20]   trigo            peru      harina de trigo                    -> 20
+[2026-08-24T09:11:28]   trigo            peru      harina integral                    -> 15
+[2026-08-24T09:11:35]   trigo            peru      galletas de soda                   -> 20
+[2026-08-24T09:11:43]   trigo            peru      galletas dulces                    -> 20
+[2026-08-24T09:11:50]   trigo            peru      panetón                            -> 0
+[2026-08-24T09:11:55] ======================================================================
+[2026-08-24T09:11:55] OFF · campana 'canasta' · 20 insumos · 400 terminos · mercados ['peru'] · page_size=20
+[2026-08-24T09:11:55] ======================================================================
+[2026-08-24T09:11:56]   arroz            peru      arroz extra                        -> 12
+[2026-08-24T09:12:03]   arroz            peru      arroz integral                     -> 15
+[2026-08-24T09:12:11]   arroz            peru      arroz parboiled                    -> 2
+[2026-08-24T09:12:19]   arroz            peru      harina de arroz                    -> 20
+[2026-08-24T09:12:26]   arroz            peru      leche de arroz                     -> 20
+[2026-08-24T09:12:34]   arroz            peru      bebida de arroz                    -> 20
+[2026-08-24T09:12:42]   arroz            peru      galletas de arroz                  -> 20
+[2026-08-24T09:12:49]   arroz            peru      tortitas de arroz                  -> 20
+[2026-08-24T09:12:57]   arroz            peru      arroz inflado                      -> 2
+[2026-08-24T09:13:05]   arroz            peru      cereal infantil de arroz           -> 20
+[2026-08-24T09:13:13]   arroz            peru      fideos de arroz                    -> 20
+[2026-08-24T09:13:20]   arroz            peru      papel de arroz                     -> 20
+[2026-08-24T09:13:28]   arroz            peru      vinagre de arroz                   -> 20
+[2026-08-24T09:13:36]   arroz            peru      sémola de arroz                    -> 20
+[2026-08-24T09:13:43]   arroz            peru      almidón de arroz                   -> 20
+[2026-08-24T09:13:51]   arroz            peru      arroz con leche                    -> 20
+[2026-08-24T09:13:58]   arroz            peru      arroz precocido                    -> 2
+[2026-08-24T09:14:06]   arroz            peru      snack de arroz                     -> 20
+[2026-08-24T09:14:13]   arroz            peru      jarabe de arroz                    -> 20
+[2026-08-24T09:14:21]   arroz            peru      arroz aromático                    -> 2
+[2026-08-24T09:14:29]   papa             peru      papas fritas en hojuelas           -> 13
+[2026-08-24T09:14:36]   papa             peru      chips de papa nativa               -> 20
+[2026-08-24T09:14:44]   papa             peru      papa prefrita congelada            -> 2
+[2026-08-24T09:14:51]   papa             peru      puré de papa instantáneo           -> 20
+[2026-08-24T09:14:59]   papa             peru      papa seca                          -> 2
+[2026-08-24T09:15:06]   papa             peru      chuño                              -> 0
+[2026-08-24T09:15:14]   papa             peru      tunta                              -> 0
+[2026-08-24T09:15:22]   papa             peru      almidón de papa                    -> 20
+[2026-08-24T09:15:29]   papa             peru      harina de papa                     -> 20
+[2026-08-24T09:15:37]   papa             peru      papas al hilo                      -> 2
+[2026-08-24T09:15:44]   papa             peru      croquetas de papa                  -> 20
+[2026-08-24T09:15:52]   papa             peru      ñoquis de papa                     -> 20
+[2026-08-24T09:16:00]   papa             peru      tortilla de papa                   -> 20
+[2026-08-24T09:16:07]   papa             peru      papa en conserva                   -> 12
+[2026-08-24T09:16:15]   papa             peru      snack de papa horneado             -> 20
+[2026-08-24T09:16:22]   papa             peru      papas onduladas                    -> 2
+[2026-08-24T09:16:30]   papa             peru      papa deshidratada en escamas       -> 12
+[2026-08-24T09:16:38]   papa             peru      papas rejilla                      -> 2
+[2026-08-24T09:16:45]   papa             peru      papa amarilla envasada             -> 2
+[2026-08-24T09:16:53]   papa             peru      papas fritas artesanales           -> 2
+[2026-08-24T09:17:00]   trigo            peru      pan de molde                       -> 20
+[2026-08-24T09:17:08]   trigo            peru      pan integral                       -> 20
+[2026-08-24T09:17:15]   trigo            peru      fideos spaghetti                   -> 10
+[2026-08-24T09:17:23]   trigo            peru      fideos tallarín                    -> 3
+[2026-08-24T09:17:31]   trigo            peru      harina de trigo                    -> 20
+[2026-08-24T09:17:38]   trigo            peru      harina integral                    -> 15
+[2026-08-24T09:17:46]   trigo            peru      galletas de soda                   -> 20
+[2026-08-24T09:17:53]   trigo            peru      galletas dulces                    -> 20
+[2026-08-24T09:18:01]   trigo            peru      panetón                            -> 0
+[2026-08-24T09:18:08]   trigo            peru      tostadas                           -> 6
+[2026-08-24T09:18:16]   trigo            peru      pan pita                           -> 20
+[2026-08-24T09:18:24]   trigo            peru      bizcocho                           -> 1
+[2026-08-24T09:18:31]   trigo            peru      sémola de trigo                    -> 20
+[2026-08-24T09:18:39]   trigo            peru      salvado de trigo                   -> 20
+[2026-08-24T09:18:46]   trigo            peru      germen de trigo                    -> 20
+[2026-08-24T09:18:54]   trigo            peru      fideos cabello de ángel            -> 20
+[2026-08-24T09:19:01]   trigo            peru      macarrones                         -> 0
+[2026-08-24T09:19:09]   trigo            peru      lasaña                             -> 0
+[2026-08-24T09:19:17]   trigo            peru      crackers integrales                -> 20
+[2026-08-24T09:19:24]   trigo            peru      pan francés                        -> 20
+[2026-08-24T09:19:32]   maíz             peru      harina de maíz                     -> 20
+[2026-08-24T09:19:39]   maíz             peru      maíz morado                        -> 0
+[2026-08-24T09:19:47]   maíz             peru      cancha serrana                     -> 0
+[2026-08-24T09:19:54]   maíz             peru      mote                               -> 0
+[2026-08-24T09:20:02]   maíz             peru      choclo en conserva                 -> 10
+[2026-08-24T09:20:09]   maíz             peru      palomitas de maíz                  -> 20
+[2026-08-24T09:20:17]   maíz             peru      hojuelas de maíz                   -> 20
+[2026-08-24T09:20:25]   maíz             peru      chicha morada                      -> 1
+[2026-08-24T09:20:32]   maíz             peru      maicena                            -> 0
+[2026-08-24T09:20:40]   maíz             peru      tortillas de maíz                  -> 20
+[2026-08-24T09:20:47]   maíz             peru      nachos de maíz                     -> 20
+[2026-08-24T09:20:55]   maíz             peru      sémola de maíz                     -> 20
+[2026-08-24T09:21:02]   maíz             peru      aceite de maíz                     -> 20
+[2026-08-24T09:21:10]   maíz             peru      jarabe de maíz                     -> 20
+[2026-08-24T09:21:18]   maíz             peru      snack de maíz                      -> 20
+[2026-08-24T09:21:25]   maíz             peru      maíz gigante del Cusco             -> 16
+[2026-08-24T09:21:33]   maíz             peru      cornflakes                         -> 0
+[2026-08-24T09:21:40]   maíz             peru      polenta                            -> 0
+[2026-08-24T09:21:48]   maíz             peru      humita                             -> 0
+[2026-08-24T09:21:55]   maíz             peru      maíz tostado                       -> 1
+[2026-08-24T09:22:03]   limón            peru      jugo de limón concentrado          -> 20
+[2026-08-24T09:22:11]   limón            peru      limonada envasada                  -> 0
+[2026-08-24T09:22:18]   limón            peru      gaseosa de limón                   -> 20
+[2026-08-24T09:22:26]   limón            peru      agua saborizada de limón           -> 20
+[2026-08-24T09:22:33]   limón            peru      mermelada de limón                 -> 20
+[2026-08-24T09:22:41]   limón            peru      cáscara de limón deshidratada      -> 20
+[2026-08-24T09:22:49]   limón            peru      aderezo de limón                   -> 20
+[2026-08-24T09:22:56]   limón            peru      vinagreta de limón                 -> 20
+[2026-08-24T09:23:04]   limón            peru      sal de limón                       -> 20
+[2026-08-24T09:23:12]   limón            peru      caramelos de limón                 -> 20
+[2026-08-24T09:23:19]   limón            peru      galletas de limón                  -> 20
+[2026-08-24T09:23:27]   limón            peru      queque de limón                    -> 20
+[2026-08-24T09:23:35]   limón            peru      helado de limón                    -> 20
+[2026-08-24T09:23:42]   limón            peru      té helado de limón                 -> 20
+[2026-08-24T09:23:50]   limón            peru      aceite esencial de limón           -> 20
+[2026-08-24T09:23:57]   limón            peru      ralladura de limón                 -> 20
+[2026-08-24T09:24:05]   limón            peru      gelatina de limón                  -> 20
+[2026-08-24T09:24:12]   limón            peru      limón en polvo                     -> 12
+[2026-08-24T09:24:20]   limón            peru      pisco sour mix                     -> 20
+[2026-08-24T09:24:28]   limón            peru      refresco de limón                  -> 20
+[2026-08-24T09:24:35]   ajo              peru      ajo en polvo                       -> 12
+[2026-08-24T09:24:43]   ajo              peru      pasta de ajo                       -> 20
+[2026-08-24T09:24:50]   ajo              peru      ajo molido                         -> 0
+[2026-08-24T09:24:58]   ajo              peru      ajo deshidratado                   -> 0
+[2026-08-24T09:25:06]   ajo              peru      ajo en escamas                     -> 10
+[2026-08-24T09:25:13]   ajo              peru      aceite de ajo                      -> 20
+[2026-08-24T09:25:21]   ajo              peru      ajo encurtido                      -> 0
+[2026-08-24T09:25:28]   ajo              peru      sal de ajo                         -> 20
+[2026-08-24T09:25:36]   ajo              peru      aderezo de ajo                     -> 20
+[2026-08-24T09:25:43]   ajo              peru      mayonesa de ajo                    -> 20
+[2026-08-24T09:25:51]   ajo              peru      pan de ajo                         -> 20
+[2026-08-24T09:25:59]   ajo              peru      salsa de ajo                       -> 20
+[2026-08-24T09:26:06]   ajo              peru      ajo negro                          -> 0
+[2026-08-24T09:26:14]   ajo              peru      ajo granulado                      -> 0
+[2026-08-24T09:26:21]   ajo              peru      condimento de ajo                  -> 20
+[2026-08-24T09:26:29]   ajo              peru      ajo frito crocante                 -> 8
+[2026-08-24T09:26:37]   ajo              peru      ajo en conserva                    -> 10
+[2026-08-24T09:26:44]   ajo              peru      chimichurri                        -> 0
+[2026-08-24T09:26:52]   ajo              peru      alioli                             -> 0
+[2026-08-24T09:26:59]   ajo              peru      ajo confitado                      -> 0
+[2026-08-24T09:27:07]   cebolla          peru      cebolla deshidratada               -> 1
+[2026-08-24T09:27:14]   cebolla          peru      cebolla en polvo                   -> 13
+[2026-08-24T09:27:22]   cebolla          peru      cebolla frita crocante             -> 1
+[2026-08-24T09:27:29]   cebolla          peru      aros de cebolla                    -> 20
+[2026-08-24T09:27:37]   cebolla          peru      cebolla encurtida                  -> 1
+[2026-08-24T09:27:45]   cebolla          peru      sopa de cebolla                    -> 20
+[2026-08-24T09:27:52]   cebolla          peru      salsa criolla                      -> 7
+[2026-08-24T09:28:00]   cebolla          peru      cebolla caramelizada               -> 1
+[2026-08-24T09:28:07]   cebolla          peru      cebolla granulada                  -> 1
+[2026-08-24T09:28:15]   cebolla          peru      condimento de cebolla              -> 20
+[2026-08-24T09:28:23]   cebolla          peru      cebolla en escamas                 -> 11
+[2026-08-24T09:28:30]   cebolla          peru      cebolla china deshidratada         -> 1
+[2026-08-24T09:28:38]   cebolla          peru      mermelada de cebolla               -> 20
+[2026-08-24T09:28:45]   cebolla          peru      aderezo de cebolla                 -> 20
+[2026-08-24T09:28:53]   cebolla          peru      cebolla congelada                  -> 1
+[2026-08-24T09:29:00]   cebolla          peru      snack sabor cebolla                -> 20
+[2026-08-24T09:29:08]   cebolla          peru      crema de cebolla                   -> 20
+[2026-08-24T09:29:16]   cebolla          peru      cebolla en conserva                -> 11
+[2026-08-24T09:29:23]   cebolla          peru      sal de cebolla                     -> 20
+[2026-08-24T09:29:31]   cebolla          peru      cebolla morada encurtida           -> 2
+[2026-08-24T09:29:38]   zanahoria        peru      jugo de zanahoria                  -> 20
+[2026-08-24T09:29:46]   zanahoria        peru      zanahoria rallada en conserva      -> 10
+[2026-08-24T09:29:53]   zanahoria        peru      puré de zanahoria                  -> 20
+[2026-08-24T09:30:01]   zanahoria        peru      zanahoria baby                     -> 9
+[2026-08-24T09:30:09]   zanahoria        peru      zanahoria congelada                -> 0
+[2026-08-24T09:30:16]   zanahoria        peru      sopa de zanahoria                  -> 20
+[2026-08-24T09:30:24]   zanahoria        peru      queque de zanahoria                -> 20
+[2026-08-24T09:30:31]   zanahoria        peru      mermelada de zanahoria             -> 20
+[2026-08-24T09:30:39]   zanahoria        peru      chips de zanahoria                 -> 20
+[2026-08-24T09:30:47]   zanahoria        peru      zanahoria deshidratada             -> 0
+[2026-08-24T09:30:54]   zanahoria        peru      papilla de zanahoria               -> 20
+[2026-08-24T09:31:02]   zanahoria        peru      néctar de zanahoria                -> 20
+[2026-08-24T09:31:09]   zanahoria        peru      zanahoria encurtida                -> 0
+[2026-08-24T09:31:17]   zanahoria        peru      ensalada de zanahoria              -> 20
+[2026-08-24T09:31:24]   zanahoria        peru      zanahoria en cubos                 -> 10
+[2026-08-24T09:31:32]   zanahoria        peru      jugo de zanahoria y naranja        -> 20
+[2026-08-24T09:31:39]   zanahoria        peru      snack de zanahoria                 -> 20
+[2026-08-24T09:31:47]   zanahoria        peru      zanahoria en polvo                 -> 12
+[2026-08-24T09:31:55]   zanahoria        peru      crema de zanahoria                 -> 20
+[2026-08-24T09:32:02]   zanahoria        peru      zanahoria en conserva              -> 10
+[2026-08-24T09:32:10]   avena            peru      hojuelas de avena                  -> 20
+[2026-08-24T09:32:17]   avena            peru      avena instantánea                  -> 15
+[2026-08-24T09:32:25]   avena            peru      harina de avena                    -> 20
+[2026-08-24T09:32:33]   avena            peru      bebida de avena                    -> 20
+[2026-08-24T09:32:40]   avena            peru      leche de avena                     -> 20
+[2026-08-24T09:32:48]   avena            peru      granola con avena                  -> 20
+[2026-08-24T09:32:55]   avena            peru      barras de avena                    -> 20
+[2026-08-24T09:33:03]   avena            peru      galletas de avena                  -> 20
+[2026-08-24T09:33:11]   avena            peru      avena precocida                    -> 15
+[2026-08-24T09:33:18]   avena            peru      salvado de avena                   -> 20
+[2026-08-24T09:33:26]   avena            peru      avena con quinua                   -> 20
+[2026-08-24T09:33:33]   avena            peru      avena saborizada                   -> 15
+[2026-08-24T09:33:41]   avena            peru      porridge de avena                  -> 20
+[2026-08-24T09:33:48]   avena            peru      muesli                             -> 10
+[2026-08-24T09:33:56]   avena            peru      avena integral                     -> 20
+[2026-08-24T09:34:04]   avena            peru      panqueques de avena                -> 20
+[2026-08-24T09:34:11]   avena            peru      yogur con avena                    -> 20
+[2026-08-24T09:34:19]   avena            peru      avena en polvo                     -> 20
+[2026-08-24T09:34:26]   avena            peru      cereal de avena                    -> 20
+[2026-08-24T09:34:34]   avena            peru      avena orgánica                     -> 16
+[2026-08-24T09:34:41]   palta            peru      aceite de palta                    -> 20
+[2026-08-24T09:34:49]   palta            peru      guacamole                          -> 0
+[2026-08-24T09:34:57]   palta            peru      pulpa de palta congelada           -> 20
+[2026-08-24T09:35:04]   palta            peru      palta en conserva                  -> 10
+[2026-08-24T09:35:12]   palta            peru      crema de palta                     -> 20
+[2026-08-24T09:35:19]   palta            peru      mayonesa de palta                  -> 20
+[2026-08-24T09:35:27]   palta            peru      palta deshidratada                 -> 0
+[2026-08-24T09:35:34]   palta            peru      aderezo de palta                   -> 20
+[2026-08-24T09:35:42]   palta            peru      hummus de palta                    -> 20
+[2026-08-24T09:35:50]   palta            peru      palta liofilizada                  -> 0
+[2026-08-24T09:35:57]   palta            peru      mantequilla de palta               -> 20
+[2026-08-24T09:36:05]   palta            peru      salsa de palta                     -> 20
+[2026-08-24T09:36:12]   palta            peru      palta Hass                         -> 0
+[2026-08-24T09:36:20]   palta            peru      palta Fuerte                       -> 0
+[2026-08-24T09:36:28]   palta            peru      extracto de palta                  -> 20
+[2026-08-24T09:36:35]   palta            peru      harina de semilla de palta         -> 20
+[2026-08-24T09:36:43]   palta            peru      aceite de semilla de palta         -> 20
+[2026-08-24T09:36:50]   palta            peru      palta en cubos congelada           -> 10
+[2026-08-24T09:36:58]   palta            peru      dip de palta                       -> 20
+[2026-08-24T09:37:06]   palta            peru      palta orgánica                     -> 1
+[2026-08-24T09:37:13]   tomate           peru      pasta de tomate                    -> 20
+[2026-08-24T09:37:21]   tomate           peru      salsa de tomate                    -> 20
+[2026-08-24T09:37:28]   tomate           peru      kétchup                            -> 0
+[2026-08-24T09:37:36]   tomate           peru      tomate pelado en conserva          -> 12
+[2026-08-24T09:37:43]   tomate           peru      puré de tomate                     -> 20
+[2026-08-24T09:37:51]   tomate           peru      jugo de tomate                     -> 20
+[2026-08-24T09:37:59]   tomate           peru      tomate deshidratado                -> 2
+[2026-08-24T09:38:06]   tomate           peru      tomate seco en aceite              -> 19
+[2026-08-24T09:38:14]   tomate           peru      salsa napolitana                   -> 7
+[2026-08-24T09:38:22]   tomate           peru      salsa boloñesa                     -> 7
+[2026-08-24T09:38:29]   tomate           peru      sofrito de tomate                  -> 20
+[2026-08-24T09:38:37]   tomate           peru      tomate cherry en conserva          -> 12
+[2026-08-24T09:38:44]   tomate           peru      sopa de tomate                     -> 20
+[2026-08-24T09:38:52]   tomate           peru      gazpacho                           -> 0
+[2026-08-24T09:38:59]   tomate           peru      passata de tomate                  -> 20
+[2026-08-24T09:39:07]   tomate           peru      tomate triturado                   -> 2
+[2026-08-24T09:39:14]   tomate           peru      tomate en polvo                    -> 14
+[2026-08-24T09:39:22]   tomate           peru      tomate confitado                   -> 2
+[2026-08-24T09:39:30]   tomate           peru      salsa pomodoro                     -> 7
+[2026-08-24T09:39:37]   tomate           peru      aderezo de tomate                  -> 20
+[2026-08-24T09:39:45]   ají              peru      pasta de ají amarillo              -> 20
+[2026-08-24T09:39:52]   ají              peru      pasta de ají panca                 -> 20
+[2026-08-24T09:40:00]   ají              peru      ají amarillo en conserva           -> 12
+[2026-08-24T09:40:07]   ají              peru      ají molido                         -> 2
+[2026-08-24T09:40:15]   ají              peru      ají en polvo                       -> 14
+[2026-08-24T09:40:23]   ají              peru      salsa de ají                       -> 20
+[2026-08-24T09:40:30]   ají              peru      crema de ají                       -> 20
+[2026-08-24T09:40:38]   ají              peru      ají deshidratado                   -> 2
+[2026-08-24T09:40:45]   ají              peru      rocoto molido                      -> 0
+[2026-08-24T09:40:53]   ají              peru      pasta de rocoto                    -> 20
+[2026-08-24T09:41:00]   ají              peru      salsa huancaína                    -> 7
+[2026-08-24T09:41:08]   ají              peru      aderezo de ají                     -> 20
+[2026-08-24T09:41:16]   ají              peru      ají amarillo congelado             -> 2
+[2026-08-24T09:41:23]   ají              peru      ají charapita                      -> 2
+[2026-08-24T09:41:31]   ají              peru      salsa picante                      -> 10
+[2026-08-24T09:41:38]   ají              peru      ají mirasol                        -> 3
+[2026-08-24T09:41:46]   ají              peru      ají limo                           -> 2
+[2026-08-24T09:41:53]   ají              peru      condimento de ají                  -> 20
+[2026-08-24T09:42:01]   ají              peru      ají en escabeche                   -> 12
+[2026-08-24T09:42:09]   ají              peru      ají panca molido                   -> 2
+[2026-08-24T09:42:16]   yuca             peru      harina de yuca                     -> 20
+[2026-08-24T09:42:24]   yuca             peru      almidón de yuca                    -> 20
+[2026-08-24T09:42:31]   yuca             peru      chifles de yuca                    -> 20
+[2026-08-24T09:42:39]   yuca             peru      yuca congelada                     -> 0
+[2026-08-24T09:42:46]   yuca             peru      yuca frita precocida               -> 0
+[2026-08-24T09:42:54]   yuca             peru      pan de yuca                        -> 20
+[2026-08-24T09:43:01]   yuca             peru      perlas de tapioca                  -> 20
+[2026-08-24T09:43:09]   yuca             peru      fécula de yuca                     -> 20
+[2026-08-24T09:43:17]   yuca             peru      yuca deshidratada                  -> 0
+[2026-08-24T09:43:24]   yuca             peru      snack de yuca                      -> 20
+[2026-08-24T09:43:32]   yuca             peru      chips de yuca                      -> 20
+[2026-08-24T09:43:39]   yuca             peru      casabe                             -> 0
+[2026-08-24T09:43:47]   yuca             peru      harina de tapioca                  -> 20
+[2026-08-24T09:43:55]   yuca             peru      yuca en trozos congelada           -> 10
+[2026-08-24T09:44:02]   yuca             peru      croquetas de yuca                  -> 20
+[2026-08-24T09:44:10]   yuca             peru      puré de yuca                       -> 20
+[2026-08-24T09:44:17]   yuca             peru      yuca en conserva                   -> 10
+[2026-08-24T09:44:25]   yuca             peru      sagú                               -> 0
+[2026-08-24T09:44:32]   yuca             peru      bebida de tapioca                  -> 20
+[2026-08-24T09:44:40]   yuca             peru      galletas de yuca                   -> 20
+[2026-08-24T09:44:48]   naranja          peru      jugo de naranja                    -> 20
+[2026-08-24T09:44:55]   naranja          peru      néctar de naranja                  -> 20
+[2026-08-24T09:45:03]   naranja          peru      mermelada de naranja               -> 20
+[2026-08-24T09:45:10]   naranja          peru      gaseosa de naranja                 -> 20
+[2026-08-24T09:45:18]   naranja          peru      naranja en conserva                -> 12
+[2026-08-24T09:45:25]   naranja          peru      cáscara de naranja confitada       -> 20
+[2026-08-24T09:45:33]   naranja          peru      aceite esencial de naranja         -> 20
+[2026-08-24T09:45:41]   naranja          peru      refresco de mandarina              -> 20
+[2026-08-24T09:45:48]   naranja          peru      jugo de mandarina                  -> 20
+[2026-08-24T09:45:56]   naranja          peru      mandarina en conserva              -> 10
+[2026-08-24T09:46:03]   naranja          peru      agua saborizada de naranja         -> 20
+[2026-08-24T09:46:11]   naranja          peru      té de naranja                      -> 20
+[2026-08-24T09:46:18]   naranja          peru      caramelos de naranja               -> 20
+[2026-08-24T09:46:26]   naranja          peru      chocolate con naranja              -> 20
+[2026-08-24T09:46:33]   naranja          peru      queque de naranja                  -> 20
+[2026-08-24T09:46:41]   naranja          peru      jugo concentrado de naranja        -> 20
+[2026-08-24T09:46:49]   naranja          peru      naranja deshidratada               -> 2
+[2026-08-24T09:46:56]   naranja          peru      pulpa de naranja                   -> 20
+[2026-08-24T09:47:04]   naranja          peru      ralladura de naranja               -> 20
+[2026-08-24T09:47:11]   naranja          peru      marmalade de naranja               -> 20
+[2026-08-24T09:47:19]   aceite vegetal   peru      aceite de soya                     -> 20
+[2026-08-24T09:47:26]   aceite vegetal   peru      aceite de girasol                  -> 20
+[2026-08-24T09:47:34]   aceite vegetal   peru      aceite de maíz                     -> 20
+[2026-08-24T09:47:42]   aceite vegetal   peru      aceite vegetal mixto               -> 20
+[2026-08-24T09:47:49]   aceite vegetal   peru      aceite de canola                   -> 20
+[2026-08-24T09:47:57]   aceite vegetal   peru      aceite de oliva                    -> 20
+[2026-08-24T09:48:05]   aceite vegetal   peru      margarina                          -> 1
+[2026-08-24T09:48:12]   aceite vegetal   peru      manteca vegetal                    -> 20
+[2026-08-24T09:48:20]   aceite vegetal   peru      aceite en spray                    -> 16
+[2026-08-24T09:48:27]   aceite vegetal   peru      aceite de sacha inchi              -> 20
+[2026-08-24T09:48:35]   aceite vegetal   peru      aceite de ajonjolí                 -> 20
+[2026-08-24T09:48:42]   aceite vegetal   peru      aceite de palma                    -> 20
+[2026-08-24T09:48:50]   aceite vegetal   peru      aceite refinado                    -> 9
+[2026-08-24T09:48:58]   aceite vegetal   peru      aceite de linaza                   -> 20
+[2026-08-24T09:49:05]   aceite vegetal   peru      aceite de coco                     -> 20
+[2026-08-24T09:49:13]   aceite vegetal   peru      aceite de semilla de uva           -> 20
+[2026-08-24T09:49:20]   aceite vegetal   peru      aceite alto oleico                 -> 9
+[2026-08-24T09:49:28]   aceite vegetal   peru      aceite para freír                  -> 10
+[2026-08-24T09:49:35]   aceite vegetal   peru      aceite vegetal orgánico            -> 20
+[2026-08-24T09:49:43]   aceite vegetal   peru      mantequilla vegetal                -> 20
+[2026-08-24T09:49:51]   plátano          peru      chifles                            -> 0
+[2026-08-24T09:49:58]   plátano          peru      harina de plátano                  -> 20
+[2026-08-24T09:50:06]   plátano          peru      plátano deshidratado               -> 1
+[2026-08-24T09:50:14]   plátano          peru      puré de plátano                    -> 20
+[2026-08-24T09:50:21]   plátano          peru      néctar de plátano                  -> 20
+[2026-08-24T09:50:29]   plátano          peru      plátano congelado                  -> 1
+[2026-08-24T09:50:36]   plátano          peru      chips de plátano                   -> 20
+[2026-08-24T09:50:44]   plátano          peru      banana liofilizada                 -> 3
+[2026-08-24T09:50:51]   plátano          peru      mermelada de plátano               -> 20
+[2026-08-24T09:50:59]   plátano          peru      papilla de plátano                 -> 20
+[2026-08-24T09:51:06]   plátano          peru      plátano en almíbar                 -> 11
+[2026-08-24T09:51:14]   plátano          peru      snack de plátano                   -> 20
+[2026-08-24T09:51:22]   plátano          peru      queque de plátano                  -> 20
+[2026-08-24T09:51:29]   plátano          peru      batido de plátano                  -> 20
+[2026-08-24T09:51:37]   plátano          peru      plátano en polvo                   -> 13
+[2026-08-24T09:51:44]   plátano          peru      plátano verde precocido            -> 4
+[2026-08-24T09:51:52]   plátano          peru      tostones                           -> 0
+[2026-08-24T09:51:59]   plátano          peru      harina de plátano verde            -> 20
+[2026-08-24T09:52:07]   plátano          peru      barra de plátano                   -> 20
+[2026-08-24T09:52:15]   plátano          peru      plátano bizcocho                   -> 2
+[2026-08-24T09:52:22]   zapallo          peru      puré de zapallo                    -> 20
+[2026-08-24T09:52:30]   zapallo          peru      zapallo congelado                  -> 0
+[2026-08-24T09:52:37]   zapallo          peru      sopa de zapallo                    -> 20
+[2026-08-24T09:52:45]   zapallo          peru      crema de zapallo                   -> 20
+[2026-08-24T09:52:53]   zapallo          peru      zapallo en conserva                -> 10
+[2026-08-24T09:53:00]   zapallo          peru      semillas de zapallo                -> 20
+[2026-08-24T09:53:08]   zapallo          peru      aceite de semilla de zapallo       -> 20
+[2026-08-24T09:53:15]   zapallo          peru      papilla de zapallo                 -> 20
+[2026-08-24T09:53:23]   zapallo          peru      zapallo deshidratado               -> 0
+[2026-08-24T09:53:31]   zapallo          peru      harina de zapallo                  -> 20
+[2026-08-24T09:53:38]   zapallo          peru      mermelada de zapallo               -> 20
+[2026-08-24T09:53:46]   zapallo          peru      pasta de zapallo loche             -> 20
+[2026-08-24T09:53:53]   zapallo          peru      snack de semillas de zapallo       -> 20
+[2026-08-24T09:54:01]   zapallo          peru      puré instantáneo de zapallo        -> 20
+[2026-08-24T09:54:08]   zapallo          peru      zapallo en cubos                   -> 10
+[2026-08-24T09:54:16]   zapallo          peru      jugo de zapallo                    -> 20
+[2026-08-24T09:54:24]   zapallo          peru      dulce de zapallo                   -> 20
+[2026-08-24T09:54:31]   zapallo          peru      zapallo italiano congelado         -> 0
+[2026-08-24T09:54:39]   zapallo          peru      zapallo en polvo                   -> 12
+[2026-08-24T09:54:46]   zapallo          peru      calabaza en conserva               -> 10
+[2026-08-24T09:54:54]   quinua           peru      quinua perlada                     -> 6
+[2026-08-24T09:55:01]   quinua           peru      harina de quinua                   -> 20
+[2026-08-24T09:55:09]   quinua           peru      hojuelas de quinua                 -> 20
+[2026-08-24T09:55:17]   quinua           peru      quinua pop                         -> 14
+[2026-08-24T09:55:24]   quinua           peru      barras de quinua                   -> 20
+[2026-08-24T09:55:32]   quinua           peru      galletas de quinua                 -> 20
+[2026-08-24T09:55:39]   quinua           peru      fideos de quinua                   -> 20
+[2026-08-24T09:55:47]   quinua           peru      bebida de quinua                   -> 20
+[2026-08-24T09:55:54]   quinua           peru      leche de quinua                    -> 20
+[2026-08-24T09:56:02]   quinua           peru      granola con quinua                 -> 20
+[2026-08-24T09:56:10]   quinua           peru      quinua tricolor                    -> 7
+[2026-08-24T09:56:17]   quinua           peru      quinua roja                        -> 6
+[2026-08-24T09:56:25]   quinua           peru      quinua negra                       -> 6
+[2026-08-24T09:56:32]   quinua           peru      quinua orgánica                    -> 7
+[2026-08-24T09:56:40]   quinua           peru      snack de quinua                    -> 20
+[2026-08-24T09:56:47]   quinua           peru      quinua precocida                   -> 6
+[2026-08-24T09:56:55]   quinua           peru      mix de quinua y menestras          -> 20
+[2026-08-24T09:57:02]   quinua           peru      papilla de quinua                  -> 20
+[2026-08-24T09:57:10]   quinua           peru      cereal de quinua                   -> 20
+[2026-08-24T09:57:18]   quinua           peru      quinua expandida                   -> 6
+[2026-08-24T09:57:25]   menestras        peru      lenteja seca                       -> 0
+[2026-08-24T09:57:33]   menestras        peru      frijol canario                     -> 1
+[2026-08-24T09:57:40]   menestras        peru      frijol negro                       -> 1
+[2026-08-24T09:57:48]   menestras        peru      pallar                             -> 0
+[2026-08-24T09:57:55]   menestras        peru      garbanzo                           -> 0
+[2026-08-24T09:58:03]   menestras        peru      arveja partida                     -> 0
+[2026-08-24T09:58:11]   menestras        peru      hummus                             -> 0
+[2026-08-24T09:58:18]   menestras        peru      pasta de garbanzo                  -> 20
+[2026-08-24T09:58:26]   menestras        peru      harina de lenteja                  -> 20
+[2026-08-24T09:58:33]   menestras        peru      harina de garbanzo                 -> 20
+[2026-08-24T09:58:41]   menestras        peru      frijol en conserva                 -> 11
+[2026-08-24T09:58:48]   menestras        peru      lentejas en conserva               -> 10
+[2026-08-24T09:58:56]   menestras        peru      sopa de lentejas                   -> 20
+[2026-08-24T09:59:04]   menestras        peru      snack de garbanzo                  -> 20
+[2026-08-24T09:59:11]   menestras        peru      fideos de lenteja                  -> 20
+[2026-08-24T09:59:19]   menestras        peru      fideos de garbanzo                 -> 20
+[2026-08-24T09:59:26]   menestras        peru      mix de menestras                   -> 20
+[2026-08-24T09:59:34]   menestras        peru      frejol castilla                    -> 1
+[2026-08-24T09:59:41]   menestras        peru      arveja seca                        -> 0
+[2026-08-24T09:59:49]   menestras        peru      tarwi                              -> 0
+[2026-08-24T09:59:57]   camote           peru      camote deshidratado                -> 1
+[2026-08-24T10:00:04]   camote           peru      chips de camote                    -> 20
+[2026-08-24T10:00:12]   camote           peru      puré de camote                     -> 20
+[2026-08-24T10:00:19]   camote           peru      harina de camote                   -> 20
+[2026-08-24T10:00:27]   camote           peru      camote congelado                   -> 1
+[2026-08-24T10:00:34]   camote           peru      camote frito precocido             -> 9
+[2026-08-24T10:00:42]   camote           peru      dulce de camote                    -> 20
+[2026-08-24T10:00:50]   camote           peru      camote en almíbar                  -> 11
+[2026-08-24T10:00:57]   camote           peru      papilla de camote                  -> 20
+[2026-08-24T10:01:05]   camote           peru      snack de camote                    -> 20
+[2026-08-24T10:01:12]   camote           peru      camote morado en polvo             -> 13
+[2026-08-24T10:01:20]   camote           peru      jugo de camote                     -> 20
+[2026-08-24T10:01:27]   camote           peru      camote asado envasado              -> 1
+[2026-08-24T10:01:35]   camote           peru      croquetas de camote                -> 20
+[2026-08-24T10:01:42]   camote           peru      camote en cubos                    -> 11
+[2026-08-24T10:01:50]   camote           peru      colorante de camote morado         -> 20
+[2026-08-24T10:01:58]   camote           peru      camote liofilizado                 -> 1
+[2026-08-24T10:02:05]   camote           peru      pan de camote                      -> 20
+[2026-08-24T10:02:13]   camote           peru      mermelada de camote                -> 20
+[2026-08-24T10:02:20]   camote           peru      camote amarillo envasado           -> 1
+[2026-08-24T10:02:27] ----------------------------------------------------------------------
+[2026-08-24T10:02:27] Codigos unicos: 371 · guardados en datasets\2026-07\off_canasta_codigos.json
+[2026-08-24T10:02:27] Hits por mercado (con solapamiento): {'peru': 5466}
+[2026-08-24T10:02:27] Pausa de 60 s para que descanse la cuota antes de las fichas...
+[2026-08-24T10:03:27] Fichas: 0 ya resueltas, 371 pendientes (~10 min)
+[2026-08-24T10:04:47]       429; reintento 1/5 en 30s
+[2026-08-24T10:06:16]       429; reintento 1/5 en 30s
+[2026-08-24T10:07:48]       429; reintento 1/5 en 30s
+[2026-08-24T10:09:20]       429; reintento 1/5 en 30s
+[2026-08-24T10:09:54]     100/371 · utiles 20
+[2026-08-24T10:10:52]       429; reintento 1/5 en 30s
+[2026-08-24T10:12:20]       429; reintento 1/5 en 30s
+[2026-08-24T10:13:52]       429; reintento 1/5 en 30s
+[2026-08-24T10:15:24]       429; reintento 1/5 en 30s
+[2026-08-24T10:16:21]     200/371 · utiles 53
+[2026-08-24T10:16:56]       429; reintento 1/5 en 30s
+[2026-08-24T10:18:28]       429; reintento 1/5 en 30s
+[2026-08-24T10:19:57]       429; reintento 1/5 en 30s
+[2026-08-24T10:21:32]       429; reintento 1/5 en 30s
+[2026-08-24T10:22:52]     300/371 · utiles 65
+[2026-08-24T10:23:08]       429; reintento 1/5 en 30s
+[2026-08-24T10:24:37]       429; reintento 1/5 en 30s
+[2026-08-24T10:26:08]       429; reintento 1/5 en 30s
+[2026-08-24T10:27:33] ----------------------------------------------------------------------
+[2026-08-24T10:27:33] Escritos 67 productos en datasets\2026-07\off_canasta.json
+[2026-08-24T10:27:33] Desglose de 371 codigos resueltos: {'sin_ingredientes': 204, 'ok': 67, 'no_pertinente': 86, 'sin_ficha': 14}
+[2026-08-24T10:27:33] Aceptados por mercado (con solapamiento): {'peru': 67}

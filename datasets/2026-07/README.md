@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| Productos | **29.054** (28.236 OFF + 818 USDA) |
+| Productos | **29.460** (28.236 OFF + 818 USDA + 406 terminados) |
 | Embeddings | BAAI/bge-m3, 1024-dim, LanceDB métrica cosine |
 | Corpus regulatorio | **734 pasajes** (702 eCFR + 32 DIGESA) |
 | Sin `fecha_dato` | 0 |
@@ -49,14 +49,43 @@ productos únicos, todos con `fecha_dato` real.
 Sin clave el módulo **no descarga nada y no genera datos de respaldo**: se
 prefiere un dataset vacío a uno inventado.
 
+### 2b. Productos terminados (S8, 2026-08-24)
+
+```bash
+./venv/Scripts/python.exe -m etl.cargar_off_terminados --dry-run   # solo cuenta
+./venv/Scripts/python.exe -m etl.cargar_off_terminados
+```
+
+Trae la FORMA DE PRODUCTO de 20 insumos en Perú, Suiza y Alemania: néctar,
+mermelada, muesli, chips. El snapshot original se filtró a cinco insumos, así
+que la góndola encontraba materia prima suelta pero no lo que se compra en una
+tienda. **Esperado:** 482 productos de 1.434 códigos.
+
+No usa el export masivo ni `cgi/search.pl` (sigue en 503, decisión D-A): va por
+search-a-licious para los códigos y por la API v2 para cada ficha, porque el
+índice de búsqueda no guarda ingredientes ni marca.
+
+Se reanuda solo. El avance queda en `off_terminados_codigos.json` y en
+`off_terminados_fichas.jsonl`, que se escribe línea a línea: relanzar el mismo
+comando continúa donde se quedó. Hace falta porque OFF limita a ~16 fichas por
+minuto efectivas y la corrida entera son ~90 min. Para rehacer el
+descubrimiento, borrar el JSON de códigos.
+
+Rendimiento de la fuente, medido: **765 de 1.434 códigos (53 %) vienen sin
+lista de ingredientes** y se descartan —el catálogo peruano de OFF está muy
+incompleto—, y 175 más no nombran ningún insumo. Aceptados por mercado:
+Alemania 270, Suiza 154, Perú 70.
+
 ### 3. Merge y deduplicación
 
 ```bash
 python -m etl.merge_datasets
 ```
 
-Deduplica por marca + primeros 20 caracteres del nombre.
-**Esperado:** 29.054 productos (172 duplicados removidos).
+Deduplica por marca + primeros 20 caracteres del nombre, y los terminados
+además por `id_fuente`: salen de la misma fuente que `off_productos.json`, de
+modo que 71 de ellos ya estaban en el snapshot con su código de barras idéntico.
+**Esperado:** 29.460 productos (172 duplicados OFF/USDA, 406 terminados nuevos).
 
 ### 4. Embeddings
 
@@ -73,7 +102,7 @@ python -m etl.indexar_incremental --dry-run   # muestra cuántos faltan
 python -m etl.indexar_incremental
 ```
 
-**Esperado:** `vectores/productos.lance` con 29.054 filas de 1024 dimensiones.
+**Esperado:** `vectores/productos.lance` con 29.460 filas de 1024 dimensiones.
 
 ### 5. Corpus regulatorio
 
@@ -106,7 +135,7 @@ python -m pytest test/ -v      # 18 tests
 
 | Comprobación | Gate | Estado |
 |---|---|---|
-| Productos indexados | ≥ 250 | 29.054 ✓ |
+| Productos indexados | ≥ 250 | 29.460 ✓ |
 | Dimensiones | 1024 | ✓ |
 | p95 de búsqueda | < 2 s | 45 ms GPU / 173 ms CPU ✓ |
 | Documentos eCFR | ≥ 5 | 702 ✓ |
@@ -159,15 +188,16 @@ datasets/2026-07/
   ├── README.md                     (este archivo)
   ├── manifest.json                 (SHA256 + estadísticas, TIER 7)
   ├── off_productos.json            (TIER 2 · 28.236)
+  ├── off_terminados.json           (S8 · 482 terminados PE/CH/DE)
   ├── usda_productos.json           (TIER 2/7 · 990)
-  ├── productos_merged.json         (TIER 3 · 29.054)
+  ├── productos_merged.json         (TIER 3 · 29.460)
   ├── ecfr_aditivos.json            (TIER 6 · 702 pasajes)
   ├── digesa_normas.json            (TIER 6 · 32 pasajes)
   ├── digesa_normas_reporte.json    (TIER 6 · qué PDFs se descartaron y por qué)
   └── normativas_codex.json         (S1 · demo, sustituido por el corpus TIER 6)
 
 vectores/
-  ├── productos.lance/              (29.054 filas)
+  ├── productos.lance/              (29.460 filas)
   ├── regulatorio.lance/            (734 pasajes)
   └── normativas.lance/             (S1 · demo, con fallback desde verificador_rag)
 ```

@@ -14,7 +14,12 @@ class MergeDatasets:
         self.dataset_dir = Path(dataset_dir)
         self.off_file = self.dataset_dir / "off_productos.json"
         self.usda_file = self.dataset_dir / "usda_productos.json"
-        self.terminados_file = self.dataset_dir / "off_terminados.json"
+        # Cada campana de `etl.cargar_off_terminados` deja su propio archivo.
+        # Se listan a mano y no por comodin: un glob se tragaria cualquier JSON
+        # que alguien deje ahi, y el snapshot es justo lo que no debe crecer por
+        # accidente.
+        self.terminados_files = [self.dataset_dir / "off_terminados.json",
+                                 self.dataset_dir / "off_canasta.json"]
         self.output_file = self.dataset_dir / "productos_merged.json"
         self.log_file = self.dataset_dir / "merge.log"
 
@@ -58,25 +63,27 @@ class MergeDatasets:
         return productos_off, productos_usda
 
     def cargar_terminados(self) -> List[Dict]:
-        """Productos terminados de `etl.cargar_off_terminados`.
+        """Productos terminados de las campanas de `etl.cargar_off_terminados`.
 
-        Fuente opcional: si el archivo no existe, el merge es el de S2 y no
-        pasa nada. Se anade aparte y no dentro de `off_productos.json` porque
-        aquel es el filtrado del export masivo y su SHA256 esta en el manifest;
-        mezclarlos dejaria el manifest describiendo un archivo que ya no es el
-        que se descargo.
+        Fuentes opcionales: si un archivo no existe, esa campana no se ha
+        corrido y el merge sigue sin ella. Se anaden aparte y no dentro de
+        `off_productos.json` porque aquel es el filtrado del export masivo y su
+        SHA256 esta en el manifest; mezclarlos dejaria el manifest describiendo
+        un archivo que ya no es el que se descargo.
         """
-        if not self.terminados_file.exists():
-            self.log("[LOAD] Terminados: no hay archivo, se omite la fuente")
-            return []
-        try:
-            with open(self.terminados_file, encoding='utf-8') as f:
-                productos = json.load(f)
-            self.log(f"[LOAD] Terminados: {len(productos)} productos")
-            return productos
-        except Exception as e:
-            self.log(f"[WARN] Terminados no legibles: {e}")
-            return []
+        todos: List[Dict] = []
+        for ruta in self.terminados_files:
+            if not ruta.exists():
+                self.log(f"[LOAD] {ruta.name}: no hay archivo, se omite")
+                continue
+            try:
+                with open(ruta, encoding='utf-8') as f:
+                    productos = json.load(f)
+                self.log(f"[LOAD] {ruta.name}: {len(productos)} productos")
+                todos.extend(productos)
+            except Exception as e:
+                self.log(f"[WARN] {ruta.name} no legible: {e}")
+        return todos
 
     @staticmethod
     def clave_dedup(p: Dict) -> tuple | None:

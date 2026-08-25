@@ -1,15 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1120" font-family="Segoe UI, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1300" font-family="Segoe UI, Arial, sans-serif">
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker>
     <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2e7d32"/></marker>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2185b"/></marker>
     <marker id="ai" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3949ab"/></marker>
     <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#00796b"/></marker>
+    <marker id="au" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6a1b9a"/></marker>
   </defs>
 
-  <rect x="0" y="0" width="1400" height="1120" fill="#ffffff"/>
-  <text x="700" y="22" text-anchor="middle" font-size="16.5" font-weight="bold" fill="#222">AgroScout IA — MVP v2 · Shelf Radar integrado como N1+N2 del puerto DescubrimientoComercial · P01-P15</text>
-  <text x="700" y="36" text-anchor="middle" font-size="9.5" fill="#00796b">NUEVO en v2 (teal): barrido determinista de 67 ecommerces · el DAG y los contratos no cambian — solo se llenan los niveles de la cascada</text>
+  <rect x="0" y="0" width="1400" height="1300" fill="#ffffff"/>
+  <text x="700" y="22" text-anchor="middle" font-size="16.5" font-weight="bold" fill="#222">AgroScout IA — MVP v2.1 · Shelf Radar = N1+N2 del puerto DescubrimientoComercial · tabla precalculada = N1+N2 del puerto AutorizaciónAditivo · P01-P17</text>
+  <text x="700" y="36" text-anchor="middle" font-size="9.5" fill="#00796b">NUEVO en v2 (teal): barrido determinista de 67 ecommerces  ·  <tspan fill="#6a1b9a">NUEVO en v2.1 (morado): el veredicto regulatorio sale de tabla, no de agente</tspan>  —  el DAG y los contratos no cambian</text>
 
   <!-- ===== CUENTAS DEMO ===== -->
   <rect x="40" y="46" width="620" height="74" rx="8" fill="#fafafa" stroke="#999" stroke-dasharray="4 3"/>
@@ -169,119 +170,156 @@
   <text x="724" y="573" font-size="9" fill="#004d40"><tspan font-weight="bold">Migración de la serie de tendencias:</tspan> hoy el histórico viene de OFF (≥8 trimestres ya disponibles). Shelf Radar arranca su serie en cero</text>
   <text x="724" y="590" font-size="9" fill="#004d40">y toma el relevo hacia 2028 — por eso <tspan font-weight="bold">la captura diaria empieza YA aunque todavía no se use</tspan>: el histórico no se compra retroactivamente.</text>
 
+  <!-- ===== PUERTO AUTORIZACION ADITIVO — NUEVO v2.1 ===== -->
+  <rect x="40" y="626" width="1320" height="150" rx="8" fill="#f7effa" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="54" y="645" font-size="11" font-weight="bold" fill="#4a1063">Puerto AutorizaciónAditivo ★ NUEVO en v2.1 — misma cascada que el comercial · el agente del eCFR deja de ser el primer recurso y pasa a ser el último (ADR-005)</text>
+  <text x="54" y="659" font-size="9" fill="#6a1b9a">sirve a la pestaña de análisis de aditivos, que cuelga de los productos que publicó la etapa 2b · UE y CODEX ya eran tabla local (&lt; 8 ms); solo EE. UU. iba por agente en vivo</text>
+
+  <rect x="54" y="666" width="286" height="72" rx="5" fill="#fff" stroke="#6a1b9a" stroke-width="1.8"/>
+  <text x="197" y="684" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#4a1063">N1 · aditivo_mercado (TABLA)</text>
+  <text x="197" y="701" text-anchor="middle" font-size="8.5" fill="#555">veredicto precalculado · clave exacta</text>
+  <text x="197" y="715" text-anchor="middle" font-size="8.5" fill="#555">UE 321 pares · CODEX curado · US nuevo</text>
+  <text x="197" y="730" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#6a1b9a">&lt; 50 ms · US$0 · auditable y corregible</text>
+
+  <rect x="352" y="666" width="286" height="72" rx="5" fill="#fff" stroke="#6a1b9a" stroke-width="1.8"/>
+  <text x="495" y="684" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#4a1063">N2 · aditivo_seccion_us (CURADO)</text>
+  <text x="495" y="701" text-anchor="middle" font-size="8.5" fill="#555">35 filas: aditivo → sección del 21 CFR</text>
+  <text x="495" y="715" text-anchor="middle" font-size="8.5" fill="#555">hoy se redescubre en cada consulta</text>
+  <text x="495" y="730" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#6a1b9a">peor caso del agente: 3 llamadas → 1</text>
+
+  <rect x="650" y="666" width="286" height="72" rx="5" fill="#fce4ec" stroke="#c2185b" stroke-width="1.8"/>
+  <text x="793" y="684" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#880e4f">N3 · Agente eCFR (REAL, sin cambios)</text>
+  <text x="793" y="701" text-anchor="middle" font-size="8.5" fill="#555">búsqueda en vivo + glm-5.2 + grounding</text>
+  <text x="793" y="715" text-anchor="middle" font-size="8.5" fill="#555">solo los huecos que N1/N2 no cubren</text>
+  <text x="793" y="730" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#880e4f">15-36 s · su resultado se persiste en N1</text>
+
+  <rect x="948" y="666" width="398" height="72" rx="5" fill="#fff" stroke="#6a1b9a" stroke-dasharray="4 3"/>
+  <text x="1147" y="684" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#4a1063">RELACIONAL, no vectorial — el porqué</text>
+  <text x="1147" y="701" text-anchor="middle" font-size="8.5" fill="#555">la clave es un código exacto: nº E/INS + categoría de alimento</text>
+  <text x="1147" y="715" text-anchor="middle" font-size="8.5" fill="#555">por similitud, el vecino más cercano a E200 es una respuesta falsa</text>
+  <text x="1147" y="730" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#6a1b9a">lo vectorial va al mapeo de categoría → degrada a SI_CONDICIONADO</text>
+
+  <line x1="341" y1="702" x2="350" y2="702" stroke="#6a1b9a" stroke-width="2" marker-end="url(#au)"/>
+  <line x1="639" y1="702" x2="648" y2="702" stroke="#6a1b9a" stroke-width="2" marker-end="url(#au)"/>
+
+  <rect x="54" y="744" width="1292" height="26" rx="5" fill="#fff" stroke="#6a1b9a"/>
+  <text x="64" y="761" font-size="9" fill="#4a1063"><tspan font-weight="bold">El espacio de claves cabe en la tabla:</tspan> 35 aditivos (TERMINO_EN) × 95 términos de alimento (MAPA) = <tspan font-weight="bold">≤ 3.325 celdas</tspan> · cobertura GENERAL (GRAS/BPM) ⇒ 1 fila con categoria=NULL, no 95 · llenado por lotes, nunca por petición · SIN_DATO no se persiste  <tspan font-weight="bold" fill="#6a1b9a">[P16] [P17]</tspan></text>
+
   <!-- ===== ALMACENES ===== -->
-  <rect x="40" y="626" width="1320" height="108" rx="8" fill="#e3f0fa" stroke="#1565c0" stroke-width="1.5"/>
-  <text x="54" y="644" font-size="11" font-weight="bold" fill="#1565c0">ALMACENES DEL MVP — 1 nodo · snapshot local · Postgres gestionado (Supabase) · particionado temporal para la serie de precios</text>
+  <rect x="40" y="790" width="1320" height="108" rx="8" fill="#e3f0fa" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="54" y="808" font-size="11" font-weight="bold" fill="#1565c0">ALMACENES DEL MVP — 1 nodo · snapshot local · Postgres gestionado (Supabase) · particionado temporal para la serie de precios</text>
 
-  <rect x="54" y="652" width="250" height="74" rx="5" fill="#fff" stroke="#1565c0"/>
-  <text x="179" y="669" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#0d47a1">snapshot datasets/2026-08/ (local)</text>
-  <text x="179" y="685" text-anchor="middle" font-size="8" fill="#555">OFF subset + USDA · ficha técnica</text>
-  <text x="179" y="699" text-anchor="middle" font-size="8" fill="#555">DuckDB + vectores (bge-m3) · taxonomia=0.1</text>
-  <text x="179" y="713" text-anchor="middle" font-size="8" fill="#555">corpus regulatorio mínimo (eCFR + DIGESA)</text>
+  <rect x="54" y="816" width="250" height="74" rx="5" fill="#fff" stroke="#1565c0"/>
+  <text x="179" y="833" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#0d47a1">snapshot datasets/2026-08/ (local)</text>
+  <text x="179" y="849" text-anchor="middle" font-size="8" fill="#555">OFF subset + USDA · ficha técnica</text>
+  <text x="179" y="863" text-anchor="middle" font-size="8" fill="#555">DuckDB + vectores (bge-m3) · taxonomia=0.1</text>
+  <text x="179" y="877" text-anchor="middle" font-size="8" fill="#555">corpus regulatorio mínimo (eCFR + DIGESA)</text>
 
-  <rect x="312" y="652" width="260" height="74" rx="5" fill="#e0f2f1" stroke="#00796b" stroke-width="2"/>
-  <text x="442" y="669" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#004d40">shelf_facts ★ NUEVO</text>
-  <text x="442" y="685" text-anchor="middle" font-size="8" fill="#555">serie diaria de precios · 67 tiendas</text>
-  <text x="442" y="699" text-anchor="middle" font-size="8" fill="#555">particionado por mes · raw_offers inmutable</text>
-  <text x="442" y="713" text-anchor="middle" font-size="8" font-weight="bold" fill="#00796b">sweep_attempts: 1 fila por tienda, SIEMPRE</text>
+  <rect x="312" y="816" width="260" height="74" rx="5" fill="#e0f2f1" stroke="#00796b" stroke-width="2"/>
+  <text x="442" y="833" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#004d40">shelf_facts ★ NUEVO</text>
+  <text x="442" y="849" text-anchor="middle" font-size="8" fill="#555">serie diaria de precios · 67 tiendas</text>
+  <text x="442" y="863" text-anchor="middle" font-size="8" fill="#555">particionado por mes · raw_offers inmutable</text>
+  <text x="442" y="877" text-anchor="middle" font-size="8" font-weight="bold" fill="#00796b">sweep_attempts: 1 fila por tienda, SIEMPRE</text>
 
-  <rect x="580" y="652" width="250" height="74" rx="5" fill="#fffde7" stroke="#1b5e20" stroke-width="2"/>
-  <text x="705" y="669" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1b5e20">catalogo_comercial ★</text>
-  <text x="705" y="685" text-anchor="middle" font-size="8" fill="#555">ProductoEnMercado con fuente+url+fecha</text>
-  <text x="705" y="699" text-anchor="middle" font-size="8" fill="#00796b">N1/N2 entran directo (verificado)</text>
-  <text x="705" y="713" text-anchor="middle" font-size="8" font-weight="bold" fill="#1b5e20">N3 solo si fue promovido</text>
+  <rect x="580" y="816" width="250" height="74" rx="5" fill="#fffde7" stroke="#1b5e20" stroke-width="2"/>
+  <text x="705" y="833" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#1b5e20">catalogo_comercial ★</text>
+  <text x="705" y="849" text-anchor="middle" font-size="8" fill="#555">ProductoEnMercado con fuente+url+fecha</text>
+  <text x="705" y="863" text-anchor="middle" font-size="8" fill="#00796b">N1/N2 entran directo (verificado)</text>
+  <text x="705" y="877" text-anchor="middle" font-size="8" font-weight="bold" fill="#1b5e20">N3 solo si fue promovido</text>
 
-  <rect x="838" y="652" width="250" height="74" rx="5" fill="#fff" stroke="#c2185b" stroke-width="1.6"/>
-  <text x="963" y="669" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#880e4f">staging_agente (cuarentena)</text>
-  <text x="963" y="685" text-anchor="middle" font-size="8" fill="#555">provenance=agente · no_verificado · TTL</text>
-  <text x="963" y="699" text-anchor="middle" font-size="8" fill="#555">grounding check + reglas de dominio</text>
-  <text x="963" y="713" text-anchor="middle" font-size="8" fill="#555">promoción MANUAL en el MVP</text>
+  <rect x="838" y="816" width="250" height="74" rx="5" fill="#fff" stroke="#c2185b" stroke-width="1.6"/>
+  <text x="963" y="833" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#880e4f">staging_agente (cuarentena)</text>
+  <text x="963" y="849" text-anchor="middle" font-size="8" fill="#555">provenance=agente · no_verificado · TTL</text>
+  <text x="963" y="863" text-anchor="middle" font-size="8" fill="#555">grounding check + reglas de dominio</text>
+  <text x="963" y="877" text-anchor="middle" font-size="8" fill="#555">promoción MANUAL en el MVP</text>
 
-  <rect x="1096" y="652" width="250" height="74" rx="5" fill="#f3eefc" stroke="#6a4fa3" stroke-width="1.5"/>
-  <text x="1221" y="669" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#4a3575">PostgreSQL (Supabase) · RLS 2 orgs</text>
-  <text x="1221" y="685" text-anchor="middle" font-size="8" fill="#555">historial · auditoría DAG · cache LLM · cola</text>
-  <text x="1221" y="699" text-anchor="middle" font-size="8" fill="#880e4f">cost-meter por etapa y tenant <tspan font-weight="bold">[P13]</tspan></text>
-  <text x="1221" y="713" text-anchor="middle" font-size="8" fill="#555">pgvector: gate de categoría <tspan font-weight="bold" fill="#00796b">[P15]</tspan></text>
+  <rect x="1096" y="816" width="250" height="74" rx="5" fill="#f3eefc" stroke="#6a4fa3" stroke-width="1.5"/>
+  <text x="1221" y="833" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#4a3575">PostgreSQL (Supabase) · RLS 2 orgs</text>
+  <text x="1221" y="849" text-anchor="middle" font-size="8" fill="#555">historial · auditoría DAG · cache LLM · cola</text>
+  <text x="1221" y="863" text-anchor="middle" font-size="8" fill="#880e4f">cost-meter por etapa y tenant <tspan font-weight="bold">[P13]</tspan></text>
+  <text x="1221" y="877" text-anchor="middle" font-size="8" fill="#555">pgvector: gate de categoría <tspan font-weight="bold" fill="#00796b">[P15]</tspan></text>
 
-  <line x1="573" y1="689" x2="579" y2="689" stroke="#00796b" stroke-width="2" marker-end="url(#at)"/>
-  <line x1="837" y1="689" x2="831" y2="689" stroke="#c2185b" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="573" y1="853" x2="579" y2="853" stroke="#00796b" stroke-width="2" marker-end="url(#at)"/>
+  <line x1="837" y1="853" x2="831" y2="853" stroke="#c2185b" stroke-width="2" marker-end="url(#ar)"/>
 
   <!-- ===== FUENTES ===== -->
-  <rect x="40" y="748" width="1320" height="118" rx="8" fill="#faf3e3" stroke="#b8860b" stroke-width="1.5"/>
-  <text x="54" y="766" font-size="11" font-weight="bold" fill="#8a6508">FUENTES DEL MVP — subset de los 5 insumos piloto · ETL en worker · Mintel y Trend Hunter NO se consumen</text>
+  <rect x="40" y="912" width="1320" height="118" rx="8" fill="#faf3e3" stroke="#b8860b" stroke-width="1.5"/>
+  <text x="54" y="930" font-size="11" font-weight="bold" fill="#8a6508">FUENTES DEL MVP — subset de los 5 insumos piloto · ETL en worker · Mintel y Trend Hunter NO se consumen</text>
   <g font-size="8">
-    <rect x="54" y="774" width="177" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
-    <text x="142" y="791" text-anchor="middle" font-size="9" font-weight="bold" fill="#1b5e20">Open Food Facts (subset)</text>
-    <text x="142" y="807" text-anchor="middle" fill="#00796b">ROL NUEVO: ficha técnica</text>
-    <text x="142" y="820" text-anchor="middle" fill="#555">ingredientes · alérgenos · NOVA</text>
-    <text x="142" y="833" text-anchor="middle" font-weight="bold" fill="#00796b">llave EAN entre países</text>
-    <text x="142" y="848" text-anchor="middle" fill="#777" font-style="italic">ODbL · ya no es proxy de mercado</text>
+    <rect x="54" y="938" width="177" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
+    <text x="142" y="955" text-anchor="middle" font-size="9" font-weight="bold" fill="#1b5e20">Open Food Facts (subset)</text>
+    <text x="142" y="971" text-anchor="middle" fill="#00796b">ROL NUEVO: ficha técnica</text>
+    <text x="142" y="984" text-anchor="middle" fill="#555">ingredientes · alérgenos · NOVA</text>
+    <text x="142" y="997" text-anchor="middle" font-weight="bold" fill="#00796b">llave EAN entre países</text>
+    <text x="142" y="1012" text-anchor="middle" fill="#777" font-style="italic">ODbL · ya no es proxy de mercado</text>
 
-    <rect x="239" y="774" width="177" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
-    <text x="327" y="791" text-anchor="middle" font-size="9" font-weight="bold" fill="#1b5e20">USDA Branded ✓API</text>
-    <text x="327" y="807" text-anchor="middle" fill="#555">composición + marca</text>
-    <text x="327" y="820" text-anchor="middle" fill="#555">key data.gov · CC0</text>
-    <text x="327" y="833" text-anchor="middle" fill="#555">sin share-alike</text>
-    <text x="327" y="848" text-anchor="middle" fill="#777" font-style="italic">tapa el hueco de OFF en LATAM</text>
+    <rect x="239" y="938" width="177" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
+    <text x="327" y="955" text-anchor="middle" font-size="9" font-weight="bold" fill="#1b5e20">USDA Branded ✓API</text>
+    <text x="327" y="971" text-anchor="middle" fill="#555">composición + marca</text>
+    <text x="327" y="984" text-anchor="middle" fill="#555">key data.gov · CC0</text>
+    <text x="327" y="997" text-anchor="middle" fill="#555">sin share-alike</text>
+    <text x="327" y="1012" text-anchor="middle" fill="#777" font-style="italic">tapa el hueco de OFF en LATAM</text>
 
-    <rect x="424" y="774" width="177" height="82" rx="5" fill="#e0f2f1" stroke="#00796b" stroke-width="2"/>
-    <text x="512" y="791" text-anchor="middle" font-size="9" font-weight="bold" fill="#004d40">Shelf Radar ★ NUEVO</text>
-    <text x="512" y="807" text-anchor="middle" fill="#00695c">67 ecommerces · 29 países</text>
-    <text x="512" y="820" text-anchor="middle" fill="#555">precio real · stock · promo</text>
-    <text x="512" y="833" text-anchor="middle" fill="#555">robots.txt · UA identificado</text>
-    <text x="512" y="848" text-anchor="middle" font-weight="bold" fill="#00796b">→ N1/N2 del puerto</text>
+    <rect x="424" y="938" width="177" height="82" rx="5" fill="#e0f2f1" stroke="#00796b" stroke-width="2"/>
+    <text x="512" y="955" text-anchor="middle" font-size="9" font-weight="bold" fill="#004d40">Shelf Radar ★ NUEVO</text>
+    <text x="512" y="971" text-anchor="middle" fill="#00695c">67 ecommerces · 29 países</text>
+    <text x="512" y="984" text-anchor="middle" fill="#555">precio real · stock · promo</text>
+    <text x="512" y="997" text-anchor="middle" fill="#555">robots.txt · UA identificado</text>
+    <text x="512" y="1012" text-anchor="middle" font-weight="bold" fill="#00796b">→ N1/N2 del puerto</text>
 
-    <rect x="609" y="774" width="177" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
-    <text x="697" y="791" text-anchor="middle" font-size="9" font-weight="bold" fill="#1b5e20">UN Comtrade</text>
-    <text x="697" y="807" text-anchor="middle" fill="#555">precio export US$/kg</text>
-    <text x="697" y="820" text-anchor="middle" fill="#555">flujos y socios por HS</text>
-    <text x="697" y="833" text-anchor="middle" fill="#555">complementa la góndola</text>
-    <text x="697" y="848" text-anchor="middle" fill="#777" font-style="italic">Open Prices → reemplazado</text>
+    <rect x="609" y="938" width="177" height="82" rx="5" fill="#fff" stroke="#2e7d32"/>
+    <text x="697" y="955" text-anchor="middle" font-size="9" font-weight="bold" fill="#1b5e20">UN Comtrade</text>
+    <text x="697" y="971" text-anchor="middle" fill="#555">precio export US$/kg</text>
+    <text x="697" y="984" text-anchor="middle" fill="#555">flujos y socios por HS</text>
+    <text x="697" y="997" text-anchor="middle" fill="#555">complementa la góndola</text>
+    <text x="697" y="1012" text-anchor="middle" fill="#777" font-style="italic">Open Prices → reemplazado</text>
 
-    <rect x="794" y="774" width="177" height="82" rx="5" fill="#fff" stroke="#b8860b"/>
-    <text x="882" y="791" text-anchor="middle" font-size="9" font-weight="bold" fill="#7a5c00">Corpus regulatorio</text>
-    <text x="882" y="807" text-anchor="middle" fill="#555">eCFR: aditivos del piloto</text>
-    <text x="882" y="820" text-anchor="middle" fill="#555">2-3 normas DIGESA (OCR)</text>
-    <text x="882" y="833" text-anchor="middle" fill="#555">citas verificables</text>
-    <text x="882" y="848" text-anchor="middle" fill="#777" font-style="italic">→ etapa 5</text>
+    <rect x="794" y="938" width="177" height="82" rx="5" fill="#fff" stroke="#b8860b"/>
+    <text x="882" y="955" text-anchor="middle" font-size="9" font-weight="bold" fill="#7a5c00">Corpus regulatorio</text>
+    <text x="882" y="971" text-anchor="middle" fill="#555">eCFR: aditivos del piloto</text>
+    <text x="882" y="984" text-anchor="middle" fill="#555">2-3 normas DIGESA (OCR)</text>
+    <text x="882" y="997" text-anchor="middle" fill="#555">citas verificables</text>
+    <text x="882" y="1012" text-anchor="middle" fill="#777" font-style="italic">→ etapa 5</text>
 
-    <rect x="979" y="774" width="177" height="82" rx="5" fill="#fff" stroke="#b8860b"/>
-    <text x="1067" y="791" text-anchor="middle" font-size="9" font-weight="bold" fill="#7a5c00">Fichas CITE + taxonomía</text>
-    <text x="1067" y="807" text-anchor="middle" fill="#555">know-how agroindustrial</text>
-    <text x="1067" y="820" text-anchor="middle" fill="#555">insumos de Chavimochic</text>
-    <text x="1067" y="833" text-anchor="middle" fill="#555">taxonomía v0.1</text>
-    <text x="1067" y="848" text-anchor="middle" fill="#777" font-style="italic">el moat, en versión semilla</text>
+    <rect x="979" y="938" width="177" height="82" rx="5" fill="#fff" stroke="#b8860b"/>
+    <text x="1067" y="955" text-anchor="middle" font-size="9" font-weight="bold" fill="#7a5c00">Fichas CITE + taxonomía</text>
+    <text x="1067" y="971" text-anchor="middle" fill="#555">know-how agroindustrial</text>
+    <text x="1067" y="984" text-anchor="middle" fill="#555">insumos de Chavimochic</text>
+    <text x="1067" y="997" text-anchor="middle" fill="#555">taxonomía v0.1</text>
+    <text x="1067" y="1012" text-anchor="middle" fill="#777" font-style="italic">el moat, en versión semilla</text>
 
-    <rect x="1164" y="774" width="182" height="82" rx="5" fill="#fdeef2" stroke="#c2185b"/>
-    <text x="1255" y="791" text-anchor="middle" font-size="9" font-weight="bold" fill="#880e4f">Agente live (premium)</text>
-    <text x="1255" y="807" text-anchor="middle" fill="#555">buscar_web → abrir_url</text>
-    <text x="1255" y="820" text-anchor="middle" fill="#555">on-demand · presupuestado</text>
-    <text x="1255" y="833" text-anchor="middle" fill="#555">→ staging_agente</text>
-    <text x="1255" y="848" text-anchor="middle" fill="#777" font-style="italic">ahora solo para huecos</text>
+    <rect x="1164" y="938" width="182" height="82" rx="5" fill="#fdeef2" stroke="#c2185b"/>
+    <text x="1255" y="955" text-anchor="middle" font-size="9" font-weight="bold" fill="#880e4f">Agente live (premium)</text>
+    <text x="1255" y="971" text-anchor="middle" fill="#555">buscar_web → abrir_url</text>
+    <text x="1255" y="984" text-anchor="middle" fill="#555">on-demand · presupuestado</text>
+    <text x="1255" y="997" text-anchor="middle" fill="#555">→ staging_agente</text>
+    <text x="1255" y="1012" text-anchor="middle" fill="#777" font-style="italic">ahora solo para huecos</text>
   </g>
 
   <!-- ===== PLAN DE PRUEBAS ===== -->
-  <rect x="40" y="880" width="1320" height="196" rx="8" fill="#eef7ee" stroke="#2e7d32" stroke-width="1.6"/>
-  <text x="54" y="899" font-size="11" font-weight="bold" fill="#1b5e20">PLAN DE PRUEBAS DE PUNTA A PUNTA — criterio: 15/15 en verde · CI previa: golden set ~30 productos + validación schema + smoke test del DAG</text>
+  <rect x="40" y="1044" width="1320" height="212" rx="8" fill="#eef7ee" stroke="#2e7d32" stroke-width="1.6"/>
+  <text x="54" y="1063" font-size="11" font-weight="bold" fill="#1b5e20">PLAN DE PRUEBAS DE PUNTA A PUNTA — criterio: 17/17 en verde · CI previa: golden set ~30 productos + validación schema + smoke test del DAG</text>
   <g font-size="9.5" fill="#333">
-    <text x="60" y="920"><tspan font-weight="bold" fill="#c2185b">P01</tspan> RLS + entitlement: cada organización ve solo lo suyo</text>
-    <text x="60" y="939"><tspan font-weight="bold" fill="#c2185b">P02</tspan> InterpretarInsumo + cache hit (2ª llamada = costo $0)</text>
-    <text x="60" y="958"><tspan font-weight="bold" fill="#c2185b">P03</tspan> Match local sin LLM · p95 &lt; 2 s</text>
-    <text x="60" y="977"><tspan font-weight="bold" fill="#c2185b">P04</tspan> Mapa comercial N1 · campos sin dato = null, jamás inventados</text>
-    <text x="60" y="996"><tspan font-weight="bold" fill="#c2185b">P05</tspan> Insight: cada afirmación con cita a un dato entregado</text>
-    <text x="60" y="1015"><tspan font-weight="bold" fill="#c2185b">P06</tspan> Paywall: early return con informe parcial (≠ guard 0-2 productos)</text>
-    <text x="60" y="1034"><tspan font-weight="bold" fill="#c2185b">P07</tspan> Formulación premium: minería DuckDB + glm-5.2, refs reales</text>
-    <text x="60" y="1053"><tspan font-weight="bold" fill="#c2185b">P08</tspan> Regulación: citas verificables al corpus · si no hay norma, lo declara</text>
-    <text x="710" y="920"><tspan font-weight="bold" fill="#c2185b">P09</tspan> InformeScout PDF por worker + auditoría DAG con costo por etapa</text>
-    <text x="710" y="939"><tspan font-weight="bold" fill="#c2185b">P10</tspan> MIM: ETL → taxonomía v0.1 → tendencias → deck PPT + ficha PDF</text>
-    <text x="710" y="958"><tspan font-weight="bold" fill="#c2185b">P11</tspan> Agente → cuarentena → grounding check → promoción manual → catálogo</text>
-    <text x="710" y="977"><tspan font-weight="bold" fill="#c2185b">P12</tspan> Presupuestos run/tenant/global + kill-switch → degrada, nunca error</text>
-    <text x="710" y="996"><tspan font-weight="bold" fill="#c2185b">P13</tspan> Cost-meter por tenant: ~US$0.01-0.05/consulta · agente ≤ US$0.25/run</text>
-    <text x="710" y="1015"><tspan font-weight="bold" fill="#00796b">P14</tspan> Shelf Radar: cobertura declarada — 1 fila por tienda aunque falle o esté vedada</text>
-    <text x="710" y="1034"><tspan font-weight="bold" fill="#00796b">P15</tspan> Gate de categoría (pgvector): buscar quinua en droguería devuelve 0, no cosméticos</text>
-    <text x="710" y="1053" font-style="italic" fill="#1b5e20">Guion de demo (15 min): ver MVP-AgroScout-IA.md §5</text>
+    <text x="60" y="1084"><tspan font-weight="bold" fill="#c2185b">P01</tspan> RLS + entitlement: cada organización ve solo lo suyo</text>
+    <text x="60" y="1103"><tspan font-weight="bold" fill="#c2185b">P02</tspan> InterpretarInsumo + cache hit (2ª llamada = costo $0)</text>
+    <text x="60" y="1122"><tspan font-weight="bold" fill="#c2185b">P03</tspan> Match local sin LLM · p95 &lt; 2 s</text>
+    <text x="60" y="1141"><tspan font-weight="bold" fill="#c2185b">P04</tspan> Mapa comercial N1 · campos sin dato = null, jamás inventados</text>
+    <text x="60" y="1160"><tspan font-weight="bold" fill="#c2185b">P05</tspan> Insight: cada afirmación con cita a un dato entregado</text>
+    <text x="60" y="1179"><tspan font-weight="bold" fill="#c2185b">P06</tspan> Paywall: early return con informe parcial (≠ guard 0-2 productos)</text>
+    <text x="60" y="1198"><tspan font-weight="bold" fill="#c2185b">P07</tspan> Formulación premium: minería DuckDB + glm-5.2, refs reales</text>
+    <text x="60" y="1217"><tspan font-weight="bold" fill="#c2185b">P08</tspan> Regulación: citas verificables al corpus · si no hay norma, lo declara</text>
+    <text x="60" y="1236"><tspan font-weight="bold" fill="#6a1b9a">P16</tspan> Celda de tabla idéntica a la del agente · &lt; 50 ms · 0 llamadas al modelo</text>
+    <text x="710" y="1084"><tspan font-weight="bold" fill="#c2185b">P09</tspan> InformeScout PDF por worker + auditoría DAG con costo por etapa</text>
+    <text x="710" y="1103"><tspan font-weight="bold" fill="#c2185b">P10</tspan> MIM: ETL → taxonomía v0.1 → tendencias → deck PPT + ficha PDF</text>
+    <text x="710" y="1122"><tspan font-weight="bold" fill="#c2185b">P11</tspan> Agente → cuarentena → grounding check → promoción manual → catálogo</text>
+    <text x="710" y="1141"><tspan font-weight="bold" fill="#c2185b">P12</tspan> Presupuestos run/tenant/global + kill-switch → degrada, nunca error</text>
+    <text x="710" y="1160"><tspan font-weight="bold" fill="#c2185b">P13</tspan> Cost-meter por tenant: ~US$0.01-0.05/consulta · agente ≤ US$0.25/run</text>
+    <text x="710" y="1179"><tspan font-weight="bold" fill="#00796b">P14</tspan> Shelf Radar: cobertura declarada — 1 fila por tienda aunque falle o esté vedada</text>
+    <text x="710" y="1198"><tspan font-weight="bold" fill="#00796b">P15</tspan> Gate de categoría (pgvector): buscar quinua en droguería devuelve 0, no cosméticos</text>
+    <text x="710" y="1217"><tspan font-weight="bold" fill="#6a1b9a">P17</tspan> Aditivo fuera de tabla → N3 → grounding → se persiste; si falla, no se persiste</text>
+    <text x="710" y="1236" font-style="italic" fill="#1b5e20">Guion de demo (15 min): ver MVP-AgroScout-IA.md §5</text>
   </g>
 
   <!-- ===== FOOTER ===== -->
-  <text x="1360" y="1102" text-anchor="end" font-size="10" font-style="italic" fill="#555">AgroScout IA v2 · Shelf Radar como N1+N2 (ADR-004) · nada de v1 se descarta: el DAG, el puerto y los contratos son los mismos · CITEagroindustrial Chavimochic — Agosto 2026</text>
+  <text x="1360" y="1282" text-anchor="end" font-size="10" font-style="italic" fill="#555">AgroScout IA v2.1 · Shelf Radar como N1+N2 comercial (ADR-004) · tabla precalculada como N1+N2 regulatorio (ADR-005) · el DAG, los puertos y los contratos son los mismos · CITEagroindustrial Chavimochic — Agosto 2026</text>
 </svg>

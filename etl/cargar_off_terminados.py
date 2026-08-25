@@ -50,15 +50,30 @@ from pathlib import Path
 
 import requests
 
-SALIDA = Path("datasets/2026-07/off_terminados.json")
-LOG = Path("datasets/2026-07/etl_off_terminados.log")
+DATASET = Path("datasets/2026-07")
+
+# Las rutas dependen de la campana y las fija `_fijar_rutas`. Que cada campana
+# tenga sus propios archivos no es cosmetico: el JSON de codigos es lo que hace
+# reanudable la fase de busqueda, asi que si dos campanas lo compartieran, la
+# segunda daria por descubierto lo de la primera y no buscaria nada.
+SALIDA = DATASET / "off_terminados.json"
+LOG = DATASET / "etl_off_terminados.log"
 
 # Las dos fases se guardan en disco para poder reanudar. La primera corrida no
 # lo hacia y perdio los 11 min de busquedas al cortarse en las fichas; con una
 # fuente que limita a 10 peticiones por minuto, rehacer el trabajo ya hecho no
 # es una molestia, es la diferencia entre 20 minutos y una tarde.
-CODIGOS = Path("datasets/2026-07/off_terminados_codigos.json")
-FICHAS = Path("datasets/2026-07/off_terminados_fichas.jsonl")
+CODIGOS = DATASET / "off_terminados_codigos.json"
+FICHAS = DATASET / "off_terminados_fichas.jsonl"
+
+
+def _fijar_rutas(campana: str):
+    """Apunta los cuatro archivos de estado a los de esta campana."""
+    global SALIDA, LOG, CODIGOS, FICHAS
+    SALIDA = DATASET / f"off_{campana}.json"
+    LOG = DATASET / f"etl_off_{campana}.log"
+    CODIGOS = DATASET / f"off_{campana}_codigos.json"
+    FICHAS = DATASET / f"off_{campana}_fichas.jsonl"
 
 BUSQUEDA = "https://search.openfoodfacts.org/search"
 FICHA = "https://world.openfoodfacts.org/api/v2/product/{code}.json"
@@ -157,6 +172,37 @@ PRODUCTOS = [
 ]
 
 POR_INSUMO = {p["insumo"]: p for p in PRODUCTOS}
+
+# insumo -> tokens de pertinencia de la campana en curso. Lo llena `main`; el
+# valor de arranque es el de 'terminados' para que importar el modulo y llamar a
+# `menciona` desde un test siga funcionando sin montar una campana.
+TOKENS = {p["insumo"]: p["tokens"] for p in PRODUCTOS}
+
+
+def campana(nombre: str) -> list[dict]:
+    """Entradas normalizadas de una campana.
+
+    Cada entrada trae `insumo`, `tokens`, `base` por idioma y `terminos` por
+    idioma. Las dos campanas se diferencian solo en cuantos terminos hay por
+    insumo —una, o veinte— y en que idiomas; el resto del modulo no necesita
+    saber cual esta corriendo.
+    """
+    if nombre == "terminados":
+        return [{"insumo": p["insumo"],
+                 "tokens": p["tokens"],
+                 "base": {"es": p["base_es"], "de": p["base_de"]},
+                 "terminos": {"es": [p["es"]], "de": [p["de"]]}}
+                for p in PRODUCTOS]
+
+    if nombre == "canasta":
+        from etl.canasta_peruana import CANASTA
+        return [{"insumo": c["insumo"],
+                 "tokens": c["tokens"],
+                 "base": {"es": c["base"]},
+                 "terminos": {"es": c["terminos"]}}
+                for c in CANASTA]
+
+    raise SystemExit(f"Campana desconocida: {nombre!r}. Usa 'terminados' o 'canasta'.")
 
 # El idioma con el que se busca cada mercado. Suiza va en aleman porque es la
 # lengua de la mayor parte de su catalogo en OFF; el frances y el italiano
@@ -267,7 +313,7 @@ def traer_ficha(code: str, insumos: list[str]) -> tuple[dict | None, str]:
     # Pertinencia: basta con que UNO de los insumos por los que salio este
     # producto aparezca en su nombre o en sus ingredientes.
     texto = nombre + " " + ingredientes
-    if not any(menciona(texto, POR_INSUMO[i]["tokens"]) for i in insumos):
+    if not any(menciona(texto, TOKENS[i]) for i in insumos if i in TOKENS):
         return None, "no_pertinente"
 
     return {
@@ -283,11 +329,11 @@ def traer_ficha(code: str, insumos: list[str]) -> tuple[dict | None, str]:
     }, "ok"
 
 
-def fase_busqueda(por_pagina: int) -> dict:
+def fase_busqueda(entradas: list[dict], mercados: dict, por_pagina: int) -> dict:
     """Descubrimiento. Devuelve {code: {'insumos': [...], 'mercados': [...]}}.
 
-    Si `CODIGOS` ya existe se reutiliza tal cual: son ~100 busquedas a 10 por
-    minuto y no cambian de una corrida a la siguiente.
+    Si `CODIGOS` ya existe se reutiliza tal cual: son cientos de busquedas a 10
+    por minuto y no cambian de una corrida a la siguiente.
     """
     if CODIGOS.exists():
         datos = json.loads(CODIGOS.read_text(encoding="utf-8"))
@@ -295,14 +341,27 @@ def fase_busqueda(por_pagina: int) -> dict:
         return datos
 
     codigos: dict[str, dict] = {}
-    por_mercado = {m: 0 for m in MERCADOS}
+    por_mercado = {m: 0 for m in mercados}
 
-    for prod in PRODUCTOS:
-        for mercado, cfg in MERCADOS.items():
+    for entrada_insumo in entradas:
+        insumo = entrada_insumo["insumo"]
+        for mercado, cfg in mercados.items():
             idioma = cfg["idioma"]
-            termino = prod[idioma]
-            encontrados = buscar_codigos(termino, cfg["tag"], por_pagina)
-            nota = ""
+            terminos = entrada_insumo["terminos"].get(idioma)
+            if not terminos:
+                # La campana no tiene terminos en la lengua de este mercado.
+                # Se omite en vez de traducir a ojo: un termino inventado
+                # devuelve resultados que nadie puede justificar.
+                log(f"  {insumo:<16} {mercado:<9} (sin terminos en '{idioma}', se omite)")
+                continue
+
+            del_insumo: set[str] = set()
+            for termino in terminos:
+                encontrados = buscar_codigos(termino, cfg["tag"], por_pagina)
+                del_insumo.update(encontrados)
+                por_mercado[mercado] += len(encontrados)
+                log(f"  {insumo:<16} {mercado:<9} {termino[:32]:<34} -> {len(encontrados)}")
+                time.sleep(ESPERA_BUSQUEDA)
 
             # Respaldo por el insumo a secas. El catalogo suizo de OFF es fino y
             # la forma terminada devuelve 0 en la mitad de los casos medidos
@@ -310,24 +369,27 @@ def fase_busqueda(por_pagina: int) -> dict:
             # 'Tomatenpassata'). Preguntar entonces por 'Zitrone' recupera
             # productos que SI llevan el insumo, que es lo que se pide; la forma
             # terminada era el atajo para encontrarlos, no el requisito.
-            if len(encontrados) < UMBRAL_RESPALDO:
-                base = prod["base_" + idioma]
-                extra = buscar_codigos(base, cfg["tag"], por_pagina)
-                nuevos = [c for c in extra if c not in encontrados]
-                encontrados = encontrados + nuevos
-                nota = f"  (+{len(nuevos)} por respaldo '{base}')"
-                time.sleep(ESPERA_BUSQUEDA)
+            #
+            # El umbral se compara contra lo reunido por TODOS los terminos del
+            # insumo, no termino a termino: con veinte formas de producto es
+            # normal que varias vuelvan vacias sin que al insumo le falte nada.
+            if len(del_insumo) < UMBRAL_RESPALDO:
+                base = entrada_insumo["base"].get(idioma)
+                if base:
+                    extra = buscar_codigos(base, cfg["tag"], por_pagina)
+                    nuevos = [c for c in extra if c not in del_insumo]
+                    del_insumo.update(nuevos)
+                    por_mercado[mercado] += len(nuevos)
+                    log(f"  {insumo:<16} {mercado:<9} respaldo '{base}'"
+                        f"{'':<20} -> +{len(nuevos)}")
+                    time.sleep(ESPERA_BUSQUEDA)
 
-            for c in encontrados:
+            for c in del_insumo:
                 entrada = codigos.setdefault(c, {"insumos": [], "mercados": []})
-                if prod["insumo"] not in entrada["insumos"]:
-                    entrada["insumos"].append(prod["insumo"])
+                if insumo not in entrada["insumos"]:
+                    entrada["insumos"].append(insumo)
                 if mercado not in entrada["mercados"]:
                     entrada["mercados"].append(mercado)
-            por_mercado[mercado] += len(encontrados)
-            log(f"  {prod['insumo']:<12} {mercado:<9} {termino:<28} "
-                f"-> {len(encontrados)}{nota}")
-            time.sleep(ESPERA_BUSQUEDA)
 
     CODIGOS.write_text(json.dumps(codigos, ensure_ascii=False, indent=1),
                        encoding="utf-8")
@@ -386,14 +448,25 @@ def fase_fichas(codigos: dict) -> dict:
     return resueltas
 
 
-def main(dry_run: bool, por_pagina: int) -> int:
+def main(dry_run: bool, por_pagina: int, nombre_campana: str = "terminados",
+         mercados_pedidos: list[str] | None = None) -> int:
+    global TOKENS
+    _fijar_rutas(nombre_campana)
+    entradas = campana(nombre_campana)
+    TOKENS = {e["insumo"]: e["tokens"] for e in entradas}
+
+    mercados = ({m: MERCADOS[m] for m in mercados_pedidos}
+                if mercados_pedidos else MERCADOS)
+    n_terminos = sum(len(t) for e in entradas for i, t in e["terminos"].items()
+                     if any(cfg["idioma"] == i for cfg in mercados.values()))
+
     log("=" * 70)
-    log(f"OFF terminados · {len(PRODUCTOS)} productos × {len(MERCADOS)} mercados"
-        f" · page_size={por_pagina}")
+    log(f"OFF · campana '{nombre_campana}' · {len(entradas)} insumos · "
+        f"{n_terminos} terminos · mercados {list(mercados)} · page_size={por_pagina}")
     log("=" * 70)
 
     recien_buscado = not CODIGOS.exists()
-    codigos = fase_busqueda(por_pagina)
+    codigos = fase_busqueda(entradas, mercados, por_pagina)
 
     if dry_run:
         log("--dry-run: no se piden fichas ni se escribe la salida.")
@@ -410,7 +483,7 @@ def main(dry_run: bool, por_pagina: int) -> int:
 
     productos = []
     motivos = {}
-    aceptados_por_mercado = {m: 0 for m in MERCADOS}
+    aceptados_por_mercado = {m: 0 for m in mercados}
     for code, (producto, motivo) in resueltas.items():
         motivos[motivo] = motivos.get(motivo, 0) + 1
         if producto:
@@ -438,5 +511,15 @@ if __name__ == "__main__":
                     help="Solo busca y cuenta; no pide fichas ni escribe")
     ap.add_argument("--page-size", type=int, default=50,
                     help="Resultados por termino y mercado (por defecto 50)")
+    ap.add_argument("--campana", default="terminados", choices=["terminados", "canasta"],
+                    help="'terminados' (20 formas de exportacion en PE/CH/DE) o "
+                         "'canasta' (400 formas de consumo interno peruano)")
+    ap.add_argument("--mercados", default=None,
+                    help="Lista separada por comas: peru,suiza,alemania. "
+                         "Por defecto, los tres.")
     args = ap.parse_args()
-    sys.exit(main(args.dry_run, args.page_size))
+    pedidos = [m.strip() for m in args.mercados.split(",")] if args.mercados else None
+    for m in pedidos or []:
+        if m not in MERCADOS:
+            raise SystemExit(f"Mercado desconocido: {m!r}. Hay: {list(MERCADOS)}")
+    sys.exit(main(args.dry_run, args.page_size, args.campana, pedidos))

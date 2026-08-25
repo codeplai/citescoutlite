@@ -1,5 +1,5 @@
 {
-  "fecha_descarga": "2026-08-02T16:11:53.380652+00:00",
+  "fecha_descarga": "2026-08-25T01:26:28.139273+00:00",
   "version_taxonomia": "0.1",
   "descripcion": "Snapshot de datos para AgroScout MVP S2 - Datos reales de Open Food Facts + USDA",
   "insumos_piloto": [
@@ -24,12 +24,19 @@
       "tamaño_bytes": 543693,
       "sha256": "aaee7c48aa344bf288e3e15812e956dd47c1e2556edf799e7630b324d8d31d1f"
     },
+    "off_terminados.json": {
+      "descripcion": "OFF — productos terminados de 20 insumos en PE/CH/DE",
+      "origen": "search-a-licious + API v2 (etl.cargar_off_terminados)",
+      "filas": 482,
+      "tamaño_bytes": 264634,
+      "sha256": "ad91df94be370a42bb1e85c2c18db277b8a0be03223221e955d4edd072012e3d"
+    },
     "productos_merged.json": {
-      "descripcion": "OFF + USDA deduplicado por marca+nombre",
+      "descripcion": "OFF + USDA + terminados, deduplicado por marca+nombre e id_fuente",
       "origen": "TIER 3 (etl.merge_datasets)",
-      "filas": 29054,
-      "tamaño_bytes": 33768482,
-      "sha256": "e0a139ae44b2e797d7a4f80a3bca3cde74e0772d8e331a4a7821a0c26f1ea43b"
+      "filas": 29508,
+      "tamaño_bytes": 36239858,
+      "sha256": "44421f2f9b668034981e2934a8702b0fed1089447723f98bee2c6b85a2db6d23"
     },
     "ecfr_aditivos.json": {
       "descripcion": "eCFR Title 21 partes 182/184/145/146/150",
@@ -54,17 +61,17 @@
     }
   },
   "estadisticas": {
-    "total_productos": 29054,
+    "total_productos": 29508,
     "por_fuente": {
-      "OFF": 28236,
+      "OFF": 28690,
       "USDA": 818
     },
     "coverage_por_insumo": {
-      "arándano": 5877,
-      "palta": 3218,
+      "arándano": 5879,
+      "palta": 3225,
       "espárrago": 902,
-      "mango": 11124,
-      "quinua": 9127
+      "mango": 11133,
+      "quinua": 9128
     },
     "productos_sin_fecha_dato": 0,
     "productos_sin_url": 0,

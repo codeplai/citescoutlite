@@ -150,9 +150,10 @@
             </span>
             <span class="etapa-texto">{{ e.texto }}</span>
             <!--
-              La etapa en curso dice cuánto lleva EN ELLA. «Leyendo góndolas» se
-              come casi toda la espera, y sin este número la lista se queda
-              quieta minuto y medio sin nada que indique que sigue viva.
+              La etapa en curso dice cuánto lleva EN ELLA. «Redactando el
+              informe» se come casi toda la espera de un insumo nuevo, y sin
+              este número la lista se queda quieta dos minutos sin nada que
+              indique que sigue viva.
 
               Va solo aquí y NO en las etapas hechas. Ahí el único dato a mano
               sería `desde`, que es el segundo en que empezó y no lo que duró:
@@ -179,9 +180,9 @@
           <Icono nombre="info" :tamano="16" />
           <span>
             Está tardando más de lo habitual, pero la consulta sigue viva y no
-            hay que hacer nada. Las góndolas de Alemania y Suiza se leen con un
-            agente y tienen un tope de {{ TOPE_GONDOLAS_S }} s; si lo agotan, el
-            informe sale igual, sin esas dos tablas.
+            hay que hacer nada. Un insumo que se pregunta por primera vez tiene
+            que redactarse entero con el modelo, y eso son minutos; la próxima
+            vez que busques este mismo sale en segundos.
           </span>
         </p>
 
@@ -356,9 +357,13 @@ const SUGERENCIAS = [
  */
 const ETAPAS = [
   { texto: 'Interpretando las características del insumo', desde: 0 },
-  { texto: 'Barriendo OpenFoodFacts', desde: 4 },
-  { texto: 'Leyendo góndolas de Perú, Alemania y Suiza', desde: 10 },
-  { texto: 'Redactando el informe', desde: 100 },
+  { texto: 'Barriendo OpenFoodFacts', desde: 14 },
+  // Sin nombrar países: cuáles se leen depende de dos interruptores del
+  // servidor (`AGROSCOUT_GONDOLA_DE` y `_CH`) que esta pantalla no ve. Ponía
+  // «Perú, Alemania y Suiza» con las dos europeas apagadas, o sea prometiendo
+  // dos mercados que no se estaban mirando.
+  { texto: 'Leyendo góndolas', desde: 15 },
+  { texto: 'Redactando el informe', desde: 19 },
 ]
 
 /**
@@ -368,22 +373,18 @@ const ETAPAS = [
  * número la pantalla lo dice en una línea, en vez de dejar la última etapa
  * anunciando «en curso» indefinidamente.
  *
- * 130 s sale de la medida de arriba (~100 s de góndolas) más margen para las
- * etapas de modelo cuando NO están en caché. Con la caché caliente —que es lo
- * normal en una demo, porque el insumo ya se consultó— la consulta entra muy
- * por debajo.
- */
-const DURACION_ESPERADA_S = 130
-
-/**
- * El tope de las góndolas por agente, para poder nombrarlo en la explicación.
+ * El número tiene que cubrir el caso lento, no el frecuente, porque esta
+ * pantalla no puede saber en cuál está: la diferencia entre los dos es si el
+ * insumo ya se consultó antes, y eso lo decide la caché del servidor.
  *
- * Vive también en `AGROSCOUT_GONDOLA_TOPE_S` del servidor, y esta copia solo
- * sirve para redactar la frase. Si allí se cambia, aquí hay que tocarlo: la
- * alternativa —que el backend lo devuelva— pide un endpoint de configuración
- * que hoy no existe, y no vale la pena por una cifra de un texto.
+ *   insumo repetido (caché caliente) ....... 5-30 s
+ *   insumo NUEVO (las tres etapas de modelo) 135-195 s
+ *
+ * Con 130 s el aviso saltaría en casi toda consulta nueva, y un aviso que sale
+ * siempre deja de leerse. 210 s queda por encima de lo peor medido, así que
+ * cuando aparezca querrá decir algo.
  */
-const TOPE_GONDOLAS_S = 90
+const DURACION_ESPERADA_S = 210
 
 const query = ref('')
 const campo = ref(null)

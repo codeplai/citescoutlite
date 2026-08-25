@@ -1,0 +1,4037 @@
+{
+ "0041789002984": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7755139002809": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2000410516670": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271034111": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7798094220956": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "zapallo",
+   "quinua",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757796000334": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "naranja",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758011000481": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "yuca"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151221993": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750106000352": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756326000226": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271019996": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7792180005182": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8436553350019": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752091000119": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754487001946": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7755139002946": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151004787": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151004572": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271028196": {
+  "insumos": [
+   "arroz",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "ají",
+   "zapallo",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056002400": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7702024008422": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727010761": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243040570": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "quinua",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151001779": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750106002592": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8002210501201": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271021678": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750106001649": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151006255": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271034135": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750054000183": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "avena",
+   "palta",
+   "yuca",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580109882": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885022941": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757843000034": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "maíz",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7702011014344": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "palta",
+   "yuca",
+   "aceite vegetal",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8410109104950": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "77902320": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230004428": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751737001244": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7755477000512": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "avena",
+   "palta",
+   "yuca",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7755477001113": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0038000846748": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "77575777": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574003219": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790742104205": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "avena",
+   "zapallo",
+   "quinua",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790040135796": {
+  "insumos": [
+   "arroz",
+   "limón",
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271031769": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243046107": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7792180005175": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271022811": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750106002028": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885003032": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "quinua",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7622210666024": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752414000352": {
+  "insumos": [
+   "arroz",
+   "maíz",
+   "limón",
+   "ajo",
+   "palta",
+   "tomate",
+   "naranja",
+   "aceite vegetal",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7312040017034": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0038000185083": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885003995": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271020756": {
+  "insumos": [
+   "arroz",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "ají",
+   "zapallo",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151007597": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271030786": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "aceite vegetal",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271019545": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0775225552305": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580387006": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "cebolla",
+   "zanahoria",
+   "yuca",
+   "plátano",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056001632": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "yuca",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271034265": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7891962052656": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727005071": {
+  "insumos": [
+   "arroz",
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243077583": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8410010800859": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271029162": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7802215302053": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271007269": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790040135772": {
+  "insumos": [
+   "arroz",
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0724373725734": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151008112": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885007375": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "quinua",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8445290241382": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750106003872": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727003664": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752042000199": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "plátano",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7802215303241": {
+  "insumos": [
+   "arroz",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0038000846755": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580607210": {
+  "insumos": [
+   "arroz",
+   "avena",
+   "naranja",
+   "plátano",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056001472": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751737001237": {
+  "insumos": [
+   "arroz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7501008610251": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756660000074": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151008150": {
+  "insumos": [
+   "arroz",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0082184090510": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "trigo",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7791875005353": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "avena",
+   "zapallo",
+   "quinua",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7502268547004": {
+  "insumos": [
+   "arroz",
+   "yuca"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790895643866": {
+  "insumos": [
+   "arroz",
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "quinua",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750106010245": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756783000142": {
+  "insumos": [
+   "arroz",
+   "trigo",
+   "limón",
+   "avena",
+   "yuca",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727009666": {
+  "insumos": [
+   "arroz",
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750526000895": {
+  "insumos": [
+   "papa",
+   "zanahoria",
+   "yuca",
+   "plátano",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750526000147": {
+  "insumos": [
+   "papa",
+   "zanahoria",
+   "yuca",
+   "plátano",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750526002714": {
+  "insumos": [
+   "papa",
+   "cebolla",
+   "zanahoria",
+   "yuca",
+   "plátano",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243071581": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750526001854": {
+  "insumos": [
+   "papa",
+   "zanahoria",
+   "yuca",
+   "plátano",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752364789109": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751087000010": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727013366": {
+  "insumos": [
+   "papa",
+   "trigo",
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2050043779300": {
+  "insumos": [
+   "papa",
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752956735347": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752285038911": {
+  "insumos": [
+   "papa",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "tomate",
+   "ají",
+   "yuca",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751158007511": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750960003834": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750162000556": {
+  "insumos": [
+   "papa",
+   "zanahoria",
+   "tomate",
+   "yuca",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "09856585": {
+  "insumos": [
+   "papa",
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754308002909": {
+  "insumos": [
+   "papa",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "19121376": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750082136410": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752025004763": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "ajo",
+   "zanahoria",
+   "yuca",
+   "plátano",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757174006873": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243072311": {
+  "insumos": [
+   "papa",
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "naranja",
+   "aceite vegetal",
+   "plátano",
+   "zapallo",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2000000026613": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758011000047": {
+  "insumos": [
+   "trigo",
+   "avena",
+   "zapallo",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727012857": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7773401001862": {
+  "insumos": [
+   "trigo",
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885011921": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7773401002753": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7800120162212": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750168001694": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751521000255": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056001939": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727004685": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7622201717544": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885015363": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885017213": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750168001687": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056001922": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750728864523": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243037518": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243072588": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7800120162229": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727010754": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7590011205158": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885002721": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759826000574": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790040173200": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7622210854209": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727003749": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7773401001879": {
+  "insumos": [
+   "trigo",
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056001984": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7622201717537": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727004463": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759826006057": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727012741": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727007235": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751521000248": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243072571": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243286145": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "tomate",
+   "ají",
+   "zapallo",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751521667892": {
+  "insumos": [
+   "trigo",
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727004074": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7800120163134": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "avena",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751521000217": {
+  "insumos": [
+   "trigo",
+   "plátano",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759475001465": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727004166": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790040719804": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759475002882": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756771000550": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727003282": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750020541177": {
+  "insumos": [
+   "trigo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727010952": {
+  "insumos": [
+   "trigo",
+   "ajo",
+   "yuca",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751227001372": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759049000108": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0076150202199": {
+  "insumos": [
+   "maíz",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759139000186": {
+  "insumos": [
+   "maíz",
+   "limón",
+   "ajo",
+   "palta",
+   "tomate",
+   "naranja",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752112000012": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230000864": {
+  "insumos": [
+   "maíz",
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750672001890": {
+  "insumos": [
+   "maíz",
+   "limón",
+   "ajo",
+   "palta",
+   "tomate",
+   "naranja",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "17227162": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7753860000583": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8437002786441": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "1253400484751": {
+  "insumos": [
+   "maíz",
+   "limón",
+   "ajo",
+   "palta",
+   "tomate",
+   "naranja",
+   "aceite vegetal",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750182006521": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "4532200907651": {
+  "insumos": [
+   "maíz",
+   "limón",
+   "ajo",
+   "palta",
+   "tomate",
+   "naranja",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0648436122059": {
+  "insumos": [
+   "maíz",
+   "zanahoria",
+   "yuca",
+   "plátano",
+   "menestras",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751449000566": {
+  "insumos": [
+   "maíz",
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750182004879": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750960000840": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750262001712": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750182003346": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750182000819": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751130781804": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0659525279219": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7896007800001": {
+  "insumos": [
+   "maíz",
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "tomate",
+   "ají",
+   "yuca",
+   "aceite vegetal",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2345679075347": {
+  "insumos": [
+   "maíz"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243067997": {
+  "insumos": [
+   "maíz",
+   "limón",
+   "ajo",
+   "palta",
+   "tomate",
+   "naranja",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7753749003186": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230986984": {
+  "insumos": [
+   "limón",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243073547": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580106959": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7802575031051": {
+  "insumos": [
+   "limón",
+   "ajo",
+   "tomate",
+   "ají",
+   "zapallo",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580160807": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750182007269": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0095188016004": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7793360812101": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580504809": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271031080": {
+  "insumos": [
+   "limón",
+   "ajo",
+   "cebolla",
+   "avena",
+   "palta",
+   "naranja",
+   "aceite vegetal",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230003155": {
+  "insumos": [
+   "limón",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580984212": {
+  "insumos": [
+   "limón",
+   "zanahoria",
+   "tomate",
+   "naranja",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "4005900645265": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751731004081": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754487001182": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759334000301": {
+  "insumos": [
+   "limón",
+   "ajo",
+   "cebolla",
+   "palta",
+   "tomate",
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751731004364": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "tomate",
+   "naranja",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580132163": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750632006903": {
+  "insumos": [
+   "limón",
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7896058257489": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790895643835": {
+  "insumos": [
+   "limón",
+   "zanahoria",
+   "tomate",
+   "naranja",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230004442": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758599000194": {
+  "insumos": [
+   "limón",
+   "naranja",
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580509408": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2000426622204": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230867450": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580509507": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7755690000276": {
+  "insumos": [
+   "limón",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8445291081925": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7793360811401": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750031571095": {
+  "insumos": [
+   "limón",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8427640001617": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "6924269723491": {
+  "insumos": [
+   "limón",
+   "ajo",
+   "cebolla",
+   "zanahoria",
+   "avena",
+   "tomate",
+   "ají",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7509552800098": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7702133008498": {
+  "insumos": [
+   "limón",
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759215000468": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7755690000191": {
+  "insumos": [
+   "limón",
+   "avena",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230119696": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750408003242": {
+  "insumos": [
+   "limón",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8445291102842": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751158002516": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756378000137": {
+  "insumos": [
+   "limón",
+   "ajo",
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756204000461": {
+  "insumos": [
+   "limón",
+   "cebolla",
+   "zanahoria",
+   "naranja",
+   "plátano",
+   "zapallo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754972000164": {
+  "insumos": [
+   "limón",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752230867443": {
+  "insumos": [
+   "limón"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574004070": {
+  "insumos": [
+   "ajo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574003578": {
+  "insumos": [
+   "ajo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750670019231": {
+  "insumos": [
+   "ajo",
+   "tomate",
+   "ají",
+   "zapallo",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "09328006": {
+  "insumos": [
+   "ajo",
+   "cebolla",
+   "palta",
+   "tomate",
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756160000024": {
+  "insumos": [
+   "ajo",
+   "tomate",
+   "ají",
+   "zapallo",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752704109628": {
+  "insumos": [
+   "ajo",
+   "cebolla",
+   "palta",
+   "tomate",
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750481960074": {
+  "insumos": [
+   "ajo",
+   "cebolla",
+   "palta",
+   "tomate",
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574003646": {
+  "insumos": [
+   "ajo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574002045": {
+  "insumos": [
+   "ajo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574002717": {
+  "insumos": [
+   "ajo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751737000001": {
+  "insumos": [
+   "ajo",
+   "cebolla",
+   "palta",
+   "tomate",
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759173000074": {
+  "insumos": [
+   "ajo",
+   "cebolla",
+   "palta",
+   "tomate",
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574003837": {
+  "insumos": [
+   "ajo",
+   "camote"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243286152": {
+  "insumos": [
+   "ajo",
+   "tomate",
+   "ají",
+   "zapallo",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8410412130141": {
+  "insumos": [
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "ají",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "09327689": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7622300758943": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271030427": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750618000932": {
+  "insumos": [
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "ají",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750618002905": {
+  "insumos": [
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "ají",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580133160": {
+  "insumos": [
+   "cebolla",
+   "tomate",
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758982000053": {
+  "insumos": [
+   "cebolla",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750218010997": {
+  "insumos": [
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "ají",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "4005808321216": {
+  "insumos": [
+   "cebolla",
+   "zanahoria",
+   "palta",
+   "ají",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574006043": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243052665": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151007962": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885021241": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885017879": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885017305": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271013758": {
+  "insumos": [
+   "cebolla"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7622300722395": {
+  "insumos": [
+   "cebolla",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754487001687": {
+  "insumos": [
+   "cebolla",
+   "zanahoria",
+   "tomate",
+   "zapallo",
+   "menestras"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7501058642561": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752285034128": {
+  "insumos": [
+   "zanahoria",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7595335001455": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7891010035976": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7800004003099": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7702031902935": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7503032206578": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758879000029": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7891150035874": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271022361": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7613032490669": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2200201503302": {
+  "insumos": [
+   "zanahoria"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757041000041": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757050000179": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757050000186": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574005121": {
+  "insumos": [
+   "avena",
+   "naranja",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758879000326": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7771702000904": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750054001012": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7713042201375": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574004599": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885016421": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7501008055113": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271028011": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885014182": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2000000062001": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885020473": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7794000001978": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759826005395": {
+  "insumos": [
+   "avena",
+   "plátano",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056001526": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759826005135": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "2000410516656": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271030724": {
+  "insumos": [
+   "avena",
+   "naranja",
+   "plátano",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574002724": {
+  "insumos": [
+   "avena",
+   "naranja",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754159001137": {
+  "insumos": [
+   "avena",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750054000749": {
+  "insumos": [
+   "avena",
+   "zapallo"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574003462": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750960004930": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885016384": {
+  "insumos": [
+   "avena",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754159001410": {
+  "insumos": [
+   "avena"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751188001336": {
+  "insumos": [
+   "avena",
+   "palta",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056172431": {
+  "insumos": [
+   "palta",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758090000013": {
+  "insumos": [
+   "palta",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757388000049": {
+  "insumos": [
+   "palta",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7896007811311": {
+  "insumos": [
+   "palta"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757388000032": {
+  "insumos": [
+   "palta",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7755413000156": {
+  "insumos": [
+   "palta",
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752056000567": {
+  "insumos": [
+   "palta",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "11287971": {
+  "insumos": [
+   "palta",
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752992001758": {
+  "insumos": [
+   "tomate"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "77535788": {
+  "insumos": [
+   "tomate"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574004728": {
+  "insumos": [
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750526000314": {
+  "insumos": [
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754487001724": {
+  "insumos": [
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243072144": {
+  "insumos": [
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752308134408": {
+  "insumos": [
+   "ají"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580103521": {
+  "insumos": [
+   "naranja",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751271031738": {
+  "insumos": [
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151000123": {
+  "insumos": [
+   "naranja",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758149000124": {
+  "insumos": [
+   "naranja",
+   "aceite vegetal",
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752803650755": {
+  "insumos": [
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8445290323392": {
+  "insumos": [
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7790580127336": {
+  "insumos": [
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750632005258": {
+  "insumos": [
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750151000253": {
+  "insumos": [
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7753121003599": {
+  "insumos": [
+   "naranja"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "02122520": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7798180960476": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7751304239193": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7771701002558": {
+  "insumos": [
+   "aceite vegetal",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0731199055334": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750106007832": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7500435155915": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8022297144795": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752748005795": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7798008292291": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758149000117": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7793360982309": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750243052054": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750727005835": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750670244954": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0746242350533": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759699000404": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "20144685": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "8410412028523": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "18441086": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7756305001077": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750054000305": {
+  "insumos": [
+   "aceite vegetal"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758574004568": {
+  "insumos": [
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0079656050868": {
+  "insumos": [
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758587000038": {
+  "insumos": [
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7752100003179": {
+  "insumos": [
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7757823000238": {
+  "insumos": [
+   "plátano"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7758963000041": {
+  "insumos": [
+   "plátano",
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7750885289016": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7702354934255": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754363000148": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "0076150601336": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7702103001146": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7754159001243": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "10100200": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ },
+ "7759826004565": {
+  "insumos": [
+   "quinua"
+  ],
+  "mercados": [
+   "peru"
+  ]
+ }
+}
